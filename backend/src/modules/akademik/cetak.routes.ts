@@ -1,0 +1,78 @@
+import { Router, Request, Response, NextFunction } from 'express';
+import { query } from '../../config/database.js';
+import { authenticate } from '../../middleware/auth.js';
+import { requireRole } from '../../middleware/role.js';
+import { AppError } from '../../middleware/errorHandler.js';
+import { Role } from '../../types/enums.js';
+import { generateKHS, generateKRS, generateTranskrip } from './cetak.service.js';
+
+const router = Router();
+
+function schema(req: Request): string {
+  if (!req.tenant) throw new AppError(400, 'Tenant tidak terdeteksi');
+  return `"${req.tenant.schemaName}"`;
+}
+
+router.get(
+  '/khs/:mahasiswa_id',
+  authenticate,
+  requireRole(Role.MAHASISWA, Role.ADMIN, Role.AKADEMIK, Role.DOSEN),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const s = schema(req);
+      const pdf = await generateKHS(req.tenant!.schemaName, req.params.mahasiswa_id);
+      const { rows } = await query(`SELECT nim FROM ${s}.mahasiswa WHERE id = $1`, [req.params.mahasiswa_id]);
+      const nim = rows.length > 0 ? rows[0].nim : req.params.mahasiswa_id;
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="KHS_${nim}.pdf"`);
+      res.end(pdf);
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
+router.get(
+  '/krs/:mahasiswa_id',
+  authenticate,
+  requireRole(Role.MAHASISWA, Role.ADMIN, Role.AKADEMIK, Role.DOSEN),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const s = schema(req);
+      const semester = req.query.semester as string;
+      const tahunAkademik = req.query.tahun_akademik as string;
+      if (!semester || !tahunAkademik) {
+        throw new AppError(400, 'Parameter semester dan tahun_akademik wajib diisi');
+      }
+      const pdf = await generateKRS(req.tenant!.schemaName, req.params.mahasiswa_id, semester, tahunAkademik);
+      const { rows } = await query(`SELECT nim FROM ${s}.mahasiswa WHERE id = $1`, [req.params.mahasiswa_id]);
+      const nim = rows.length > 0 ? rows[0].nim : req.params.mahasiswa_id;
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="KRS_${nim}_${semester}_${tahunAkademik}.pdf"`);
+      res.end(pdf);
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
+router.get(
+  '/transkrip/:mahasiswa_id',
+  authenticate,
+  requireRole(Role.MAHASISWA, Role.ADMIN, Role.AKADEMIK, Role.DOSEN),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const s = schema(req);
+      const pdf = await generateTranskrip(req.tenant!.schemaName, req.params.mahasiswa_id);
+      const { rows } = await query(`SELECT nim FROM ${s}.mahasiswa WHERE id = $1`, [req.params.mahasiswa_id]);
+      const nim = rows.length > 0 ? rows[0].nim : req.params.mahasiswa_id;
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `attachment; filename="Transkrip_${nim}.pdf"`);
+      res.end(pdf);
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
+export default router;

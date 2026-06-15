@@ -1,0 +1,7 @@
+[Redis] Not available — running without Redis
+[MinIO] Not available — running without MinIO
+[ERROR] error: relation "undefined.mahasiswa" does not exist
+    at C:\Users\User\Downloads\campusone\backend\node_modules\pg-pool\index.js:45:11
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async query (file:///C:/Users/User/Downloads/campusone/backend/dist/config/database.js:20:20)
+    at async file:///C:/Users/User/Downloads/campusone/backend/dist/modules/akademik/mahasiswa.routes.js:24:37

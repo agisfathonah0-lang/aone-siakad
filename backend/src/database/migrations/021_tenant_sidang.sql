@@ -1,0 +1,23 @@
+CREATE TABLE IF NOT EXISTS {schema}.sidang (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  mahasiswa_id UUID NOT NULL REFERENCES {schema}.mahasiswa(id) ON DELETE CASCADE,
+  judul_skripsi VARCHAR(500) NOT NULL,
+  dosen_pembimbing_1 UUID REFERENCES {schema}.dosen(id),
+  dosen_pembimbing_2 UUID REFERENCES {schema}.dosen(id),
+  dosen_penguji_1 UUID REFERENCES {schema}.dosen(id),
+  dosen_penguji_2 UUID REFERENCES {schema}.dosen(id),
+  dosen_penguji_3 UUID REFERENCES {schema}.dosen(id),
+  tanggal DATE,
+  jam_mulai TIME,
+  jam_selesai TIME,
+  ruangan VARCHAR(100),
+  semester VARCHAR(50),
+  tahun_akademik VARCHAR(50),
+  nilai_angka DECIMAL(5,2),
+  nilai_huruf VARCHAR(5),
+  status VARCHAR(50) DEFAULT 'dijadwalkan',
+  revisi TEXT,
+  catatan TEXT,
+  created_at TIMESTAMPTZ DEFAULT NOW(),
+  updated_at TIMESTAMPTZ DEFAULT NOW()
+);
