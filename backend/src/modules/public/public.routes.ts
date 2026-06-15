@@ -186,7 +186,7 @@ router.get('/kampus/:slug', async (req: Request, res: Response, next: NextFuncti
     settingsRows.forEach((r: any) => { settings[r.key] = r.value; });
 
     const defaultLanding: Record<string, any> = {
-      active: false, showBerita: true, showPPDB: true, showProdi: true, showStruktur: true, showPrestasi: true, showPromosi: true, showPopUp: false,
+      active: true, showBerita: true, showPPDB: true, showProdi: true, showStruktur: true, showPrestasi: true, showPromosi: true, showPopUp: false,
       heroTitle: `Selamat Datang di ${t.name}`,
       heroSubtitle: `Sistem Informasi Akademik Terpadu ${t.nama_pt}`,
       primaryColor: '#10b981',

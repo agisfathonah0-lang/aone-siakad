@@ -5,10 +5,7 @@ import api from '../api/client';
 import useSEO from '../hooks/useSEO';
 import { Building2, Loader2, CheckCircle, ArrowLeft, ChevronLeft, ChevronRight, Upload, FileText, Sparkles } from 'lucide-react';
 
-interface FieldDef {
-  key: string; label: string; type: string; required: boolean; placeholder?: string;
-  options?: { value: string; label: string }[]; order: number;
-}
+interface FieldDef { key: string; label: string; type: string; required: boolean; placeholder?: string; options?: { value: string; label: string }[]; order: number; }
 interface StepDef { title: string; fields: FieldDef[]; }
 interface FormConfig { steps: StepDef[]; appearance: { bannerImage: string; formColor: string; accentColor: string; showTimeline: boolean; }; }
 interface ProdiOption { id: string; kode: string; nama: string; jenjang: string; }

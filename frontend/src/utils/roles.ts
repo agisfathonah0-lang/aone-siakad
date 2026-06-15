@@ -122,6 +122,17 @@ export const SIDEBAR_MENUS: MenuItem[] = [
     ],
   },
   {
+    label: 'Fitur AI',
+    icon: 'Sparkles',
+    roles: ['super_admin', 'rektor', 'admin', 'dekan', 'akademik', 'kaprodi', 'dosen', 'mahasiswa', 'alumni'],
+    children: [
+      { label: 'AI Chatbot', path: '/ai', icon: 'Bot', roles: ['super_admin', 'rektor', 'admin', 'dekan', 'akademik', 'kaprodi', 'dosen', 'mahasiswa', 'alumni'] },
+      { label: 'Generate RPS', path: '/ai?tab=rps', icon: 'BookOpen', roles: ['super_admin', 'admin', 'akademik'] },
+      { label: 'Plagiarism Check', path: '/ai?tab=plagiarism', icon: 'AlertTriangle', roles: ['super_admin', 'admin', 'akademik', 'dosen'] },
+      { label: 'Analytics', path: '/ai?tab=analytics', icon: 'BarChart3', roles: ['super_admin', 'admin', 'akademik'] },
+    ],
+  },
+  {
     label: 'Laporan',
     path: '/laporan',
     icon: 'BarChart3',

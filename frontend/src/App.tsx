@@ -46,6 +46,7 @@ import PKLPage from './pages/akademik/PKLPage';
 import AkreditasiPage from './pages/akademik/AkreditasiPage';
 import PerpustakaanPage from './pages/akademik/PerpustakaanPage';
 import LMSPage from './pages/akademik/LMSPage';
+import AIPage from './pages/ai/AIPage';
 import TagihanPage from './pages/keuangan/TagihanPage';
 import PembayaranPage from './pages/keuangan/PembayaranPage';
 import CMSPage from './pages/cms/CMSPage';
@@ -179,6 +180,7 @@ function AppRoutes() {
         <Route path="akreditasi" element={<AkreditasiPage />} />
         <Route path="perpustakaan" element={<PerpustakaanPage />} />
         <Route path="integrasi-lms" element={<LMSPage />} />
+        <Route path="ai" element={<AIPage />} />
         <Route path="tagihan" element={<TagihanPage />} />
         <Route path="pembayaran" element={<PembayaranPage />} />
         <Route path="cms" element={<CMSPage />} />
