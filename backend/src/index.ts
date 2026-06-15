@@ -22,6 +22,18 @@ async function autoSeed(): Promise<void> {
     [uuid(), 'admin@aone-project.com', hash, 'Super Admin', 'super_admin']
   );
   console.log('[Seed] Vendor admin: admin@aone-project.com / admin123');
+
+  const plans = [
+    { id: 'plan-basic', name: 'Basic', price: 'Rp 149.000/bulan', maxStudents: 100, maxTenants: 1, features: ['Manajemen Mahasiswa (max 100)', 'Manajemen Dosen', 'Manajemen Prodi', 'KRS Online', 'Nilai Online', 'Absensi', 'Cetak Dokumen', 'Landing Page Sederhana'], color: 'slate', popular: false },
+    { id: 'plan-pro', name: 'Pro', price: 'Rp 599.000/bulan', maxStudents: 1000, maxTenants: 1, features: ['Manajemen Mahasiswa (max 1.000)', 'Manajemen Dosen', 'Manajemen Prodi', 'KRS Online', 'Nilai Online', 'Absensi', 'Landing Page Lengkap', 'PPDB Online', 'Perwalian', 'Kalender Akademik', 'Notifikasi', 'Laporan Akademik', 'Integrasi Midtrans', 'Integrasi PDDIKTI'], color: 'blue', popular: true },
+    { id: 'plan-enterprise', name: 'Enterprise', price: 'Rp 1.499.000/bulan', maxStudents: 99999, maxTenants: 1, features: ['Manajemen Mahasiswa (Unlimited)', 'Manajemen Dosen', 'Manajemen Prodi', 'KRS Online', 'Nilai Online', 'Absensi', 'Landing Page Lengkap', 'PPDB Online', 'Perwalian', 'Kalender Akademik', 'Notifikasi', 'Laporan Akademik', 'Integrasi Midtrans', 'Feeder PDDIKTI', 'Alumni', 'OJS (Jurnal)', 'Custom Domain', 'Prioritas Support 24/7'], color: 'purple', popular: false },
+  ];
+  await query(
+    `INSERT INTO public.web_settings (setting_key, setting_value, updated_at)
+     VALUES ($1, $2, NOW()) ON CONFLICT (setting_key) DO NOTHING`,
+    ['subscription_plans', JSON.stringify(plans)]
+  );
+  console.log('[Seed] Subscription plans seeded');
 }
 
 async function bootstrap(): Promise<void> {

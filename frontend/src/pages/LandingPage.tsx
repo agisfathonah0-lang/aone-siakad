@@ -23,9 +23,9 @@ const testimonials = [
 ];
 
 const pricingPlans = [
-  { name: 'Basic', price: 'Gratis', period: 'selamanya', desc: 'Untuk institusi kecil yang ingin memulai digitalisasi.', features: ['Manajemen Akademik Dasar', '50 Mahasiswa', '1 Admin', 'KRS & KHS Online', 'Cetak Dokumen Dasar'], popular: false },
-  { name: 'Pro', price: 'Rp 299rb', period: '/bulan', desc: 'Solusi lengkap untuk institusi berkembang.', features: ['Semua Fitur Basic', '500+ Mahasiswa', '5 Admin', 'Keuangan Terintegrasi', 'Integrasi PDDIKTI', 'Landing Page Builder', 'Dukungan Prioritas'], popular: true },
-  { name: 'Enterprise', price: 'Hubungi', period: 'kami', desc: 'Untuk universitas besar dengan kebutuhan kompleks.', features: ['Semua Fitur Pro', 'Unlimited Mahasiswa', 'Admin Tak Terbatas', 'Kustomisasi Modul', 'SLA 99.9%', 'Dedicated Support', 'On-Premise Opsional'], popular: false },
+  { name: 'Basic', price: 'Rp 149rb', period: '/bulan', desc: 'Untuk institusi kecil yang ingin memulai digitalisasi.', features: ['Manajemen Akademik Dasar', '100 Mahasiswa', '3 Admin', 'KRS & KHS Online', 'Cetak Dokumen Dasar', 'Aplikasi Mobile'], popular: false },
+  { name: 'Pro', price: 'Rp 599rb', period: '/bulan', desc: 'Solusi lengkap untuk institusi berkembang.', features: ['Semua Fitur Basic', '1.000+ Mahasiswa', '10 Admin', 'Keuangan Terintegrasi', 'Integrasi PDDIKTI', 'Landing Page Builder', 'Dukungan Prioritas 24/7'], popular: true },
+  { name: 'Enterprise', price: 'Rp 1.499rb', period: '/bulan', desc: 'Untuk universitas besar dengan kebutuhan kompleks.', features: ['Semua Fitur Pro', 'Unlimited Mahasiswa', 'Admin Tak Terbatas', 'Kustomisasi Modul', 'SLA 99.9%', 'Dedicated Support', 'On-Premise Opsional'], popular: false },
 ];
 
 function Counter({ target, suffix = '' }: { target: number; suffix?: string }) {
@@ -313,9 +313,9 @@ export default function LandingPage() {
                     </li>
                   ))}
                 </ul>
-                <button onClick={() => navigate('/register')} className={`w-full py-3 rounded-xl text-sm font-bold transition-all ${plan.popular ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40 hover:scale-105' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}>
-                  {plan.name === 'Enterprise' ? 'Hubungi Sales' : 'Mulai Gratis'}
-                </button>
+                  <button onClick={() => navigate('/register')} className={`w-full py-3 rounded-xl text-sm font-bold transition-all ${plan.popular ? 'bg-gradient-to-r from-emerald-500 to-emerald-600 text-white shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40 hover:scale-105' : 'bg-slate-100 text-slate-700 hover:bg-slate-200'}`}>
+                    Mulai Gratis
+                  </button>
               </div>
             ))}
           </div>
