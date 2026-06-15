@@ -2,7 +2,7 @@ services:
   - type: web
     name: aone-siakad-api
     env: node
-    buildCommand: cd backend && npm ci --include=dev && npm run build && cd ../frontend && npm ci --include=dev && npm run build && cp -r backend/src/database/migrations backend/dist/database/migrations
+    buildCommand: cd backend && npm ci && npm run build && cd ../frontend && npm ci && npm run build && cp -r backend/src/database/migrations backend/dist/database/migrations
     startCommand: cd backend && node dist/index.js
     healthCheckPath: /api/v1/health
     envVars:
