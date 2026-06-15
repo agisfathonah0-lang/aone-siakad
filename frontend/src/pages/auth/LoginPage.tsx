@@ -53,7 +53,7 @@ export default function LoginPage() {
         </button>
 
         <div className="text-center mb-8">
-          <img src="/logo.png" alt="AONE SIAKAD" className="h-10 w-auto mx-auto mb-4" />
+          <img src="/logo.png" alt="AONE SIAKAD" className="h-12 w-auto mx-auto mb-4" />
           <h1 className={`text-2xl font-display font-extrabold tracking-tight ${isDark ? 'text-white' : 'text-slate-800'}`}>
             AONE<span className="text-emerald-500">SIAKAD</span>
           </h1>

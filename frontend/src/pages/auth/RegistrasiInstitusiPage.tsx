@@ -83,7 +83,7 @@ export default function RegistrasiInstitusiPage() {
         </button>
 
         <div className="text-center mb-6">
-          <img src="/logo.png" alt="AONE SIAKAD" className="h-10 w-auto mx-auto mb-3" />
+          <img src="/logo.png" alt="AONE SIAKAD" className="h-12 w-auto mx-auto mb-3" />
           <h1 className={`text-2xl font-display font-extrabold tracking-tight ${isDark ? 'text-white' : 'text-slate-800'}`}>
             Daftarkan <span className="text-emerald-500">Institusi</span>
           </h1>
