@@ -5,6 +5,7 @@ import { requireRole } from '../../middleware/role.js';
 import { sendSuccess, sendPaginated } from '../../middleware/response.js';
 import { AppError } from '../../middleware/errorHandler.js';
 import { Role } from '../../types/enums.js';
+import { getLmsConfig, testConnection, syncMahasiswa, syncNilai, syncJadwal } from './lms.service.js';
 
 const router = Router();
 
@@ -53,17 +54,49 @@ router.put('/config', authenticate, requireRole(Role.ADMIN, Role.AKADEMIK), asyn
   } catch (err) { next(err); }
 });
 
+router.post('/test-connection', authenticate, requireRole(Role.ADMIN, Role.AKADEMIK), async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const s = schema(req);
+    const cfg = await getLmsConfig(s);
+    if (!cfg || !cfg.base_url || !cfg.api_token) throw new AppError(400, 'Konfigurasi LMS belum lengkap');
+    const result = await testConnection(cfg);
+    sendSuccess(res, result);
+  } catch (err) { next(err); }
+});
+
 router.post('/sync/:entity', authenticate, requireRole(Role.ADMIN, Role.AKADEMIK), async (req: Request, res: Response, next: NextFunction) => {
   try {
     const s = schema(req);
     const entity = req.params.entity;
     const allowed = ['mahasiswa', 'nilai', 'jadwal'];
-    if (!allowed.includes(entity)) throw new AppError(400, 'Entity tidak valid. Gunakan: mahasiswa, nilai, jadwal');
-    await query(
-      `INSERT INTO ${s}.lms_sync_log (entity_type, action, status, records_count) VALUES ($1, $2, $3, $4)`,
-      [entity, 'sync', 'success', 0]
-    );
-    sendSuccess(res, null, `Sinkronisasi ${entity} berhasil dijalankan`);
+    if (!allowed.includes(entity)) throw new AppError(400, 'Entity tidak valid');
+
+    const cfg = await getLmsConfig(s);
+    if (!cfg || !cfg.is_active) throw new AppError(400, 'LMS belum aktif. Aktifkan di konfigurasi terlebih dahulu');
+    if (!cfg.base_url || !cfg.api_token) throw new AppError(400, 'Base URL dan API token wajib diisi');
+
+    let result: { synced: number; errors: string[] } = { synced: 0, errors: [] };
+
+    switch (entity) {
+      case 'mahasiswa':
+        result = await syncMahasiswa(s, cfg);
+        break;
+      case 'nilai':
+        result = await syncNilai(s, cfg);
+        break;
+      case 'jadwal':
+        result = await syncJadwal(s, cfg);
+        break;
+    }
+
+    sendSuccess(res, {
+      entity,
+      synced: result.synced,
+      errors: result.errors.length,
+      message: result.errors.length > 0
+        ? `Sinkron ${entity}: ${result.synced} berhasil, ${result.errors.length} gagal`
+        : `Sinkron ${entity} berhasil: ${result.synced} data`,
+    });
   } catch (err) { next(err); }
 });
 
