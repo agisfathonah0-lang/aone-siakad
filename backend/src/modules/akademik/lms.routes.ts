@@ -5,7 +5,7 @@ import { requireRole } from '../../middleware/role.js';
 import { sendSuccess, sendPaginated } from '../../middleware/response.js';
 import { AppError } from '../../middleware/errorHandler.js';
 import { Role } from '../../types/enums.js';
-import { getLmsConfig, testConnection, syncMahasiswa, syncNilai, syncJadwal } from './lms.service.js';
+import { getLmsConfig, testConnection, syncMahasiswa, syncNilai, syncJadwal, moodleFetch } from './lms.service.js';
 
 const router = Router();
 
@@ -121,6 +121,48 @@ router.get('/sync/log', authenticate, requireRole(Role.ADMIN, Role.AKADEMIK), as
     params.push(limit, offset);
     const { rows } = await query(sql, params);
     sendPaginated(res, rows, total, page, limit);
+  } catch (err) { next(err); }
+});
+
+// GET /lms/courses — Proxy: fetch all courses from Moodle
+router.get('/courses', authenticate, requireRole(Role.ADMIN, Role.AKADEMIK, Role.DOSEN), async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const s = schema(req);
+    const cfg = await getLmsConfig(s);
+    if (!cfg || !cfg.base_url || !cfg.api_token) throw new AppError(400, 'Konfigurasi LMS belum lengkap');
+    const result = await moodleFetch(cfg.base_url, cfg.api_token, 'core_course_get_courses');
+    if (!result.ok) throw new AppError(502, result.error || 'Gagal ambil data kursus');
+    sendSuccess(res, result.data);
+  } catch (err) { next(err); }
+});
+
+// GET /lms/courses/:courseid/grades — Proxy: fetch grades for a course
+router.get('/courses/:courseid/grades', authenticate, requireRole(Role.ADMIN, Role.AKADEMIK, Role.DOSEN), async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const s = schema(req);
+    const cfg = await getLmsConfig(s);
+    if (!cfg || !cfg.base_url || !cfg.api_token) throw new AppError(400, 'Konfigurasi LMS belum lengkap');
+    const result = await moodleFetch(cfg.base_url, cfg.api_token, 'gradereport_user_get_grades_table', {
+      courseid: parseInt(req.params.courseid),
+    });
+    if (!result.ok) throw new AppError(502, result.error || 'Gagal ambil data nilai');
+    sendSuccess(res, result.data);
+  } catch (err) { next(err); }
+});
+
+// GET /lms/users — Proxy: search users from Moodle by field
+router.get('/users', authenticate, requireRole(Role.ADMIN, Role.AKADEMIK, Role.DOSEN), async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const s = schema(req);
+    const cfg = await getLmsConfig(s);
+    if (!cfg || !cfg.base_url || !cfg.api_token) throw new AppError(400, 'Konfigurasi LMS belum lengkap');
+    const field = (req.query.field as string) || 'id';
+    const value = (req.query.value as string) || '';
+    const result = await moodleFetch(cfg.base_url, cfg.api_token, 'core_user_get_users_by_field', {
+      field, values: [value],
+    });
+    if (!result.ok) throw new AppError(502, result.error || 'Gagal cari user');
+    sendSuccess(res, result.data);
   } catch (err) { next(err); }
 });
 

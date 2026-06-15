@@ -12,7 +12,7 @@ export async function getLmsConfig(schema: string): Promise<LmsConfig | null> {
   return rows[0] || null;
 }
 
-async function moodleFetch(
+export async function moodleFetch(
   baseUrl: string,
   token: string,
   wsfunction: string,
@@ -54,10 +54,14 @@ async function moodleFetch(
   }
 }
 
-export async function testConnection(cfg: LmsConfig): Promise<{ ok: boolean; message: string }> {
+export async function testConnection(cfg: LmsConfig): Promise<{ ok: boolean; message: string; siteinfo?: any }> {
   const result = await moodleFetch(cfg.base_url, cfg.api_token, 'core_webservice_get_site_info');
   if (result.ok) {
-    return { ok: true, message: `Terhubung ke ${result.data.sitename || 'Moodle'} (v${result.data.version || '?'})` };
+    return {
+      ok: true,
+      message: `Terhubung ke ${result.data.sitename || 'Moodle'} (v${result.data.version || '?'})`,
+      siteinfo: result.data,
+    };
   }
   return { ok: false, message: result.error || 'Gagal terhubung' };
 }
