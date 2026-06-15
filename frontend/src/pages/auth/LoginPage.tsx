@@ -98,10 +98,6 @@ export default function LoginPage() {
             Daftar Institusi Baru →
           </button>
           <span className={isDark ? 'text-zinc-700' : 'text-slate-300'}>|</span>
-          <button onClick={() => navigate('/vendor/login')} className="text-xs hover:text-emerald-500 transition-colors flex items-center gap-1">
-            Vendor Panel
-          </button>
-          <span className={isDark ? 'text-zinc-700' : 'text-slate-300'}>|</span>
           <button onClick={() => navigate('/')} className="text-xs hover:text-emerald-500 transition-colors">
             Beranda
           </button>
