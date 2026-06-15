@@ -30,24 +30,35 @@ export async function resolveTenant(req: Request, _res: Response, next: NextFunc
     }
 
     const host = req.headers.host || '';
-    const subdomain = host.split('.')[0];
+    const cleanHost = host.split(':')[0];
 
-    if (!subdomain || subdomain === 'localhost' || subdomain === 'www' || host.includes('localhost')) {
+    if (!cleanHost || cleanHost === 'localhost' || host.includes('localhost')) {
       req.tenant = null;
       return next();
     }
 
-    const result = await query(
+    const domainResult = await query(
+      `SELECT id, slug, schema_name, name, paket, custom_domain, subscription_end_date FROM public.tenants WHERE custom_domain = $1 AND is_active = true`,
+      [cleanHost]
+    );
+
+    if (domainResult.rows.length > 0) {
+      req.tenant = mapTenant(domainResult.rows[0]);
+      return next();
+    }
+
+    const subdomain = cleanHost.split('.')[0];
+    if (!subdomain || subdomain === 'www' || subdomain === cleanHost) {
+      req.tenant = null;
+      return next();
+    }
+
+    const slugResult = await query(
       `SELECT id, slug, schema_name, name, paket, custom_domain, subscription_end_date FROM public.tenants WHERE slug = $1 AND is_active = true`,
       [subdomain]
     );
 
-    if (result.rows.length === 0) {
-      req.tenant = null;
-      return next();
-    }
-
-    req.tenant = mapTenant(result.rows[0]);
+    req.tenant = slugResult.rows.length > 0 ? mapTenant(slugResult.rows[0]) : null;
     next();
   } catch (err) {
     next(err);
