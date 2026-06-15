@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { LogIn, Sun, Moon } from 'lucide-react';
 import { useTheme } from '../../context/ThemeContext';
@@ -8,12 +8,20 @@ export default function LoginPage() {
   const { login } = useAuth();
   const { theme, toggle } = useTheme();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const tenantParam = searchParams.get('tenant');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [tenantSlug, setTenantSlug] = useState('');
+  const [tenantSlug, setTenantSlug] = useState(tenantParam || '');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const isDark = theme === 'dark';
+
+  useEffect(() => {
+    if (!tenantParam) {
+      navigate('/', { replace: true });
+    }
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
