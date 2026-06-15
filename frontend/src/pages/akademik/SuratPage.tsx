@@ -6,6 +6,7 @@ import Modal from '../../components/ui/Modal';
 import Badge from '../../components/ui/Badge';
 import { Plus, Eye, Pencil, Trash2, Search, Mail, Send, FileOutput, FileText, CheckCircle, XCircle, Clock, FolderOpen } from 'lucide-react';
 import type { SuratKategori, SuratMasuk, SuratKeluar, SuratPengajuan } from '../../types';
+import FileUpload from '../../components/ui/FileUpload';
 
 const masukStatusBadge: Record<string, 'success' | 'info' | 'default'> = { diterima: 'success', didisposisikan: 'info', selesai: 'default' };
 const masukStatusLabel: Record<string, string> = { diterima: 'Diterima', didisposisikan: 'Didisposisikan', selesai: 'Selesai' };
@@ -424,7 +425,7 @@ export default function SuratPage() {
             </div>
             <div>
               <label className="text-xs font-semibold text-slate-500 dark:text-zinc-400 block mb-1">File URL</label>
-              <input value={masukForm.file_url} onChange={e => setMasukForm({ ...masukForm, file_url: e.target.value })} className="input-field text-sm" placeholder="URL file surat" />
+              <FileUpload value={masukForm.file_url} onChange={(v) => setMasukForm({ ...masukForm, file_url: v })} label="File Surat" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" />
             </div>
           </div>
           <div className="grid grid-cols-2 gap-3">
@@ -559,7 +560,7 @@ export default function SuratPage() {
             </div>
             <div>
               <label className="text-xs font-semibold text-slate-500 dark:text-zinc-400 block mb-1">File URL</label>
-              <input value={keluarForm.file_url} onChange={e => setKeluarForm({ ...keluarForm, file_url: e.target.value })} className="input-field text-sm" placeholder="URL file surat" />
+              <FileUpload value={keluarForm.file_url} onChange={(v) => setKeluarForm({ ...keluarForm, file_url: v })} label="File Surat" accept=".pdf,.jpg,.jpeg,.png,.doc,.docx" />
             </div>
           </div>
           <div className="grid grid-cols-3 gap-3">

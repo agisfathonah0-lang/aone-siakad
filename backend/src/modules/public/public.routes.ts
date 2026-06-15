@@ -2,8 +2,44 @@ import { Router, Request, Response, NextFunction } from 'express';
 import { query } from '../../config/database.js';
 import { sendSuccess } from '../../middleware/response.js';
 import { AppError } from '../../middleware/errorHandler.js';
+import { config } from '../../config/index.js';
 
 const router = Router();
+
+// Resolve tenant from any hostname (subdomain or custom domain)
+router.get('/resolve-host', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const host = (req.query.host as string) || req.headers.host || '';
+    const cleanHost = host.split(':')[0];
+
+    if (!cleanHost || cleanHost === 'localhost') {
+      return sendSuccess(res, { tenant: null });
+    }
+
+    // 1. Check custom_domain
+    const domainResult = await query(
+      `SELECT id, slug, schema_name, name, paket, custom_domain, subscription_end_date FROM public.tenants WHERE custom_domain = $1 AND is_active = true`,
+      [cleanHost]
+    );
+    if (domainResult.rows.length > 0) {
+      return sendSuccess(res, { tenant: { id: domainResult.rows[0].id, slug: domainResult.rows[0].slug, name: domainResult.rows[0].name } });
+    }
+
+    // 2. Check subdomain as slug (skip www and root domain)
+    const parts = cleanHost.split('.');
+    if (parts.length >= 3 && parts[0] !== 'www') {
+      const slugResult = await query(
+        `SELECT id, slug, schema_name, name FROM public.tenants WHERE slug = $1 AND is_active = true`,
+        [parts[0]]
+      );
+      if (slugResult.rows.length > 0) {
+        return sendSuccess(res, { tenant: { id: slugResult.rows[0].id, slug: slugResult.rows[0].slug, name: slugResult.rows[0].name } });
+      }
+    }
+
+    sendSuccess(res, { tenant: null });
+  } catch (err) { next(err); }
+});
 
 const defaultLandingConfig = {
   hero: {

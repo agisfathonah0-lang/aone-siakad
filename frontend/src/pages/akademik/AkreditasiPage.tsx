@@ -5,6 +5,7 @@ import Modal from '../../components/ui/Modal';
 import Badge from '../../components/ui/Badge';
 import { Plus, Pencil, Trash2, Award, Eye, Upload, ListChecks, RefreshCw } from 'lucide-react';
 import type { Akreditasi, StandarAkreditasi, DokumenAkreditasi } from '../../types';
+import FileUpload from '../../components/ui/FileUpload';
 
 const peringkatColors: Record<string, string> = {
   Unggul: 'success',
@@ -319,7 +320,7 @@ function AkreditasiTab() {
           </div>
           <div>
             <label className="text-xs font-semibold text-slate-500 dark:text-zinc-400 block mb-1.5">File SK (URL)</label>
-            <input value={form.file_sk} onChange={(e) => setForm({ ...form, file_sk: e.target.value })} className="input-field" placeholder="https://..." />
+            <FileUpload value={form.file_sk} onChange={(v) => setForm({ ...form, file_sk: v })} label="File SK Akreditasi" accept=".pdf" />
           </div>
           <label className="flex items-center gap-2 cursor-pointer">
             <input type="checkbox" checked={form.is_current} onChange={(e) => setForm({ ...form, is_current: e.target.checked })} className="rounded border-slate-300 dark:border-zinc-600" />
@@ -396,7 +397,7 @@ function AkreditasiTab() {
           </div>
           <div>
             <label className="text-xs font-semibold text-slate-500 dark:text-zinc-400 block mb-1.5">File URL</label>
-            <input value={dokForm.file_url} onChange={(e) => setDokForm({ ...dokForm, file_url: e.target.value })} className="input-field" placeholder="https://..." />
+            <FileUpload value={dokForm.file_url} onChange={(v) => setDokForm({ ...dokForm, file_url: v })} label="File Dokumen" accept=".pdf,.doc,.docx,.xls,.xlsx" />
           </div>
           <div>
             <label className="text-xs font-semibold text-slate-500 dark:text-zinc-400 block mb-1.5">Status</label>

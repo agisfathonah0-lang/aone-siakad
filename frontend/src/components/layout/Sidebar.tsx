@@ -106,10 +106,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
       <aside className={`fixed top-0 left-0 z-50 h-full w-64 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl transform transition-transform duration-200 lg:translate-x-0 lg:static lg:z-auto shadow-lg shadow-black/5 ${open ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="flex items-center justify-between h-16 px-5">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-700 flex items-center justify-center shadow-lg shadow-emerald-500/20">
-              <span className="text-white font-bold text-[11px]">A1</span>
-            </div>
-            <span className="font-bold text-sm tracking-tight">AONE SIAKAD</span>
+            <img src="/logo.png" alt="AONE SIAKAD" className="h-7 w-auto" />
           </div>
           <div className="flex items-center gap-1">
             <ThemeToggle />

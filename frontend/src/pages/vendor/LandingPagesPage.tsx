@@ -3,6 +3,7 @@ import { get, put } from '../../api/client';
 import DataTable from '../../components/ui/DataTable';
 import Modal from '../../components/ui/Modal';
 import { Globe, Search, ToggleLeft, ToggleRight, Plus, Trash2, ChevronDown, ChevronUp } from 'lucide-react';
+import FileUpload from '../../components/ui/FileUpload';
 
 interface LandingPage {
   active: boolean; seoTitle: string; seoDescription: string;
@@ -170,7 +171,7 @@ export default function LandingPagesPage() {
               </div>
               {form.heroImages.map((url, i) => (
                 <div key={i} className="flex items-center gap-1 mb-1">
-                  <input value={url} onChange={e => { const a = [...form.heroImages]; a[i] = e.target.value; setForm({ ...form, heroImages: a }); }} className="input-field flex-1 text-[11px]" placeholder="https://..." />
+                  <FileUpload value={url} onChange={(v) => { const a = [...form.heroImages]; a[i] = v; setForm({ ...form, heroImages: a }); }} accept="image/*" />
                   <button type="button" onClick={() => setForm({ ...form, heroImages: form.heroImages.filter((_, idx) => idx !== i) })} className="p-1 text-red-400"><Trash2 size={12} /></button>
                 </div>
               ))}

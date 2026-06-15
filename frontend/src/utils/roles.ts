@@ -101,6 +101,7 @@ export const SIDEBAR_MENUS: MenuItem[] = [
       { label: 'Berita', path: '/berita', icon: 'Newspaper', roles: ['super_admin', 'rektor', 'admin', 'dekan', 'akademik', 'kaprodi'] },
       { label: 'Kalender', path: '/kalender', icon: 'Calendar', roles: ['super_admin', 'rektor', 'admin', 'dekan', 'akademik', 'kaprodi', 'dosen', 'mahasiswa'] },
       { label: 'Notifikasi', path: '/notifikasi', icon: 'Bell', roles: ['super_admin', 'rektor', 'admin', 'dekan', 'akademik', 'kaprodi', 'dosen', 'mahasiswa'] },
+      { label: 'CCTV', path: '/cctv', icon: 'Cctv', roles: ['super_admin', 'rektor', 'admin', 'dekan', 'akademik', 'kaprodi'] },
     ],
   },
   {
@@ -109,7 +110,10 @@ export const SIDEBAR_MENUS: MenuItem[] = [
     roles: ['super_admin', 'rektor', 'admin', 'dekan', 'akademik', 'kaprodi'],
     children: [
       { label: 'CMS', path: '/cms', icon: 'Palette', roles: ['super_admin', 'rektor', 'admin', 'dekan', 'akademik', 'kaprodi'] },
-      { label: 'PPDB', path: '/ppdb', icon: 'DoorOpen', roles: ['super_admin', 'rektor', 'admin', 'dekan', 'akademik', 'kaprodi'] },
+      { label: 'PPDB', icon: 'DoorOpen', roles: ['super_admin', 'rektor', 'admin', 'dekan', 'akademik', 'kaprodi'], children: [
+        { label: 'Pendaftar', path: '/ppdb', icon: 'List', roles: ['super_admin', 'rektor', 'admin', 'dekan', 'akademik', 'kaprodi'] },
+        { label: 'Form Config', path: '/ppdb/config', icon: 'Settings', roles: ['super_admin', 'admin'] },
+      ] },
       { label: 'OJS', path: '/ojs', icon: 'BookOpen', roles: ['super_admin', 'rektor', 'admin', 'dekan', 'akademik', 'kaprodi'] },
       { label: 'PDDIKTI', path: '/pddikti', icon: 'Database', roles: ['super_admin', 'rektor', 'admin', 'dekan', 'akademik', 'kaprodi'] },
       { label: 'Alumni', path: '/alumni', icon: 'Users', roles: ['super_admin', 'rektor', 'admin', 'dekan', 'akademik', 'kaprodi', 'alumni'] },

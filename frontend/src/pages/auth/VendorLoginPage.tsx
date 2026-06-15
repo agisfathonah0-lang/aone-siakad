@@ -43,9 +43,7 @@ export default function VendorLoginPage() {
         </button>
 
         <div className="text-center mb-8">
-          <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4 ${isDark ? 'bg-gradient-to-br from-emerald-400 to-emerald-600 shadow-lg shadow-emerald-500/25' : 'bg-gradient-to-br from-emerald-500 to-emerald-700 shadow-lg shadow-emerald-500/30'}`}>
-            <Shield className="w-7 h-7 text-white" />
-          </div>
+          <img src="/logo.png" alt="AONE SIAKAD" className="h-10 w-auto mx-auto mb-4" />
           <h1 className={`text-2xl font-display font-extrabold tracking-tight ${isDark ? 'text-white' : 'text-slate-800'}`}>
             Vendor<span className="text-emerald-500">Panel</span>
           </h1>

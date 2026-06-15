@@ -8,6 +8,7 @@ import { config } from './config/index.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 import { resolveTenant } from './middleware/resolveTenant.js';
+import { authenticate } from './middleware/auth.js';
 import { campusGuard } from './middleware/campusGuard.js';
 import { errorHandler } from './middleware/errorHandler.js';
 import { sendSuccess } from './middleware/response.js';
@@ -42,6 +43,7 @@ import pembayaranRoutes from './modules/keuangan/pembayaran.routes.js';
 import midtransRoutes from './modules/keuangan/midtrans.routes.js';
 import cmsRoutes from './modules/cms/sections.routes.js';
 import ppdbRoutes from './modules/ppdb/pendaftaran.routes.js';
+import ppdbConfigRoutes from './modules/akademik/ppdb-config.routes.js';
 import ojsRoutes from './modules/ojs/ojs.routes.js';
 import pddiktiRoutes from './modules/pddikti/pddikti.routes.js';
 import alumniRoutes from './modules/alumni/alumni.routes.js';
@@ -58,12 +60,14 @@ import pklRoutes from './modules/akademik/pkl.routes.js';
 import sidangRoutes from './modules/akademik/sidang.routes.js';
 import kknRoutes from './modules/akademik/kkn.routes.js';
 import seminarRoutes from './modules/akademik/seminar.routes.js';
+import campusCctvRoutes from './modules/akademik/cctv.routes.js';
 import publicRoutes from './modules/public/public.routes.js';
 import vendorLandingRoutes from './modules/vendor/landing.routes.js';
 import vendorPlansRoutes from './modules/vendor/plans.routes.js';
 import vendorUsersRoutes from './modules/vendor/vendor-users.routes.js';
 import vendorAuditRoutes from './modules/vendor/audit.routes.js';
 import vendorMonitorRoutes from './modules/vendor/monitor.routes.js';
+import uploadRoutes from './modules/upload/upload.routes.js';
 
 const app = express();
 
@@ -105,6 +109,7 @@ app.use(`${config.apiPrefix}/vendor/plans`, vendorPlansRoutes);
 app.use(`${config.apiPrefix}/vendor/users`, vendorUsersRoutes);
 app.use(`${config.apiPrefix}/vendor/audit`, vendorAuditRoutes);
 app.use(`${config.apiPrefix}/vendor/monitor`, vendorMonitorRoutes);
+app.use(`${config.apiPrefix}/upload`, authenticate, uploadRoutes);
 
 const featureRoutes: [string, any][] = [
   ['/akademik/prodi', prodiRoutes],
@@ -135,6 +140,7 @@ const featureRoutes: [string, any][] = [
   ['/keuangan/midtrans', midtransRoutes],
   ['/cms', cmsRoutes],
   ['/ppdb', ppdbRoutes],
+  ['/campus/ppdb-config', ppdbConfigRoutes],
   ['/ojs', ojsRoutes],
   ['/pddikti', pddiktiRoutes],
   ['/alumni', alumniRoutes],
@@ -146,6 +152,7 @@ const featureRoutes: [string, any][] = [
   ['/akademik/sidang', sidangRoutes],
   ['/akademik/kkn', kknRoutes],
   ['/akademik/seminar', seminarRoutes],
+  ['/campus/cctv', campusCctvRoutes],
 ];
 
 featureRoutes.forEach(([path, router]) => {

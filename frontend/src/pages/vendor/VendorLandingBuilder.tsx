@@ -81,7 +81,7 @@ const defaultConfig = {
       { title: 'Kontak', items: ['+62 21 1234 5678', 'info@aoneproject.id', 'Jakarta, Indonesia', 'Senin-Jumat 08:00-17:00'] },
     ],
   },
-  ppdbBanner: { text: 'Daftarkan kampus Anda sekarang. Gratis demo & konsultasi selama 30 hari.', show: true },
+  ppdbBanner: { text: 'Daftarkan kampus Anda sekarang. Demo trial 1 hari, approval 1x24 jam.', show: true },
 };
 
 function SectionCard({ title, children, defaultOpen = false }: { title: string; children: React.ReactNode; defaultOpen?: boolean }) {

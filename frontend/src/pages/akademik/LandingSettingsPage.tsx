@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { get, put } from '../../api/client';
 import { Globe, ExternalLink, ToggleLeft, ToggleRight, Loader2, Plus, Trash2, GripVertical, Award, Users as UsersIcon, BookOpen, GraduationCap, Target, Eye, Trophy, School, ChevronDown, ChevronUp } from 'lucide-react';
+import FileUpload from '../../components/ui/FileUpload';
 
 type PrestasiItem = { icon: string; title: string; desc: string };
 type PromosiItem = { title: string; description: string; image: string; link: string };
@@ -157,7 +158,7 @@ export default function LandingSettingsPage() {
             <div className="space-y-2">
               {form.heroImages.map((url, i) => (
                 <div key={i} className="flex items-center gap-2">
-                  <input value={url} onChange={e => updHeroImage(i, e.target.value)} className="input-field flex-1 text-[11px]" placeholder="https://..." />
+                  <FileUpload value={url} onChange={(v) => updHeroImage(i, v)} accept="image/*" />
                   <button type="button" onClick={() => delHeroImage(i)} className="p-1.5 text-red-400 hover:text-red-300"><Trash2 size={13} /></button>
                 </div>
               ))}
@@ -191,10 +192,7 @@ export default function LandingSettingsPage() {
                 <label className="text-xs font-semibold text-slate-500 dark:text-zinc-400 block mb-1.5">Jabatan</label>
                 <input value={form.sambutan.jabatan} onChange={e => setForm({ ...form, sambutan: { ...form.sambutan, jabatan: e.target.value } })} className="input-field" />
               </div>
-              <div>
-                <label className="text-xs font-semibold text-slate-500 dark:text-zinc-400 block mb-1.5">Foto (URL)</label>
-                <input value={form.sambutan.image} onChange={e => setForm({ ...form, sambutan: { ...form.sambutan, image: e.target.value } })} className="input-field" placeholder="https://..." />
-              </div>
+              <FileUpload value={form.sambutan.image} onChange={(v) => setForm({ ...form, sambutan: { ...form.sambutan, image: v } })} accept="image/*" label="Gambar" />
             </>
           )}
         </SectionCard>
@@ -254,8 +252,8 @@ export default function LandingSettingsPage() {
                   <input value={p.description} onChange={e => updPromosi(i, 'description', e.target.value)} className="input-field text-xs" />
                 </div>
                 <div>
-                  <label className="text-[10px] text-zinc-500">Gambar (URL)</label>
-                  <input value={p.image} onChange={e => updPromosi(i, 'image', e.target.value)} className="input-field text-xs" placeholder="https://..." />
+                  <label className="text-[10px] text-zinc-500">Gambar</label>
+                  <FileUpload value={p.image} onChange={(v) => updPromosi(i, 'image', v)} accept="image/*" />
                 </div>
               </div>
             ))}
@@ -285,7 +283,7 @@ export default function LandingSettingsPage() {
                 </div>
                 <div>
                   <label className="text-[10px] text-zinc-500">Foto (URL)</label>
-                  <input value={s.image} onChange={e => updStruktur(i, 'image', e.target.value)} className="input-field text-xs" placeholder="https://..." />
+                  <FileUpload value={s.image} onChange={(v) => updStruktur(i, 'image', v)} accept="image/*" />
                 </div>
               </div>
             ))}
@@ -312,10 +310,7 @@ export default function LandingSettingsPage() {
                 <label className="text-xs font-semibold text-slate-500 dark:text-zinc-400 block mb-1.5">Konten Popup</label>
                 <textarea value={form.popUp.content} onChange={e => setForm({ ...form, popUp: { ...form.popUp, content: e.target.value } })} className="input-field h-16 resize-none" />
               </div>
-              <div>
-                <label className="text-xs font-semibold text-slate-500 dark:text-zinc-400 block mb-1.5">Gambar (URL)</label>
-                <input value={form.popUp.image} onChange={e => setForm({ ...form, popUp: { ...form.popUp, image: e.target.value } })} className="input-field" placeholder="https://..." />
-              </div>
+              <FileUpload value={form.popUp.image} onChange={(v) => setForm({ ...form, popUp: { ...form.popUp, image: v } })} accept="image/*" label="Gambar" />
               <div className="grid grid-cols-2 gap-2">
                 <div>
                   <label className="text-xs font-semibold text-slate-500 dark:text-zinc-400 block mb-1.5">Tombol Text</label>

@@ -3,6 +3,7 @@ import { get, post, put, patch, del } from '../../api/client';
 import DataTable from '../../components/ui/DataTable';
 import Modal from '../../components/ui/Modal';
 import { Plus, Search, Edit, Trash2, Eye, EyeOff, CheckCircle, XCircle } from 'lucide-react';
+import FileUpload from '../../components/ui/FileUpload';
 
 interface Berita {
   id: string;
@@ -138,8 +139,8 @@ export default function BeritaPage() {
               <input value={form.penulis} onChange={(e) => setForm({ ...form, penulis: e.target.value })} className="input-field" placeholder="Nama penulis" />
             </div>
             <div>
-              <label className="text-xs font-semibold text-slate-500 dark:text-zinc-400 block mb-1.5">Gambar URL</label>
-              <input value={form.gambar} onChange={(e) => setForm({ ...form, gambar: e.target.value })} className="input-field" placeholder="https://..." />
+              <label className="text-xs font-semibold text-slate-500 dark:text-zinc-400 block mb-1.5">Gambar</label>
+              <FileUpload value={form.gambar} onChange={(v) => setForm({ ...form, gambar: v })} label="Gambar" />
             </div>
           </div>
           <div>

@@ -6,6 +6,7 @@ import Modal from '../../components/ui/Modal';
 import Badge from '../../components/ui/Badge';
 import { Briefcase, Plus, Pencil, Trash2, Award, ClipboardList, CheckCircle, Search } from 'lucide-react';
 import type { PKL, PKLLogbook, Mahasiswa, Dosen } from '../../types';
+import FileUpload from '../../components/ui/FileUpload';
 
 const statusBadge: Record<string, 'info' | 'success' | 'default' | 'danger'> = {
   direncanakan: 'info',
@@ -398,8 +399,8 @@ export default function PKLPage() {
             <textarea rows={4} value={logbookForm.kegiatan} onChange={e => setLogbookForm({ ...logbookForm, kegiatan: e.target.value })} required className="input-field text-sm" placeholder="Deskripsi kegiatan" />
           </div>
           <div>
-            <label className="text-xs font-semibold text-slate-500 dark:text-zinc-400 block mb-1">Dokumentasi URL</label>
-            <input value={logbookForm.dokumentasi_url} onChange={e => setLogbookForm({ ...logbookForm, dokumentasi_url: e.target.value })} className="input-field text-sm" placeholder="URL dokumentasi" />
+            <label className="text-xs font-semibold text-slate-500 dark:text-zinc-400 block mb-1">Dokumentasi</label>
+            <FileUpload value={logbookForm.dokumentasi_url} onChange={(v) => setLogbookForm({ ...logbookForm, dokumentasi_url: v })} label="Dokumentasi" />
           </div>
           <div className="flex justify-end gap-2 pt-2">
             <button type="button" onClick={() => setLogbookModal(false)} className="btn-secondary text-xs">Batal</button>

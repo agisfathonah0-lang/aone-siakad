@@ -49,14 +49,14 @@ export const config = {
     refreshExpires: process.env.JWT_REFRESH_EXPIRES || '30d',
   },
 
-  minio: {
-    endpoint: process.env.MINIO_ENDPOINT || 'localhost',
-    port: parseInt(process.env.MINIO_PORT || '9000', 10),
-    accessKey: process.env.MINIO_ACCESS_KEY || 'minioadmin',
-    secretKey: process.env.MINIO_SECRET_KEY || 'minioadmin',
-    bucketDocuments: process.env.MINIO_BUCKET_DOCUMENTS || 'aone-documents',
-    bucketAssets: process.env.MINIO_BUCKET_ASSETS || 'aone-assets',
-    useSSL: process.env.MINIO_USE_SSL === 'true',
+  storage: {
+    endpoint: process.env.S3_ENDPOINT || 'http://localhost:9000',
+    region: process.env.S3_REGION || 'auto',
+    accessKey: process.env.S3_ACCESS_KEY || 'minioadmin',
+    secretKey: process.env.S3_SECRET_KEY || 'minioadmin',
+    bucket: process.env.S3_BUCKET || 'aone-assets',
+    publicUrl: process.env.S3_PUBLIC_URL || 'http://localhost:9000/aone-assets',
+    forcePathStyle: process.env.S3_FORCE_PATH_STYLE !== 'false',
   },
 
   midtrans: {

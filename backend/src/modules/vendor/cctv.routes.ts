@@ -32,15 +32,16 @@ router.post(
     body('name').notEmpty().withMessage('Nama kamera wajib diisi'),
     body('location').notEmpty().withMessage('Lokasi wajib diisi'),
     body('rtsp_url').optional().isString(),
+    body('snapshot_url').optional().isString(),
     body('tenant_id').optional().isUUID(),
     validate,
   ],
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { name, location, rtsp_url, tenant_id } = req.body;
+      const { name, location, rtsp_url, snapshot_url, tenant_id } = req.body;
       const { rows } = await query(
-        `INSERT INTO public.cctv_cameras (name, location, rtsp_url, tenant_id) VALUES ($1, $2, $3, $4) RETURNING *`,
-        [name, location, rtsp_url || '', tenant_id || null]
+        `INSERT INTO public.cctv_cameras (name, location, rtsp_url, snapshot_url, tenant_id) VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+        [name, location, rtsp_url || '', snapshot_url || '', tenant_id || null]
       );
       sendSuccess(res, rows[0], 'Kamera berhasil ditambahkan', 201);
     } catch (err) { next(err); }
@@ -55,17 +56,19 @@ router.put(
     body('name').optional().notEmpty(),
     body('location').optional().notEmpty(),
     body('rtsp_url').optional(),
+    body('snapshot_url').optional(),
     body('status').optional().isIn(['Aktif', 'Nonaktif']),
     validate,
   ],
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { name, location, rtsp_url, status } = req.body;
+      const { name, location, rtsp_url, snapshot_url, status } = req.body;
       const sets: string[] = [];
       const params: any[] = [];
       if (name !== undefined) { sets.push('name = $' + (params.length + 1)); params.push(name); }
       if (location !== undefined) { sets.push('location = $' + (params.length + 1)); params.push(location); }
       if (rtsp_url !== undefined) { sets.push('rtsp_url = $' + (params.length + 1)); params.push(rtsp_url); }
+      if (snapshot_url !== undefined) { sets.push('snapshot_url = $' + (params.length + 1)); params.push(snapshot_url); }
       if (status !== undefined) { sets.push('status = $' + (params.length + 1)); params.push(status); }
       if (sets.length === 0) throw new AppError(400, 'Tidak ada field yang diupdate');
       params.push(req.params.id);

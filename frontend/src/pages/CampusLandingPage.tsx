@@ -47,6 +47,7 @@ function CampusLandingPage({ slug }: { slug: string }) {
     get<CampusData>(`/public/kampus/${slug}`)
       .then(d => {
         setData(d);
+        localStorage.setItem('aone_tenant_slug', slug);
         document.title = d.landingPage.seoTitle || d.tenant.name;
         const meta = document.querySelector('meta[name="description"]');
         if (meta) meta.setAttribute('content', d.landingPage.seoDescription);

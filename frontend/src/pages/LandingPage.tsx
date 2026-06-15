@@ -96,8 +96,7 @@ export default function LandingPage() {
       <header className={`sticky top-0 z-50 transition-all duration-300 ${scrolled ? 'bg-white/90 backdrop-blur-xl border-b border-slate-200 shadow-sm' : 'bg-white'}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600 flex items-center justify-center font-black text-white text-base shadow-lg shadow-emerald-500/25">A</div>
-            <span className="font-display font-extrabold tracking-tight text-lg text-slate-900">AONE<span className="text-emerald-600">SIAKAD</span></span>
+            <img src="/logo.png" alt="AONE SIAKAD" className="h-8 w-auto" />
           </div>
           <nav className="hidden lg:flex items-center gap-1">
             {['Beranda', 'Fitur', 'Testimonial', 'Harga'].map(item => (
@@ -190,7 +189,7 @@ export default function LandingPage() {
                       <span className="text-sm font-bold text-emerald-700">Promo PPDB 2026/2027</span>
                       <GraduationCap className="w-4 h-4 text-emerald-500" />
                     </div>
-                    <div className="text-[11px] text-emerald-600/70 mb-2">Demo gratis & konsultasi selama 30 hari</div>
+                    <div className="text-[11px] text-emerald-600/70 mb-2">Demo trial 1 hari, approval 1x24 jam</div>
                     <button onClick={() => navigate('/register')} className="w-full py-2 bg-gradient-to-r from-emerald-500 to-emerald-600 rounded-xl text-xs font-bold text-white shadow-lg shadow-emerald-500/20 hover:shadow-emerald-500/40 transition-all">
                       Daftar Sekarang
                     </button>
@@ -347,8 +346,7 @@ export default function LandingPage() {
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
             <div className="col-span-2 lg:col-span-1">
               <div className="flex items-center gap-3 mb-4">
-                <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-400 to-emerald-600 flex items-center justify-center font-black text-white">A</div>
-                <span className="font-bold text-lg">AONE SIAKAD</span>
+                <img src="/logo.png" alt="AONE SIAKAD" className="h-8 w-auto brightness-0 invert" />
               </div>
               <p className="text-sm text-slate-400 leading-relaxed">Platform SIAKAD all-in-one untuk universitas Indonesia. Dipercaya 100+ kampus mitra di seluruh Indonesia.</p>
             </div>

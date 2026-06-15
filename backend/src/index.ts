@@ -3,8 +3,8 @@ import app from './app.js';
 import { config } from './config/index.js';
 import { pool, query } from './config/database.js';
 import { getRedis, closeRedis } from './config/redis.js';
-import { ensureBuckets } from './config/minio.js';
 import { runPublicMigrations } from './database/migrate-public.js';
+import { ensureBucket } from './config/storage.js';
 import { initWebSocket } from './services/websocket.js';
 import bcrypt from 'bcryptjs';
 import { v4 as uuid } from 'uuid';
@@ -52,10 +52,10 @@ async function bootstrap(): Promise<void> {
     }
 
     try {
-      await ensureBuckets();
-      console.log('[MinIO] Buckets ready');
+      await ensureBucket();
+      console.log('[Storage] Bucket ready');
     } catch {
-      console.warn('[MinIO] Not available — running without MinIO');
+      console.warn('[Storage] Object storage not available — file uploads disabled');
     }
 
     const server = http.createServer(app);

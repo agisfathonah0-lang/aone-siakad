@@ -78,7 +78,7 @@ router.post(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const schema = s(req);
-      const { nama, email, password, no_hp, program_studi_id, jalur_pendaftaran, tempat_lahir, tanggal_lahir, jenis_kelamin, alamat, asal_sekolah } = req.body;
+      const { nama, email, password, no_hp, program_studi_id, jalur_pendaftaran, tempat_lahir, tanggal_lahir, jenis_kelamin, alamat, ...extraFields } = req.body;
 
       const { rows: exist } = await query(
         `SELECT id FROM ${schema}.users WHERE email = $1`,
@@ -101,7 +101,7 @@ router.post(
         [userId, email, passwordHash, 'calon_mahasiswa', nama, no_hp, tempat_lahir || null, tanggal_lahir || null, jenis_kelamin || null, alamat || null]
       );
 
-      const dataPendaftar = { asal_sekolah: asal_sekolah || null };
+      const dataPendaftar = { asal_sekolah: extraFields.asal_sekolah || null, ...extraFields };
 
       await query(
         `INSERT INTO ${schema}.ppdb_pendaftar (id, user_id, nomor_daftar, nama, program_studi_id, jalur_pendaftaran, data_pendaftar)

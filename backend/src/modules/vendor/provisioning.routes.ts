@@ -135,7 +135,18 @@ router.patch(
   requireRole(Role.SUPER_ADMIN),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { rows } = await query('UPDATE public.tenants SET is_active = NOT is_active, updated_at = NOW() WHERE id = $1 RETURNING id, slug, is_active', [req.params.id]);
+      const { rows } = await query(
+        `UPDATE public.tenants
+         SET is_active = NOT is_active,
+             subscription_end_date = CASE
+               WHEN is_active = false AND (subscription_end_date IS NULL OR subscription_end_date < NOW()) THEN NOW() + INTERVAL '1 day'
+               ELSE subscription_end_date
+             END,
+             updated_at = NOW()
+         WHERE id = $1
+         RETURNING id, slug, is_active, subscription_end_date`,
+        [req.params.id]
+      );
       if (rows.length === 0) throw new AppError(404, 'Tenant tidak ditemukan');
       addAuditLog('Tenant Toggled', req.user?.email || 'system', `Tenant "${rows[0].slug}" ${rows[0].is_active ? 'activated' : 'deactivated'}`);
       sendSuccess(res, rows[0], 'Status tenant diubah');

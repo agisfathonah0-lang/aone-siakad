@@ -1,10 +1,11 @@
 import { useState, useEffect, useCallback } from 'react';
-import { get, post } from '../../api/client';
+import { get, getPaginated, post } from '../../api/client';
 import type { PPDB } from '../../types';
 import DataTable from '../../components/ui/DataTable';
 import Modal from '../../components/ui/Modal';
 import Badge from '../../components/ui/Badge';
 import { Search, Eye, Upload } from 'lucide-react';
+import FileUpload from '../../components/ui/FileUpload';
 
 const statusBadge: Record<string, 'warning' | 'info' | 'success' | 'danger'> = { baru: 'warning', verifikasi: 'info', diterima: 'success', ditolak: 'danger', daftar_ulang: 'success' };
 
@@ -19,7 +20,7 @@ export default function PPDBPage() {
 
   const fetchData = useCallback(async () => {
     setLoading(true); setError('');
-    try { const res = await get<PPDB[]>('/ppdb'); setData(res || []); }
+      try { const res = await getPaginated<PPDB>('/ppdb'); setData(res.rows || []); }
     catch (err: any) { setError(err.message); } finally { setLoading(false); }
   }, []);
 
@@ -99,7 +100,7 @@ export default function PPDBPage() {
       <Modal open={uploadModal} onClose={() => setUploadModal(false)} title="Upload Dokumen">
         <form onSubmit={submitUpload} className="space-y-3">
           <div><label className="text-xs font-semibold text-slate-500 dark:text-zinc-400 block mb-1.5">Nama Dokumen</label><input required value={uploadForm.nama} onChange={e => setUploadForm({ ...uploadForm, nama: e.target.value })} placeholder="Ijazah, Rapor, dll" className="input-field" /></div>
-          <div><label className="text-xs font-semibold text-slate-500 dark:text-zinc-400 block mb-1.5">URL Dokumen</label><input required value={uploadForm.url} onChange={e => setUploadForm({ ...uploadForm, url: e.target.value })} placeholder="https://..." className="input-field" /></div>
+          <div><label className="text-xs font-semibold text-slate-500 dark:text-zinc-400 block mb-1.5">File Dokumen</label><FileUpload value={uploadForm.url} onChange={(v) => setUploadForm({ ...uploadForm, url: v })} accept=".pdf,.jpg,.jpeg,.png" /></div>
           <button type="submit" className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-sm transition flex items-center justify-center gap-1.5"><Upload size={15} /> Upload</button>
         </form>
       </Modal>

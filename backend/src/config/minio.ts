@@ -1,29 +1,14 @@
-import { Client as MinioClient } from 'minio';
+import { S3Client } from '@aws-sdk/client-s3';
 import { config } from './index.js';
 
-let minio: MinioClient | null = null;
-
-export function getMinio(): MinioClient {
-  if (!minio) {
-    minio = new MinioClient({
-      endPoint: config.minio.endpoint,
-      port: config.minio.port,
-      accessKey: config.minio.accessKey,
-      secretKey: config.minio.secretKey,
-      useSSL: config.minio.useSSL,
-    });
-  }
-  return minio;
-}
-
-export async function ensureBuckets(): Promise<void> {
-  const client = getMinio();
-  const buckets = [config.minio.bucketDocuments, config.minio.bucketAssets];
-  for (const bucket of buckets) {
-    const exists = await client.bucketExists(bucket);
-    if (!exists) {
-      await client.makeBucket(bucket);
-      console.log('[MinIO] Created bucket:', bucket);
-    }
-  }
+export function getS3Client(): S3Client {
+  return new S3Client({
+    endpoint: config.storage.endpoint,
+    region: config.storage.region,
+    credentials: {
+      accessKeyId: config.storage.accessKey,
+      secretAccessKey: config.storage.secretKey,
+    },
+    forcePathStyle: config.storage.forcePathStyle,
+  });
 }

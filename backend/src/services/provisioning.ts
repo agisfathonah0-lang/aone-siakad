@@ -43,7 +43,7 @@ export async function createTenant(input: CreateTenantInput) {
           tenantId, input.slug, schemaName, input.name, input.nama_pt,
           input.singkatan || null, input.alamat || null, input.telepon || null,
           input.email || null, input.paket || 'basic', input.isActive !== false,
-          input.subscriptionEndDate || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+          input.subscriptionEndDate || new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
         ]
       );
 

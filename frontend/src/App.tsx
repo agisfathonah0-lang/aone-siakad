@@ -1,3 +1,4 @@
+import { useState, useEffect } from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import AppLayout from './components/layout/AppLayout';
@@ -45,6 +46,7 @@ import TagihanPage from './pages/keuangan/TagihanPage';
 import PembayaranPage from './pages/keuangan/PembayaranPage';
 import CMSPage from './pages/cms/CMSPage';
 import PPDBPage from './pages/ppdb/PPDBPage';
+import PPDBConfigPage from './pages/ppdb/PPDBConfigPage';
 import OJSPage from './pages/ojs/OJSPage';
 import PDDIKTIPage from './pages/pddikti/PDDIKTIPage';
 import AlumniPage from './pages/alumni/AlumniPage';
@@ -53,6 +55,7 @@ import TenantsPage from './pages/vendor/TenantsPage';
 import TicketsPage from './pages/vendor/TicketsPage';
 import FirewallPage from './pages/vendor/FirewallPage';
 import CctvPage from './pages/vendor/CctvPage';
+import CampusCctvPage from './pages/dashboard/CctvPage';
 import SettingsPage from './pages/vendor/SettingsPage';
 import VendorPlansPage from './pages/vendor/VendorPlansPage';
 import VendorMonitorPage from './pages/vendor/VendorMonitorPage';
@@ -64,6 +67,7 @@ import TenantDetailPage from './pages/vendor/TenantDetailPage';
 import { Loader2 } from 'lucide-react';
 import { canAccess } from './utils/roles';
 import type { Role } from './types';
+import { get } from './api/client';
 
 function AuthGuard({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
@@ -86,20 +90,34 @@ function RoleGuard({ children, roles }: { children: React.ReactNode; roles: Role
 
 function TenantLandingRouter() {
   const hostname = window.location.hostname;
-  const allowedDomains = ['aone-siakad.onrender.com', 'localhost'];
   const isDev = hostname.includes('localhost') || hostname.includes('127.0.0.1');
 
-  if (!isDev) {
-    for (const domain of allowedDomains) {
-      if (hostname.endsWith(domain) && hostname !== domain && !hostname.startsWith('www.')) {
-        const slug = hostname.replace('.' + domain, '');
-        if (slug && !slug.includes('.')) {
-          return <Navigate to={`/kampus/${slug}`} replace />;
-        }
-      }
-    }
-  }
+  const [resolved, setResolved] = useState<'loading' | 'found' | 'none'>('loading');
 
+  useEffect(() => {
+    if (isDev) {
+      setResolved('none');
+      return;
+    }
+
+    const parts = hostname.split('.');
+    if (parts.length >= 3 && parts[0] !== 'www') {
+      setResolved('found');
+      return;
+    }
+
+    get<{ tenant: { slug: string } | null }>(`/public/resolve-host?host=${encodeURIComponent(hostname)}`)
+      .then(r => setResolved(r.tenant ? 'found' : 'none'))
+      .catch(() => setResolved('none'));
+  }, [hostname, isDev]);
+
+  if (isDev) return <LandingPage />;
+  if (resolved === 'loading') return <div className="min-h-screen flex items-center justify-center"><Loader2 className="w-6 h-6 animate-spin text-emerald-500" /></div>;
+  if (resolved === 'found') {
+    const parts = hostname.split('.');
+    const slug = parts[0];
+    return <Navigate to={`/kampus/${slug}`} replace />;
+  }
   return <LandingPage />;
 }
 
@@ -123,6 +141,7 @@ function AppRoutes() {
         <Route path="landing-page" element={<LandingSettingsPage />} />
         <Route path="kalender" element={<KalenderPage />} />
         <Route path="notifikasi" element={<NotifikasiPage />} />
+        <Route path="cctv" element={<CampusCctvPage />} />
         <Route path="berita" element={<BeritaPage />} />
         <Route path="mahasiswa" element={<MahasiswaPage />} />
         <Route path="mahasiswa/:nim" element={<MahasiswaDetailPage />} />
@@ -151,6 +170,7 @@ function AppRoutes() {
         <Route path="pembayaran" element={<PembayaranPage />} />
         <Route path="cms" element={<CMSPage />} />
         <Route path="ppdb" element={<PPDBPage />} />
+        <Route path="ppdb/config" element={<PPDBConfigPage />} />
         <Route path="ojs" element={<OJSPage />} />
         <Route path="pddikti" element={<PDDIKTIPage />} />
         <Route path="alumni" element={<AlumniPage />} />

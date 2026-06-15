@@ -67,7 +67,10 @@ CREATE TABLE IF NOT EXISTS public.refresh_tokens (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
-CREATE INDEX idx_tenants_slug ON public.tenants(slug);
-CREATE INDEX idx_tenants_custom_domain ON public.tenants(custom_domain);
-CREATE INDEX idx_refresh_tokens_user ON public.refresh_tokens(user_id);
-CREATE INDEX idx_refresh_tokens_hash ON public.refresh_tokens(token_hash);
+CREATE INDEX IF NOT EXISTS idx_tenants_slug ON public.tenants(slug);
+
+CREATE INDEX IF NOT EXISTS idx_tenants_custom_domain ON public.tenants(custom_domain);
+
+CREATE INDEX IF NOT EXISTS idx_refresh_tokens_user ON public.refresh_tokens(user_id);
+
+CREATE INDEX IF NOT EXISTS idx_refresh_tokens_hash ON public.refresh_tokens(token_hash);
