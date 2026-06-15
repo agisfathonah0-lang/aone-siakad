@@ -1,10 +1,12 @@
 import express from 'express';
 import path from 'path';
+import fs from 'fs';
 import { fileURLToPath } from 'url';
 import cors from 'cors';
 import morgan from 'morgan';
 import rateLimit from 'express-rate-limit';
 import { config } from './config/index.js';
+import { query } from './config/database.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 import { resolveTenant } from './middleware/resolveTenant.js';
@@ -162,8 +164,67 @@ featureRoutes.forEach(([path, router]) => {
 if (config.env === 'production') {
   const frontendDist = path.resolve(__dirname, '../../frontend/dist');
   app.use(express.static(frontendDist));
-  app.get('*', (_req, res) => {
-    res.sendFile(path.join(frontendDist, 'index.html'));
+
+  const indexHtmlPath = path.join(frontendDist, 'index.html');
+  let indexHtml = fs.readFileSync(indexHtmlPath, 'utf-8');
+
+  app.get('/sitemap.xml', async (_req, res) => {
+    try {
+      const { rows: tenants } = await query(
+        `SELECT slug, name, updated_at FROM public.tenants WHERE is_active = true ORDER BY name ASC`,
+        []
+      );
+      const baseUrl = 'https://aone-siakad.web.id';
+      const urls: string[] = [];
+      urls.push(`  <url><loc>${baseUrl}/</loc><changefreq>weekly</changefreq><priority>1.0</priority></url>`);
+      for (const t of tenants) {
+        const lastmod = t.updated_at ? new Date(t.updated_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
+        urls.push(`  <url><loc>${baseUrl}/kampus/${t.slug}</loc><lastmod>${lastmod}</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>`);
+      }
+      res.header('Content-Type', 'application/xml');
+      res.send(`<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n${urls.join('\n')}\n</urlset>`);
+    } catch { res.status(500).send('Gagal generate sitemap'); }
+  });
+
+  app.get('/robots.txt', (_req, res) => {
+    res.type('text/plain').send('User-agent: *\nAllow: /\nSitemap: https://aone-siakad.web.id/sitemap.xml\n');
+  });
+
+  app.get('*', async (req, res) => {
+    const match = req.path.match(/^\/kampus\/([^/]+)/);
+    let title = 'AONE SIAKAD - Sistem Informasi Akademik Terintegrasi';
+    let desc = 'Sistem Informasi Akademik terintegrasi untuk institusi pendidikan di Indonesia. Kelola akademik, keuangan, perpustakaan, PPDB, dan akreditasi dalam satu platform.';
+    let ogImage = '/logo.png';
+
+    if (match) {
+      try {
+        const { rows } = await query(
+          `SELECT ts.value->>'seoTitle' as seo_title, ts.value->>'seoDescription' as seo_desc, t.name, t.nama_pt, t.logo_url
+           FROM public.tenants t LEFT JOIN public.tenant_settings ts ON ts.tenant_id = t.id AND ts.setting_key = 'landing_page'
+           WHERE t.slug = $1 AND t.is_active = true LIMIT 1`,
+          [match[1]]
+        );
+        if (rows.length > 0) {
+          const r = rows[0];
+          title = r.seo_title || r.nama_pt || r.name || title;
+          desc = r.seo_desc || `${r.nama_pt || r.name} - Sistem Informasi Akademik terintegrasi.`;
+          if (r.logo_url) ogImage = r.logo_url;
+        }
+      } catch {}
+    }
+
+    const seoMeta = `
+    <title>${title}</title>
+    <meta name="description" content="${desc.substring(0, 200)}">
+    <meta property="og:title" content="${title}">
+    <meta property="og:description" content="${desc.substring(0, 200)}">
+    <meta property="og:image" content="${ogImage}">
+    <meta property="og:type" content="website">
+    <meta name="robots" content="index, follow">
+`;
+    const html = indexHtml.replace('<!--SEO_INJECT-->', seoMeta);
+
+    res.send(html);
   });
 }
 

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import useSEO from '../hooks/useSEO';
 import {
   GraduationCap, Wallet, Library, Star, Award, Printer, Database, Layout,
   Sparkles, ArrowRight, Check, Menu, X, Users, Quote, ChevronDown, Clock
@@ -65,6 +66,12 @@ export default function LandingPage() {
   const [mobileMenu, setMobileMenu] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [promoSlots, setPromoSlots] = useState(10);
+
+  useSEO(
+    'AONE SIAKAD - Sistem Informasi Akademik Terintegrasi',
+    'Sistem Informasi Akademik terintegrasi untuk institusi pendidikan di Indonesia. Kelola akademik, keuangan, perpustakaan, PPDB, dan akreditasi dalam satu platform.',
+    '/logo.png'
+  );
 
   useEffect(() => {
     const handleScroll = () => setScrolled(window.scrollY > 40);

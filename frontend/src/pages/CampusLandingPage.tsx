@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { get } from '../api/client';
+import useSEO from '../hooks/useSEO';
 import { Building2, GraduationCap, Users, BookOpen, ArrowRight, ExternalLink, Loader2, Award, UserCheck, ChevronLeft, ChevronRight, X, Mail, Phone, MapPin, Calendar, Target, Eye, Quote, School, Trophy, Sparkles } from 'lucide-react';
 
 interface CampusData {
@@ -42,15 +43,18 @@ function CampusLandingPage({ slug }: { slug: string }) {
   const [promoIdx, setPromoIdx] = useState(0);
   const [showPopup, setShowPopup] = useState(false);
 
+  useSEO(
+    data?.landingPage.seoTitle || data?.tenant.name || 'Kampus',
+    data?.landingPage.seoDescription || `${data?.tenant.nama_pt || 'Kampus'} - Sistem Informasi Akademik terintegrasi.`,
+    data?.tenant.logo_url || '/logo.png'
+  );
+
   useEffect(() => {
     setLoading(true);
     get<CampusData>(`/public/kampus/${slug}`)
       .then(d => {
         setData(d);
         localStorage.setItem('aone_tenant_slug', slug);
-        document.title = d.landingPage.seoTitle || d.tenant.name;
-        const meta = document.querySelector('meta[name="description"]');
-        if (meta) meta.setAttribute('content', d.landingPage.seoDescription);
       })
       .catch((err: any) => setError(err.response?.data?.message || 'Kampus tidak ditemukan'))
       .finally(() => setLoading(false));

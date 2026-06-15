@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { get, post, setTenantSlug } from '../api/client';
 import api from '../api/client';
+import useSEO from '../hooks/useSEO';
 import { Building2, Loader2, CheckCircle, ArrowLeft, ChevronLeft, ChevronRight, Upload, FileText, Sparkles } from 'lucide-react';
 
 interface FieldDef {
@@ -24,6 +25,12 @@ export default function CampusPPDBPage() {
   const [error, setError] = useState('');
   const [step, setStep] = useState(0);
   const [form, setForm] = useState<Record<string, any>>({});
+
+  useSEO(
+    `PPDB ${campus?.tenant.nama_pt || campus?.tenant.name || 'Kampus'} - AONE SIAKAD`,
+    `Pendaftaran PPDB online ${campus?.tenant.nama_pt || campus?.tenant.name || 'Kampus'} - Sistem Penerimaan Peserta Didik Baru.`,
+    campus?.tenant.logo_url || '/logo.png'
+  );
 
   useEffect(() => {
     if (!slug) return;
