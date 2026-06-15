@@ -5,6 +5,10 @@ import AppLayout from './components/layout/AppLayout';
 import LandingPage from './pages/LandingPage';
 import CampusLandingPage from './pages/CampusLandingPage';
 import CampusPPDBPage from './pages/CampusPPDBPage';
+import FeaturePage from './pages/public/FeaturePage';
+import TestimoniPage from './pages/public/TestimoniPage';
+import HargaPage from './pages/public/HargaPage';
+import { features } from './pages/public/FeaturePage';
 import LoginPage from './pages/auth/LoginPage';
 import VendorLoginPage from './pages/auth/VendorLoginPage';
 import RegistrasiInstitusiPage from './pages/auth/RegistrasiInstitusiPage';
@@ -136,6 +140,9 @@ function AppRoutes() {
       <Route path="/login" element={<LoginPage />} />
       <Route path="/vendor/login" element={<VendorLoginPage />} />
       <Route path="/register" element={<RegistrasiInstitusiPage />} />
+      <Route path="/testimoni" element={<TestimoniPage />} />
+      <Route path="/harga" element={<HargaPage />} />
+      {features.map(f => <Route key={f.slug} path={`/fitur/${f.slug}`} element={<FeaturePage slug={f.slug} />} />)}
       <Route element={<AuthGuard><AppLayout /></AuthGuard>}>
         <Route path="dashboard" element={<DashboardPage />} />
         <Route path="prodi" element={<ProdiPage />} />

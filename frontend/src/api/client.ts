@@ -38,7 +38,8 @@ api.interceptors.response.use(
       }
       localStorage.removeItem(TOKEN_KEY);
       localStorage.removeItem(REFRESH_KEY);
-      window.location.href = '/login';
+      const slug = localStorage.getItem('aone_tenant_slug');
+      window.location.href = slug ? `/login?tenant=${slug}` : '/login';
     }
     return Promise.reject(err);
   }
@@ -82,7 +83,6 @@ export function setTokens(accessToken: string, refreshToken: string) {
 export function clearTokens() {
   localStorage.removeItem(TOKEN_KEY);
   localStorage.removeItem(REFRESH_KEY);
-  localStorage.removeItem('aone_tenant_slug');
 }
 
 export function setTenantSlug(slug: string) {

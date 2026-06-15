@@ -62,14 +62,14 @@ export default function VendorLoginPage() {
             <label className={`text-xs font-semibold block mb-1.5 ${isDark ? 'text-zinc-400' : 'text-slate-500'}`}>Email Vendor</label>
             <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)}
               className={`w-full p-2.5 rounded-xl text-sm outline-none transition-all placeholder:text-slate-400 ${isDark ? 'bg-white/5 border border-white/10 text-white focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/20' : 'bg-slate-50 border border-slate-200 text-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/20'}`}
-              placeholder="admin@aone-project.com" />
+              placeholder="Masukkan email vendor" />
           </div>
 
           <div>
             <label className={`text-xs font-semibold block mb-1.5 ${isDark ? 'text-zinc-400' : 'text-slate-500'}`}>Password</label>
             <input type="password" required value={password} onChange={(e) => setPassword(e.target.value)}
               className={`w-full p-2.5 rounded-xl text-sm outline-none transition-all placeholder:text-slate-400 ${isDark ? 'bg-white/5 border border-white/10 text-white focus:border-emerald-500/50 focus:ring-1 focus:ring-emerald-500/20' : 'bg-slate-50 border border-slate-200 text-slate-800 focus:border-emerald-500 focus:ring-1 focus:ring-emerald-500/20'}`}
-              placeholder="••••••••" />
+              placeholder="Masukkan password" />
           </div>
 
           <button type="submit" disabled={loading} className="w-full py-2.5 bg-emerald-600 hover:bg-emerald-500 disabled:bg-emerald-800 text-white font-bold rounded-xl transition-all flex items-center justify-center gap-2 text-sm shadow-lg shadow-emerald-500/20">
@@ -77,9 +77,7 @@ export default function VendorLoginPage() {
             {loading ? 'Memproses...' : 'Masuk ke Vendor Panel'}
           </button>
 
-          <div className={`flex items-center justify-center gap-2 text-[10px] pt-1 ${isDark ? 'text-zinc-500' : 'text-slate-400'}`}>
-            <span>Demo: admin@aone-project.com / admin123</span>
-          </div>
+   
         </form>
 
         <div className={`mt-6 text-center ${isDark ? 'text-zinc-500' : 'text-slate-400'}`}>

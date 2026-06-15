@@ -179,6 +179,12 @@ if (config.env === 'production') {
       const baseUrl = `${proto}://${host}`;
       const urls: string[] = [];
       urls.push(`  <url><loc>${baseUrl}/</loc><changefreq>weekly</changefreq><priority>1.0</priority></url>`);
+      urls.push(`  <url><loc>${baseUrl}/testimoni</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>`);
+      urls.push(`  <url><loc>${baseUrl}/harga</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>`);
+      const featureSlugs = ['manajemen-akademik','keuangan-terintegrasi','perpustakaan-digital','evaluasi-dosen','akreditasi-ban-pt','cetak-dokumen','integrasi-pddikti','landing-page-builder'];
+      for (const slug of featureSlugs) {
+        urls.push(`  <url><loc>${baseUrl}/fitur/${slug}</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>`);
+      }
       for (const t of tenants) {
         const lastmod = t.updated_at ? new Date(t.updated_at).toISOString().split('T')[0] : new Date().toISOString().split('T')[0];
         urls.push(`  <url><loc>${baseUrl}/kampus/${t.slug}</loc><lastmod>${lastmod}</lastmod><changefreq>weekly</changefreq><priority>0.8</priority></url>`);
