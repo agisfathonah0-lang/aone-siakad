@@ -93,6 +93,7 @@ function TenantLandingRouter() {
   const isDev = hostname.includes('localhost') || hostname.includes('127.0.0.1');
 
   const [resolved, setResolved] = useState<'loading' | 'found' | 'none'>('loading');
+  const [slug, setSlug] = useState<string>('');
 
   useEffect(() => {
     if (isDev) {
@@ -100,24 +101,29 @@ function TenantLandingRouter() {
       return;
     }
 
-    const parts = hostname.split('.');
-    if (parts.length >= 3 && parts[0] !== 'www') {
-      setResolved('found');
-      return;
-    }
-
     get<{ tenant: { slug: string } | null }>(`/public/resolve-host?host=${encodeURIComponent(hostname)}`)
-      .then(r => setResolved(r.tenant ? 'found' : 'none'))
-      .catch(() => setResolved('none'));
+      .then(r => {
+        if (r.tenant) {
+          setSlug(r.tenant.slug);
+          setResolved('found');
+        } else {
+          setResolved('none');
+        }
+      })
+      .catch(() => {
+        const parts = hostname.split('.');
+        if (parts.length >= 3 && parts[0] !== 'www') {
+          setSlug(parts[0]);
+          setResolved('found');
+        } else {
+          setResolved('none');
+        }
+      });
   }, [hostname, isDev]);
 
   if (isDev) return <LandingPage />;
   if (resolved === 'loading') return <div className="min-h-screen flex items-center justify-center"><Loader2 className="w-6 h-6 animate-spin text-emerald-500" /></div>;
-  if (resolved === 'found') {
-    const parts = hostname.split('.');
-    const slug = parts[0];
-    return <Navigate to={`/kampus/${slug}`} replace />;
-  }
+  if (resolved === 'found') return <Navigate to={`/kampus/${slug}`} replace />;
   return <LandingPage />;
 }
 
