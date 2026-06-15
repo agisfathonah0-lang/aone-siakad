@@ -499,4 +499,295 @@ router.post(
   }
 );
 
+// --- E-BOOK ---
+
+router.get(
+  '/ebook',
+  authenticate,
+  requireRole(Role.ADMIN, Role.AKADEMIK, Role.DOSEN, Role.MAHASISWA),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 20;
+      const offset = (page - 1) * limit;
+      const s = schema(req);
+      const search = (req.query.search as string) || '';
+      const kategori = (req.query.kategori as string) || '';
+
+      const conditions: string[] = ['is_published = true'];
+      const params: unknown[] = [];
+      let idx = 1;
+
+      if (search) {
+        conditions.push(`(judul ILIKE $${idx} OR penulis ILIKE $${idx})`);
+        params.push(`%${search}%`);
+        idx++;
+      }
+      if (kategori) {
+        conditions.push(`kategori = $${idx}`);
+        params.push(kategori);
+        idx++;
+      }
+
+      const where = `WHERE ${conditions.join(' AND ')}`;
+
+      const { rows: countRows } = await query(`SELECT COUNT(*) as total FROM ${s}.ebook ${where}`, params);
+      const total = parseInt(countRows[0].total, 10);
+
+      const { rows } = await query(
+        `SELECT * FROM ${s}.ebook ${where} ORDER BY judul LIMIT $${idx} OFFSET $${idx + 1}`,
+        [...params, limit, offset]
+      );
+
+      sendPaginated(res, rows, total, page, limit);
+    } catch (err) { next(err); }
+  }
+);
+
+router.get(
+  '/ebook/:id',
+  authenticate,
+  requireRole(Role.ADMIN, Role.AKADEMIK, Role.DOSEN, Role.MAHASISWA),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const s = schema(req);
+      const { rows } = await query(`SELECT * FROM ${s}.ebook WHERE id = $1`, [req.params.id]);
+      if (rows.length === 0) throw new AppError(404, 'E-book tidak ditemukan');
+      sendSuccess(res, rows[0]);
+    } catch (err) { next(err); }
+  }
+);
+
+router.post(
+  '/ebook',
+  authenticate,
+  requireRole(Role.ADMIN, Role.AKADEMIK),
+  body('judul').notEmpty().withMessage('Judul wajib diisi'),
+  validate,
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const s = schema(req);
+      const { judul, penulis, deskripsi, kategori, file_url, cover_image, tahun_terbit } = req.body;
+      const { rows } = await query(
+        `INSERT INTO ${s}.ebook (judul, penulis, deskripsi, kategori, file_url, cover_image, tahun_terbit)
+         VALUES ($1,$2,$3,$4,$5,$6,$7) RETURNING *`,
+        [judul, penulis || null, deskripsi || null, kategori || null, file_url || null, cover_image || null, tahun_terbit || null]
+      );
+      sendSuccess(res, rows[0], 'E-book berhasil ditambahkan', 201);
+    } catch (err) { next(err); }
+  }
+);
+
+router.post(
+  '/ebook/:id/download',
+  authenticate,
+  requireRole(Role.ADMIN, Role.AKADEMIK, Role.DOSEN, Role.MAHASISWA),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const s = schema(req);
+      const { rows } = await query(
+        `UPDATE ${s}.ebook SET jumlah_download = jumlah_download + 1 WHERE id = $1 RETURNING file_url, judul`,
+        [req.params.id]
+      );
+      if (rows.length === 0) throw new AppError(404, 'E-book tidak ditemukan');
+      sendSuccess(res, rows[0]);
+    } catch (err) { next(err); }
+  }
+);
+
+router.put(
+  '/ebook/:id',
+  authenticate,
+  requireRole(Role.ADMIN, Role.AKADEMIK),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const s = schema(req);
+      const { judul, penulis, deskripsi, kategori, file_url, cover_image, tahun_terbit, is_published } = req.body;
+      const { rows: existing } = await query(`SELECT * FROM ${s}.ebook WHERE id = $1`, [req.params.id]);
+      if (existing.length === 0) throw new AppError(404, 'E-book tidak ditemukan');
+
+      const fields: string[] = [];
+      const values: unknown[] = [];
+      let idx = 1;
+
+      if (judul !== undefined) { fields.push(`judul = $${idx++}`); values.push(judul); }
+      if (penulis !== undefined) { fields.push(`penulis = $${idx++}`); values.push(penulis); }
+      if (deskripsi !== undefined) { fields.push(`deskripsi = $${idx++}`); values.push(deskripsi); }
+      if (kategori !== undefined) { fields.push(`kategori = $${idx++}`); values.push(kategori); }
+      if (file_url !== undefined) { fields.push(`file_url = $${idx++}`); values.push(file_url); }
+      if (cover_image !== undefined) { fields.push(`cover_image = $${idx++}`); values.push(cover_image); }
+      if (tahun_terbit !== undefined) { fields.push(`tahun_terbit = $${idx++}`); values.push(tahun_terbit); }
+      if (is_published !== undefined) { fields.push(`is_published = $${idx++}`); values.push(is_published); }
+      fields.push(`updated_at = NOW()`);
+
+      if (fields.length > 1) {
+        values.push(req.params.id);
+        await query(`UPDATE ${s}.ebook SET ${fields.join(', ')} WHERE id = $${idx}`, values);
+      }
+
+      const { rows } = await query(`SELECT * FROM ${s}.ebook WHERE id = $1`, [req.params.id]);
+      sendSuccess(res, rows[0], 'E-book berhasil diperbarui');
+    } catch (err) { next(err); }
+  }
+);
+
+router.delete(
+  '/ebook/:id',
+  authenticate,
+  requireRole(Role.ADMIN, Role.AKADEMIK),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const s = schema(req);
+      const { rowCount } = await query(`DELETE FROM ${s}.ebook WHERE id = $1`, [req.params.id]);
+      if (rowCount === 0) throw new AppError(404, 'E-book tidak ditemukan');
+      sendSuccess(res, null, 'E-book berhasil dihapus');
+    } catch (err) { next(err); }
+  }
+);
+
+// --- REPOSITORI KARYA ILMIAH ---
+
+router.get(
+  '/repositori',
+  authenticate,
+  requireRole(Role.ADMIN, Role.AKADEMIK, Role.DOSEN, Role.MAHASISWA),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 20;
+      const offset = (page - 1) * limit;
+      const s = schema(req);
+      const search = (req.query.search as string) || '';
+      const jenis = (req.query.jenis as string) || '';
+
+      const conditions: string[] = ["status = 'published'"];
+      const params: unknown[] = [];
+      let idx = 1;
+
+      if (search) {
+        conditions.push(`(judul ILIKE $${idx} OR penulis ILIKE $${idx})`);
+        params.push(`%${search}%`);
+        idx++;
+      }
+      if (jenis) {
+        conditions.push(`jenis = $${idx}`);
+        params.push(jenis);
+        idx++;
+      }
+
+      const where = `WHERE ${conditions.join(' AND ')}`;
+
+      const { rows: countRows } = await query(
+        `SELECT COUNT(*) as total FROM ${s}.repositori_karya ${where}`, params
+      );
+      const total = parseInt(countRows[0].total, 10);
+
+      const { rows } = await query(
+        `SELECT r.*, p.nama as prodi_nama
+         FROM ${s}.repositori_karya r
+         LEFT JOIN ${s}.program_studi p ON p.id = r.prodi_id
+         ${where}
+         ORDER BY r.tahun DESC, r.created_at DESC
+         LIMIT $${idx} OFFSET $${idx + 1}`,
+        [...params, limit, offset]
+      );
+
+      sendPaginated(res, rows, total, page, limit);
+    } catch (err) { next(err); }
+  }
+);
+
+router.get(
+  '/repositori/:id',
+  authenticate,
+  requireRole(Role.ADMIN, Role.AKADEMIK, Role.DOSEN, Role.MAHASISWA),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const s = schema(req);
+      const { rows } = await query(
+        `SELECT r.*, p.nama as prodi_nama FROM ${s}.repositori_karya r
+         LEFT JOIN ${s}.program_studi p ON p.id = r.prodi_id
+         WHERE r.id = $1`,
+        [req.params.id]
+      );
+      if (rows.length === 0) throw new AppError(404, 'Karya tidak ditemukan');
+      sendSuccess(res, rows[0]);
+    } catch (err) { next(err); }
+  }
+);
+
+router.post(
+  '/repositori',
+  authenticate,
+  requireRole(Role.ADMIN, Role.AKADEMIK),
+  body('judul').notEmpty().withMessage('Judul wajib diisi'),
+  body('penulis').notEmpty().withMessage('Penulis wajib diisi'),
+  body('jenis').notEmpty().withMessage('Jenis wajib diisi'),
+  validate,
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const s = schema(req);
+      const { judul, penulis, nim, pembimbing, jenis, prodi_id, tahun, abstrak, file_url } = req.body;
+      const { rows } = await query(
+        `INSERT INTO ${s}.repositori_karya (judul, penulis, nim, pembimbing, jenis, prodi_id, tahun, abstrak, file_url)
+         VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9) RETURNING *`,
+        [judul, penulis, nim || null, pembimbing || null, jenis, prodi_id || null, tahun || null, abstrak || null, file_url || null]
+      );
+      sendSuccess(res, rows[0], 'Karya berhasil ditambahkan', 201);
+    } catch (err) { next(err); }
+  }
+);
+
+router.put(
+  '/repositori/:id',
+  authenticate,
+  requireRole(Role.ADMIN, Role.AKADEMIK),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const s = schema(req);
+      const { judul, penulis, nim, pembimbing, jenis, prodi_id, tahun, abstrak, file_url, status } = req.body;
+      const { rows: existing } = await query(`SELECT * FROM ${s}.repositori_karya WHERE id = $1`, [req.params.id]);
+      if (existing.length === 0) throw new AppError(404, 'Karya tidak ditemukan');
+
+      const fields: string[] = [];
+      const values: unknown[] = [];
+      let idx = 1;
+
+      if (judul !== undefined) { fields.push(`judul = $${idx++}`); values.push(judul); }
+      if (penulis !== undefined) { fields.push(`penulis = $${idx++}`); values.push(penulis); }
+      if (nim !== undefined) { fields.push(`nim = $${idx++}`); values.push(nim); }
+      if (pembimbing !== undefined) { fields.push(`pembimbing = $${idx++}`); values.push(pembimbing); }
+      if (jenis !== undefined) { fields.push(`jenis = $${idx++}`); values.push(jenis); }
+      if (prodi_id !== undefined) { fields.push(`prodi_id = $${idx++}`); values.push(prodi_id); }
+      if (tahun !== undefined) { fields.push(`tahun = $${idx++}`); values.push(tahun); }
+      if (abstrak !== undefined) { fields.push(`abstrak = $${idx++}`); values.push(abstrak); }
+      if (file_url !== undefined) { fields.push(`file_url = $${idx++}`); values.push(file_url); }
+      if (status !== undefined) { fields.push(`status = $${idx++}`); values.push(status); }
+      fields.push(`updated_at = NOW()`);
+
+      if (fields.length > 1) {
+        values.push(req.params.id);
+        await query(`UPDATE ${s}.repositori_karya SET ${fields.join(', ')} WHERE id = $${idx}`, values);
+      }
+
+      const { rows } = await query(`SELECT * FROM ${s}.repositori_karya WHERE id = $1`, [req.params.id]);
+      sendSuccess(res, rows[0], 'Karya berhasil diperbarui');
+    } catch (err) { next(err); }
+  }
+);
+
+router.delete(
+  '/repositori/:id',
+  authenticate,
+  requireRole(Role.ADMIN, Role.AKADEMIK),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const s = schema(req);
+      const { rowCount } = await query(`DELETE FROM ${s}.repositori_karya WHERE id = $1`, [req.params.id]);
+      if (rowCount === 0) throw new AppError(404, 'Karya tidak ditemukan');
+      sendSuccess(res, null, 'Karya berhasil dihapus');
+    } catch (err) { next(err); }
+  }
+);
+
 export default router;

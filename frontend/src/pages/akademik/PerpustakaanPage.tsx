@@ -3,8 +3,9 @@ import { get, getPaginated, post, put, del as apiDel } from '../../api/client';
 import type { Buku, AnggotaPerpustakaan, PeminjamanBuku, Mahasiswa } from '../../types';
 import DataTable from '../../components/ui/DataTable';
 import Modal from '../../components/ui/Modal';
+import FileUpload from '../../components/ui/FileUpload';
 import Badge from '../../components/ui/Badge';
-import { Plus, Pencil, Trash2, Book, Search, UserCheck, UserX, BookOpen, BookMarked, Clock, DollarSign, RefreshCw } from 'lucide-react';
+import { Plus, Pencil, Trash2, Book, Search, UserCheck, UserX, BookOpen, BookMarked, Clock, DollarSign, RefreshCw, Download, FileText, ExternalLink } from 'lucide-react';
 
 const kategoriList = ['Referensi', 'Fiksi', 'Pendidikan', 'Jurnal', 'Skripsi', 'Lainnya'];
 
@@ -15,24 +16,32 @@ const statusVariant: Record<string, 'success' | 'warning' | 'danger' | 'info'> =
 };
 
 export default function PerpustakaanPage() {
-  const [tab, setTab] = useState<'buku' | 'anggota' | 'peminjaman'>('buku');
+  const [tab, setTab] = useState<'buku' | 'anggota' | 'peminjaman' | 'ebook' | 'repositori'>('buku');
+
+  const tabs = [
+    { key: 'buku' as const, label: 'Buku', icon: Book },
+    { key: 'anggota' as const, label: 'Anggota', icon: UserCheck },
+    { key: 'peminjaman' as const, label: 'Peminjaman', icon: BookMarked },
+    { key: 'ebook' as const, label: 'E-Book', icon: Download },
+    { key: 'repositori' as const, label: 'Repository', icon: FileText },
+  ];
 
   return (
     <div className="space-y-5">
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-xl font-bold font-display tracking-tight dark:text-white">Perpustakaan</h1>
-          <p className="text-xs text-slate-500 dark:text-zinc-500">Manajemen buku, anggota, dan peminjaman</p>
+          <h1 className="text-xl font-bold font-display tracking-tight dark:text-white">Perpustakaan Digital</h1>
+          <p className="text-xs text-slate-500 dark:text-zinc-500">Katalog online, e-book, repositori karya ilmiah, dan manajemen peminjaman</p>
         </div>
       </div>
 
-      <div className="flex gap-1 border-b border-slate-200 dark:border-zinc-700/30">
-        {(['buku', 'anggota', 'peminjaman'] as const).map((t) => (
-          <button key={t} onClick={() => setTab(t)}
-            className={`px-4 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-[1px] ${
-              tab === t ? 'border-indigo-600 text-indigo-600 dark:border-indigo-400 dark:text-indigo-400' : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-zinc-400 dark:hover:text-zinc-200'
+      <div className="flex gap-1 border-b border-slate-200 dark:border-zinc-700/30 overflow-x-auto no-scrollbar">
+        {tabs.map((t) => (
+          <button key={t.key} onClick={() => setTab(t.key)}
+            className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-[1px] whitespace-nowrap ${
+              tab === t.key ? 'border-indigo-600 text-indigo-600 dark:border-indigo-400 dark:text-indigo-400' : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-zinc-400 dark:hover:text-zinc-200'
             }`}>
-            {t === 'buku' ? 'Buku' : t === 'anggota' ? 'Anggota' : 'Peminjaman'}
+            <t.icon size={15} /> {t.label}
           </button>
         ))}
       </div>
@@ -40,6 +49,8 @@ export default function PerpustakaanPage() {
       {tab === 'buku' && <BukuSection />}
       {tab === 'anggota' && <AnggotaSection />}
       {tab === 'peminjaman' && <PeminjamanSection />}
+      {tab === 'ebook' && <EbookSection />}
+      {tab === 'repositori' && <RepositoriSection />}
     </div>
   );
 }
@@ -424,6 +435,292 @@ function PeminjamanSection() {
             <input value={formBayar.keterangan} onChange={e => setFormBayar({ ...formBayar, keterangan: e.target.value })} className="input-field" />
           </div>
           <button type="submit" className="w-full py-2.5 bg-amber-600 hover:bg-amber-700 text-white font-bold rounded-xl text-sm transition-all shadow-lg shadow-amber-500/20">Bayar</button>
+        </form>
+      </Modal>
+    </div>
+  );
+}
+
+const ebookKategori = ['Pendidikan', 'Fiksi', 'Non-Fiksi', 'Referensi', 'Jurnal', 'Lainnya'];
+
+interface Ebook {
+  id: string; judul: string; penulis?: string; deskripsi?: string;
+  kategori?: string; file_url?: string; cover_image?: string;
+  tahun_terbit?: number; jumlah_download: number; is_published?: boolean;
+}
+
+function EbookSection() {
+  const [data, setData] = useState<Ebook[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [modal, setModal] = useState(false);
+  const [edit, setEdit] = useState<Ebook | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterKategori, setFilterKategori] = useState('');
+  const [form, setForm] = useState<Ebook>({ id: '', judul: '', penulis: '', deskripsi: '', kategori: '', file_url: '', cover_image: '', tahun_terbit: new Date().getFullYear(), jumlah_download: 0 });
+
+  const fetchData = useCallback(async () => {
+    setLoading(true); setError('');
+    try {
+      const params = new URLSearchParams({ page: String(page), limit: '12' });
+      if (searchTerm) params.set('search', searchTerm);
+      if (filterKategori) params.set('kategori', filterKategori);
+      const res = await getPaginated<Ebook>(`/akademik/perpustakaan/ebook?${params}`);
+      setData(res.rows); setTotalPages(res.pagination.totalPages);
+    } catch (err: any) { setError(err.message); }
+    finally { setLoading(false); }
+  }, [page, searchTerm, filterKategori]);
+
+  useEffect(() => { fetchData(); }, [fetchData]);
+
+  const openCreate = () => {
+    setEdit(null);
+    setForm({ id: '', judul: '', penulis: '', deskripsi: '', kategori: '', file_url: '', cover_image: '', tahun_terbit: new Date().getFullYear(), jumlah_download: 0 });
+    setModal(true);
+  };
+
+  const openEdit = (row: Ebook) => { setEdit(row); setForm({ ...row }); setModal(true); };
+
+  const save = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      if (edit) {
+        await put(`/akademik/perpustakaan/ebook/${edit.id}`, form);
+      } else {
+        await post('/akademik/perpustakaan/ebook', form);
+      }
+      setModal(false); fetchData();
+    } catch (err: any) { alert(err.response?.data?.message || err.message); }
+  };
+
+  const remove = async (id: string) => {
+    if (!confirm('Hapus e-book ini?')) return;
+    try {
+      await apiDel(`/akademik/perpustakaan/ebook/${id}`);
+      fetchData();
+    } catch (err: any) { alert(err.response?.data?.message || err.message); }
+  };
+
+  const download = async (row: Ebook) => {
+    try {
+      const res = await post<{ file_url: string; judul: string }>(`/akademik/perpustakaan/ebook/${row.id}/download`);
+      if (res.file_url) window.open(res.file_url, '_blank');
+      fetchData();
+    } catch { }
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div className="flex gap-3 items-center">
+          <div className="relative flex-1 max-w-xs">
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input value={searchTerm} onChange={e => { setSearchTerm(e.target.value); setPage(1); }} placeholder="Cari judul/penulis..." className="input-field pl-8" />
+          </div>
+          <select value={filterKategori} onChange={e => { setFilterKategori(e.target.value); setPage(1); }} className="input-field max-w-[160px]">
+            <option value="">Semua</option>
+            {ebookKategori.map(k => <option key={k} value={k}>{k}</option>)}
+          </select>
+        </div>
+        <div className="flex gap-2">
+          <button onClick={fetchData} className="p-2 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-zinc-300 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors"><RefreshCw size={16} /></button>
+          <button onClick={openCreate} className="flex items-center gap-1.5 px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition-all shadow-lg shadow-indigo-500/20"><Plus size={14} /> Tambah E-book</button>
+        </div>
+      </div>
+
+      {loading ? (
+        <div className="text-center py-12 text-sm text-slate-400">Memuat...</div>
+      ) : error ? (
+        <div className="text-center py-12 text-sm text-red-500">{error}</div>
+      ) : data.length === 0 ? (
+        <div className="text-center py-12 text-sm text-slate-400 dark:text-zinc-500">Belum ada e-book</div>
+      ) : (
+        <>
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+            {data.map(ebook => (
+              <div key={ebook.id} className="bg-white dark:bg-zinc-900/50 rounded-xl overflow-hidden shadow-sm ring-1 ring-slate-200/50 dark:ring-zinc-800/30 hover:shadow-md transition-all group">
+                <div className="h-36 bg-gradient-to-br from-indigo-500/10 to-emerald-500/10 flex items-center justify-center">
+                  {ebook.cover_image ? (
+                    <img src={ebook.cover_image} alt={ebook.judul} className="w-full h-full object-cover" />
+                  ) : (
+                    <BookOpen size={40} className="text-indigo-300 dark:text-indigo-500/50" />
+                  )}
+                </div>
+                <div className="p-3">
+                  <p className="font-bold text-sm dark:text-white truncate">{ebook.judul}</p>
+                  <p className="text-[10px] text-slate-400 dark:text-zinc-500 truncate">{ebook.penulis || '-'}</p>
+                  <div className="flex items-center justify-between mt-2">
+                    {ebook.kategori && <Badge variant="info">{ebook.kategori}</Badge>}
+                    <span className="text-[9px] text-slate-400">{ebook.jumlah_download} dl</span>
+                  </div>
+                  <div className="flex gap-1.5 mt-2 pt-2 border-t border-slate-100 dark:border-zinc-800/30">
+                    {ebook.file_url && (
+                      <button onClick={() => download(ebook)} className="flex-1 flex items-center justify-center gap-1 text-[10px] font-bold text-emerald-500 hover:text-emerald-600 transition-colors py-1 rounded-lg hover:bg-emerald-50 dark:hover:bg-emerald-900/20">
+                        <Download size={11} /> Download
+                      </button>
+                    )}
+                    <button onClick={() => openEdit(ebook)} className="p-1 text-slate-400 hover:text-indigo-500 transition-colors"><Pencil size={13} /></button>
+                    <button onClick={() => remove(ebook.id)} className="p-1 text-slate-400 hover:text-red-500 transition-colors"><Trash2 size={13} /></button>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-2 pt-2">
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
+                <button key={p} onClick={() => setPage(p)} className={`w-8 h-8 rounded-lg text-xs font-bold transition-colors ${p === page ? 'bg-indigo-600 text-white' : 'text-slate-500 dark:text-zinc-400 hover:bg-slate-100 dark:hover:bg-zinc-800'}`}>{p}</button>
+              ))}
+            </div>
+          )}
+        </>
+      )}
+
+      <Modal open={modal} onClose={() => setModal(false)} title={edit ? 'Edit E-book' : 'Tambah E-book'} size="lg">
+        <form onSubmit={save} className="space-y-4">
+          <div><label className="text-xs font-semibold text-slate-500 dark:text-zinc-400 block mb-1.5">Judul</label><input required value={form.judul} onChange={e => setForm({ ...form, judul: e.target.value })} className="input-field" /></div>
+          <div className="grid grid-cols-2 gap-3">
+            <div><label className="text-xs font-semibold text-slate-500 dark:text-zinc-400 block mb-1.5">Penulis</label><input value={form.penulis || ''} onChange={e => setForm({ ...form, penulis: e.target.value })} className="input-field" /></div>
+            <div><label className="text-xs font-semibold text-slate-500 dark:text-zinc-400 block mb-1.5">Tahun Terbit</label><input type="number" value={form.tahun_terbit || ''} onChange={e => setForm({ ...form, tahun_terbit: parseInt(e.target.value) || undefined })} className="input-field" /></div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div><label className="text-xs font-semibold text-slate-500 dark:text-zinc-400 block mb-1.5">Kategori</label><select value={form.kategori || ''} onChange={e => setForm({ ...form, kategori: e.target.value })} className="input-field"><option value="">Pilih</option>{ebookKategori.map(k => <option key={k} value={k}>{k}</option>)}</select></div>
+            <div><label className="text-xs font-semibold text-slate-500 dark:text-zinc-400 block mb-1.5">Cover Image</label><FileUpload value={form.cover_image || ''} onChange={v => setForm({ ...form, cover_image: v })} accept="image/*" /></div>
+          </div>
+          <div><label className="text-xs font-semibold text-slate-500 dark:text-zinc-400 block mb-1.5">File E-book (PDF)</label><FileUpload value={form.file_url || ''} onChange={v => setForm({ ...form, file_url: v })} accept=".pdf" hint="Upload file PDF" /></div>
+          <div><label className="text-xs font-semibold text-slate-500 dark:text-zinc-400 block mb-1.5">Deskripsi</label><textarea value={form.deskripsi || ''} onChange={e => setForm({ ...form, deskripsi: e.target.value })} className="input-field" rows={3} /></div>
+          <button type="submit" className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-sm transition-all shadow-lg shadow-indigo-500/20">{edit ? 'Simpan' : 'Tambah'}</button>
+        </form>
+      </Modal>
+    </div>
+  );
+}
+
+const repositoriJenis = ['skripsi', 'tesis', 'disertasi', 'makalah', 'laporan'];
+
+interface RepositoriKarya {
+  id: string; judul: string; penulis: string; nim?: string;
+  pembimbing?: string; jenis: string; prodi_id?: string;
+  tahun?: number; abstrak?: string; file_url?: string;
+  status?: string; prodi_nama?: string;
+}
+
+function RepositoriSection() {
+  const [data, setData] = useState<RepositoriKarya[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [modal, setModal] = useState(false);
+  const [edit, setEdit] = useState<RepositoriKarya | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterJenis, setFilterJenis] = useState('');
+  const [prodiList, setProdiList] = useState<{ id: string; nama: string }[]>([]);
+  const [form, setForm] = useState<RepositoriKarya>({ id: '', judul: '', penulis: '', nim: '', pembimbing: '', jenis: 'skripsi', prodi_id: '', tahun: new Date().getFullYear(), abstrak: '', file_url: '' });
+
+  useEffect(() => {
+    get<{ rows: { id: string; nama: string }[] }>('/akademik/prodi?limit=200').then(res => setProdiList(res.rows || [])).catch(() => {});
+  }, []);
+
+  const fetchData = useCallback(async () => {
+    setLoading(true); setError('');
+    try {
+      const params = new URLSearchParams({ page: String(page) });
+      if (searchTerm) params.set('search', searchTerm);
+      if (filterJenis) params.set('jenis', filterJenis);
+      const res = await getPaginated<RepositoriKarya>(`/akademik/perpustakaan/repositori?${params}`);
+      setData(res.rows); setTotalPages(res.pagination.totalPages);
+    } catch (err: any) { setError(err.message); }
+    finally { setLoading(false); }
+  }, [page, searchTerm, filterJenis]);
+
+  useEffect(() => { fetchData(); }, [fetchData]);
+
+  const openCreate = () => {
+    setEdit(null);
+    setForm({ id: '', judul: '', penulis: '', nim: '', pembimbing: '', jenis: 'skripsi', prodi_id: '', tahun: new Date().getFullYear(), abstrak: '', file_url: '' });
+    setModal(true);
+  };
+
+  const openEdit = (row: RepositoriKarya) => { setEdit(row); setForm({ ...row }); setModal(true); };
+
+  const save = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      if (edit) {
+        await put(`/akademik/perpustakaan/repositori/${edit.id}`, form);
+      } else {
+        await post('/akademik/perpustakaan/repositori', form);
+      }
+      setModal(false); fetchData();
+    } catch (err: any) { alert(err.response?.data?.message || err.message); }
+  };
+
+  const remove = async (id: string) => {
+    if (!confirm('Hapus karya ini?')) return;
+    try {
+      await apiDel(`/akademik/perpustakaan/repositori/${id}`);
+      fetchData();
+    } catch (err: any) { alert(err.response?.data?.message || err.message); }
+  };
+
+  const columns = [
+    { key: 'judul', label: 'Judul' },
+    { key: 'penulis', label: 'Penulis' },
+    { key: 'nim', label: 'NIM', render: (r: RepositoriKarya) => r.nim || '-' },
+    { key: 'jenis', label: 'Jenis', render: (r: RepositoriKarya) => <Badge variant="info">{r.jenis}</Badge> },
+    { key: 'prodi_nama', label: 'Prodi', render: (r: RepositoriKarya) => r.prodi_nama || '-' },
+    { key: 'tahun', label: 'Tahun', render: (r: RepositoriKarya) => r.tahun || '-' },
+    { key: 'id', label: '', render: (r: RepositoriKarya) => (
+      <div className="flex gap-1 justify-end">
+        {r.file_url && <a href={r.file_url} target="_blank" rel="noopener noreferrer" className="p-1.5 text-slate-400 hover:text-emerald-500 transition-colors"><ExternalLink size={14} /></a>}
+        <button onClick={() => openEdit(r)} className="p-1.5 text-slate-400 hover:text-indigo-500 transition-colors"><Pencil size={14} /></button>
+        <button onClick={() => remove(r.id)} className="p-1.5 text-slate-400 hover:text-red-500 transition-colors"><Trash2 size={14} /></button>
+      </div>
+    )},
+  ];
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between gap-3 flex-wrap">
+        <div className="flex gap-3 items-center">
+          <div className="relative flex-1 max-w-xs">
+            <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+            <input value={searchTerm} onChange={e => { setSearchTerm(e.target.value); setPage(1); }} placeholder="Cari judul/penulis..." className="input-field pl-8" />
+          </div>
+          <select value={filterJenis} onChange={e => { setFilterJenis(e.target.value); setPage(1); }} className="input-field max-w-[160px]">
+            <option value="">Semua Jenis</option>
+            {repositoriJenis.map(j => <option key={j} value={j}>{j}</option>)}
+          </select>
+        </div>
+        <div className="flex gap-2">
+          <button onClick={fetchData} className="p-2 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-zinc-300 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors"><RefreshCw size={16} /></button>
+          <button onClick={openCreate} className="flex items-center gap-1.5 px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition-all shadow-lg shadow-indigo-500/20"><Plus size={14} /> Tambah Karya</button>
+        </div>
+      </div>
+
+      <DataTable columns={columns} data={data} loading={loading} error={error} page={page} totalPages={totalPages} onPageChange={setPage} onRefresh={fetchData} />
+
+      <Modal open={modal} onClose={() => setModal(false)} title={edit ? 'Edit Karya Ilmiah' : 'Tambah Karya Ilmiah'} size="lg">
+        <form onSubmit={save} className="space-y-4">
+          <div><label className="text-xs font-semibold text-slate-500 dark:text-zinc-400 block mb-1.5">Judul</label><input required value={form.judul} onChange={e => setForm({ ...form, judul: e.target.value })} className="input-field" /></div>
+          <div className="grid grid-cols-2 gap-3">
+            <div><label className="text-xs font-semibold text-slate-500 dark:text-zinc-400 block mb-1.5">Penulis</label><input required value={form.penulis} onChange={e => setForm({ ...form, penulis: e.target.value })} className="input-field" /></div>
+            <div><label className="text-xs font-semibold text-slate-500 dark:text-zinc-400 block mb-1.5">NIM</label><input value={form.nim || ''} onChange={e => setForm({ ...form, nim: e.target.value })} className="input-field" /></div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div><label className="text-xs font-semibold text-slate-500 dark:text-zinc-400 block mb-1.5">Pembimbing</label><input value={form.pembimbing || ''} onChange={e => setForm({ ...form, pembimbing: e.target.value })} className="input-field" /></div>
+            <div><label className="text-xs font-semibold text-slate-500 dark:text-zinc-400 block mb-1.5">Tahun</label><input type="number" value={form.tahun || ''} onChange={e => setForm({ ...form, tahun: parseInt(e.target.value) || undefined })} className="input-field" /></div>
+          </div>
+          <div className="grid grid-cols-2 gap-3">
+            <div><label className="text-xs font-semibold text-slate-500 dark:text-zinc-400 block mb-1.5">Jenis</label><select value={form.jenis} onChange={e => setForm({ ...form, jenis: e.target.value })} className="input-field">{repositoriJenis.map(j => <option key={j} value={j}>{j}</option>)}</select></div>
+            <div><label className="text-xs font-semibold text-slate-500 dark:text-zinc-400 block mb-1.5">Program Studi</label><select value={form.prodi_id || ''} onChange={e => setForm({ ...form, prodi_id: e.target.value })} className="input-field"><option value="">Pilih Prodi</option>{prodiList.map(p => <option key={p.id} value={p.id}>{p.nama}</option>)}</select></div>
+          </div>
+          <div><label className="text-xs font-semibold text-slate-500 dark:text-zinc-400 block mb-1.5">File Karya</label><FileUpload value={form.file_url || ''} onChange={v => setForm({ ...form, file_url: v })} accept=".pdf" hint="Upload file PDF" /></div>
+          <div><label className="text-xs font-semibold text-slate-500 dark:text-zinc-400 block mb-1.5">Abstrak</label><textarea value={form.abstrak || ''} onChange={e => setForm({ ...form, abstrak: e.target.value })} className="input-field" rows={4} /></div>
+          <button type="submit" className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white font-bold rounded-xl text-sm transition-all shadow-lg shadow-indigo-500/20">{edit ? 'Simpan' : 'Tambah'}</button>
         </form>
       </Modal>
     </div>
