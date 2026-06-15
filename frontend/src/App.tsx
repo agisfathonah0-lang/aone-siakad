@@ -84,10 +84,29 @@ function RoleGuard({ children, roles }: { children: React.ReactNode; roles: Role
   return <>{children}</>;
 }
 
+function TenantLandingRouter() {
+  const hostname = window.location.hostname;
+  const allowedDomains = ['aone-siakad.onrender.com', 'localhost'];
+  const isDev = hostname.includes('localhost') || hostname.includes('127.0.0.1');
+
+  if (!isDev) {
+    for (const domain of allowedDomains) {
+      if (hostname.endsWith(domain) && hostname !== domain && !hostname.startsWith('www.')) {
+        const slug = hostname.replace('.' + domain, '');
+        if (slug && !slug.includes('.')) {
+          return <Navigate to={`/kampus/${slug}`} replace />;
+        }
+      }
+    }
+  }
+
+  return <LandingPage />;
+}
+
 function AppRoutes() {
   return (
     <Routes>
-      <Route path="/" element={<LandingPage />} />
+      <Route path="/" element={<TenantLandingRouter />} />
       <Route path="/kampus/:slug/ppdb" element={<CampusPPDBPage />} />
       <Route path="/kampus/:slug" element={<CampusLandingPage />} />
       <Route path="/login" element={<LoginPage />} />
