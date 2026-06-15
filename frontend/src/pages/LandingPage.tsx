@@ -105,9 +105,6 @@ export default function LandingPage() {
             ))}
           </nav>
           <div className="flex items-center gap-3">
-            <button onClick={() => navigate('/login')} className="hidden sm:inline-flex px-4 py-2 text-sm font-semibold text-slate-700 hover:text-emerald-600 transition-colors">
-              Masuk
-            </button>
             <button onClick={() => navigate('/register')} className="px-5 py-2.5 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white rounded-xl text-sm font-bold shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40 transition-all hover:scale-105">
               Demo Gratis
             </button>
@@ -122,7 +119,6 @@ export default function LandingPage() {
               {['Beranda', 'Fitur', 'Testimonial', 'Harga'].map(item => (
                 <a key={item} href={`#${item.toLowerCase()}`} onClick={() => setMobileMenu(false)} className="block px-4 py-3 text-slate-700 hover:text-emerald-600 rounded-xl hover:bg-emerald-50 text-sm font-medium">{item}</a>
               ))}
-              <button onClick={() => navigate('/login')} className="w-full px-4 py-3 bg-slate-100 text-slate-700 rounded-xl text-sm font-semibold">Masuk</button>
               <button onClick={() => navigate('/register')} className="w-full px-4 py-3 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white rounded-xl text-sm font-bold">Demo Gratis</button>
             </div>
           </div>

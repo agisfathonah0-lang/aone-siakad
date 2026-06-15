@@ -85,9 +85,6 @@ export default function VendorLoginPage() {
         </form>
 
         <div className={`mt-6 text-center ${isDark ? 'text-zinc-500' : 'text-slate-400'}`}>
-          <button onClick={() => navigate('/login')} className="text-xs hover:text-emerald-500 transition-colors">
-            Login sebagai Campus →
-          </button>
         </div>
       </div>
     </div>

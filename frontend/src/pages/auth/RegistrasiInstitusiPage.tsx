@@ -165,8 +165,8 @@ export default function RegistrasiInstitusiPage() {
         </div>
 
         <div className={`mt-5 text-center ${isDark ? 'text-zinc-500' : 'text-slate-400'}`}>
-          <Link to="/login" className="text-xs hover:text-emerald-500 transition-colors inline-flex items-center gap-1.5">
-            <ArrowLeft size={13} /> Sudah punya akun? Login
+          <Link to="/" className="text-xs hover:text-emerald-500 transition-colors inline-flex items-center gap-1.5">
+            <ArrowLeft size={13} /> Kembali ke Beranda
           </Link>
         </div>
       </div>
