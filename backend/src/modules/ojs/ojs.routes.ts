@@ -26,14 +26,11 @@ async function getOjsConfig(req: Request): Promise<{ url: string; apiKey: string
   if (req.tenant) {
     try {
       const { rows } = await dbQuery(
-        `SELECT value FROM public.tenant_settings WHERE tenant_id = $1 AND key = 'ojs_config'`,
-        [req.tenant.id]
+        `SELECT base_url, api_key, sync_interval FROM ${s(req)}.ojs_config ORDER BY created_at DESC LIMIT 1`
       );
       if (rows.length > 0) {
-        const cfg = rows[0].value;
-        if (cfg.url) url = cfg.url;
-        if (cfg.apiKey) apiKey = cfg.apiKey;
-        if (cfg.context) context = cfg.context;
+        if (rows[0].base_url) url = rows[0].base_url;
+        if (rows[0].api_key) apiKey = rows[0].api_key;
       }
     } catch {}
   }
