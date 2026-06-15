@@ -168,13 +168,15 @@ if (config.env === 'production') {
   const indexHtmlPath = path.join(frontendDist, 'index.html');
   let indexHtml = fs.readFileSync(indexHtmlPath, 'utf-8');
 
-  app.get('/sitemap.xml', async (_req, res) => {
+  app.get('/sitemap.xml', async (req, res) => {
     try {
       const { rows: tenants } = await query(
         `SELECT slug, name, updated_at FROM public.tenants WHERE is_active = true ORDER BY name ASC`,
         []
       );
-      const baseUrl = 'https://aone-siakad.web.id';
+      const proto = req.headers['x-forwarded-proto'] || req.protocol;
+      const host = req.headers.host || 'aone-siakad.my.id';
+      const baseUrl = `${proto}://${host}`;
       const urls: string[] = [];
       urls.push(`  <url><loc>${baseUrl}/</loc><changefreq>weekly</changefreq><priority>1.0</priority></url>`);
       for (const t of tenants) {
@@ -186,8 +188,11 @@ if (config.env === 'production') {
     } catch { res.status(500).send('Gagal generate sitemap'); }
   });
 
-  app.get('/robots.txt', (_req, res) => {
-    res.type('text/plain').send('User-agent: *\nAllow: /\nSitemap: https://aone-siakad.web.id/sitemap.xml\n');
+  app.get('/robots.txt', (req, res) => {
+    const proto = req.headers['x-forwarded-proto'] || req.protocol;
+    const host = req.headers.host || 'aone-siakad.my.id';
+    const baseUrl = `${proto}://${host}`;
+    res.type('text/plain').send(`User-agent: *\nAllow: /\nSitemap: ${baseUrl}/sitemap.xml\n`);
   });
 
   app.get('*', async (req, res) => {

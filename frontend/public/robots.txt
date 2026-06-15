@@ -1,3 +1,3 @@
 User-agent: *
 Allow: /
-Sitemap: https://aone-siakad.web.id/sitemap.xml
+Sitemap: https://aone-siakad.my.id/sitemap.xml
