@@ -231,6 +231,7 @@ export interface SyncRun {
   records_failed: number;
   status: string;
   errors?: unknown[];
+  error_detail?: string;
   started_at: string;
   finished_at?: string;
 }

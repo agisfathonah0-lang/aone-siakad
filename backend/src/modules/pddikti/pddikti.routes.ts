@@ -2,13 +2,13 @@ import { Router, Request, Response, NextFunction } from 'express';
 import { body } from 'express-validator';
 import { v4 as uuid } from 'uuid';
 import { query as dbQuery } from '../../config/database.js';
-import { config } from '../../config/index.js';
 import { validate } from '../../middleware/validator.js';
 import { authenticate } from '../../middleware/auth.js';
 import { requireRole } from '../../middleware/role.js';
 import { sendSuccess } from '../../middleware/response.js';
 import { AppError } from '../../middleware/errorHandler.js';
 import { Role } from '../../types/enums.js';
+import { syncPddikti, getToken } from './pddikti.service.js';
 
 const router = Router();
 
@@ -45,7 +45,7 @@ async function validateStudent(schema: string): Promise<any[]> {
       errors.push({ id: 'VAL' + uuid().slice(0, 8), type: 'Mahasiswa', message: `NIM ${m.nama} (${m.nim || '-'}) tidak sesuai format (min 8 digit).`, priority: 'Tinggi', field: 'NIM' });
     }
     if (!m.email || !m.email.includes('@')) {
-      errors.push({ id: 'VAL' + uuid().slice(0, 8), type: 'Mahasiswa', message: `Email ${m.nama} (${m.email || '-'}) tidak valid untuk feeder PDDIKTI.`, priority: 'Sedang', field: 'EMAIL' });
+      errors.push({ id: 'VAL' + uuid().slice(0, 8), type: 'Mahasiswa', message: `Email ${m.nama} (${m.email || '-'}) tidak valid.`, priority: 'Sedang', field: 'EMAIL' });
     }
   });
   return errors;
@@ -92,6 +92,96 @@ async function validateNilai(schema: string): Promise<any[]> {
   return errors;
 }
 
+async function saveSyncRun(schema: string, type: string, synced: number, failed: number, status: string, errors: any[], errorDetail?: string): Promise<any> {
+  const runId = uuid();
+  await dbQuery(
+    `INSERT INTO ${schema}.pddikti_sync_runs (id, entity_type, records_synced, records_failed, status, errors, error_detail, finished_at)
+     VALUES ($1, $2, $3, $4, $5, $6, $7, NOW())`,
+    [runId, type, synced, failed, status, JSON.stringify(errors.slice(0, 50)), errorDetail || null]
+  );
+  const { rows } = await dbQuery(`SELECT * FROM ${schema}.pddikti_sync_runs WHERE id = $1`, [runId]);
+  return rows[0];
+}
+
+// GET /pddikti/config
+router.get(
+  '/config',
+  authenticate,
+  requireRole(Role.ADMIN, Role.AKADEMIK),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const schema = s(req);
+      const { rows } = await dbQuery(`SELECT id, feeder_url, username, database_name, is_active, last_sync_at FROM ${schema}.pddikti_config LIMIT 1`);
+      if (rows.length === 0) {
+        const { rows: created } = await dbQuery(
+          `INSERT INTO ${schema}.pddikti_config (feeder_url, is_active) VALUES ($1, $2) RETURNING id, feeder_url, username, database_name, is_active, last_sync_at`,
+          ['http://localhost:8085', false]
+        );
+        sendSuccess(res, created[0]);
+      } else {
+        sendSuccess(res, rows[0]);
+      }
+    } catch (err) { next(err); }
+  }
+);
+
+// PUT /pddikti/config
+router.put(
+  '/config',
+  authenticate,
+  requireRole(Role.ADMIN, Role.AKADEMIK),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const schema = s(req);
+      const { feeder_url, username, password, database_name, is_active } = req.body;
+
+      const { rows: existing } = await dbQuery(`SELECT id FROM ${schema}.pddikti_config LIMIT 1`);
+
+      if (existing.length > 0) {
+        const setFields: string[] = [];
+        const params: any[] = [];
+        let idx = 1;
+        if (feeder_url !== undefined) { setFields.push(`feeder_url = $${idx++}`); params.push(feeder_url); }
+        if (username !== undefined) { setFields.push(`username = $${idx++}`); params.push(username); }
+        if (password !== undefined) { setFields.push(`password = $${idx++}`); params.push(password); }
+        if (database_name !== undefined) { setFields.push(`database_name = $${idx++}`); params.push(database_name); }
+        if (is_active !== undefined) { setFields.push(`is_active = $${idx++}`); params.push(is_active); }
+        setFields.push('updated_at = NOW()');
+        params.push(existing[0].id);
+        const updateStr = `UPDATE ${schema}.pddikti_config SET ${setFields.join(', ')} WHERE id = $${params.length}`;
+        await dbQuery(updateStr, params);
+      } else {
+        await dbQuery(
+          `INSERT INTO ${schema}.pddikti_config (feeder_url, username, password, database_name, is_active) VALUES ($1, $2, $3, $4, $5) RETURNING id`,
+          [feeder_url || 'http://localhost:8085', username || '', password || '', database_name || '', is_active !== false]
+        );
+      }
+
+      const { rows } = await dbQuery(`SELECT id, feeder_url, username, database_name, is_active, last_sync_at FROM ${schema}.pddikti_config LIMIT 1`);
+      sendSuccess(res, rows[0], 'Konfigurasi PDDIKTI disimpan');
+    } catch (err) { next(err); }
+  }
+);
+
+// POST /pddikti/test-connection
+router.post(
+  '/test-connection',
+  authenticate,
+  requireRole(Role.ADMIN, Role.AKADEMIK),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const schema = s(req);
+      const { rows } = await dbQuery(`SELECT feeder_url, username, password, database_name FROM ${schema}.pddikti_config LIMIT 1`);
+      if (rows.length === 0) throw new AppError(400, 'Konfigurasi belum ada');
+
+      const token = await getToken(rows[0]);
+      sendSuccess(res, { success: true, message: 'Koneksi berhasil' });
+    } catch (err: any) {
+      sendSuccess(res, { success: false, message: err.message });
+    }
+  }
+);
+
 // GET /pddikti — List sync runs
 router.get(
   '/',
@@ -104,9 +194,7 @@ router.get(
         `SELECT * FROM ${schema}.pddikti_sync_runs ORDER BY started_at DESC`
       );
       sendSuccess(res, rows);
-    } catch (err) {
-      next(err);
-    }
+    } catch (err) { next(err); }
   }
 );
 
@@ -125,13 +213,11 @@ router.get(
         ...await validateNilai(schema),
       ];
       sendSuccess(res, errors);
-    } catch (err) {
-      next(err);
-    }
+    } catch (err) { next(err); }
   }
 );
 
-// POST /pddikti/sync — Trigger sync for a type
+// POST /pddikti/sync — Real sync via Neo Feeder
 router.post(
   '/sync',
   authenticate,
@@ -144,44 +230,40 @@ router.post(
     try {
       const schema = s(req);
       const { type } = req.body;
-
       const total = await countRecords(schema, type);
-      const failures: any[] = [];
 
-      if (type === 'Mahasiswa') failures.push(...await validateStudent(schema));
-      if (type === 'Dosen') failures.push(...await validateLecturer(schema));
-      if (type === 'KRS') failures.push(...await validateKrs(schema));
-      if (type === 'Nilai') failures.push(...await validateNilai(schema));
+      let synced = 0;
+      let failed = 0;
+      let status = 'Diproses';
+      let errors: any[] = [];
+      let errorDetail: string | undefined;
 
-      const failedCount = Math.min(failures.length, Math.floor(total * 0.05));
-      const syncedCount = total - failedCount;
-      const syncStatus = failedCount === 0 ? 'Sukses' : failedCount > Math.floor(total * 0.1) ? 'Gagal' : 'Peringatan';
+      // Pre-validation
+      const validationErrors: any[] = [];
+      if (type === 'Mahasiswa') validationErrors.push(...await validateStudent(schema));
+      if (type === 'Dosen') validationErrors.push(...await validateLecturer(schema));
+      if (type === 'KRS') validationErrors.push(...await validateKrs(schema));
+      if (type === 'Nilai') validationErrors.push(...await validateNilai(schema));
 
-      const runId = uuid();
-      await dbQuery(
-        `INSERT INTO ${schema}.pddikti_sync_runs (id, entity_type, records_synced, records_failed, status, errors, finished_at)
-         VALUES ($1, $2, $3, $4, $5, $6, NOW())`,
-        [runId, type, syncedCount, failedCount, syncStatus, JSON.stringify(failures.slice(0, 50))]
-      );
-
-      for (const fail of failures.slice(0, 50)) {
-        await dbQuery(
-          `INSERT INTO ${schema}.pddikti_logs (entity_type, entity_id, action, status, response)
-           VALUES ($1, $2, $3, $4, $5)`,
-          [type, fail.id, 'sync_error', 'Gagal', JSON.stringify(fail)]
-        );
+      try {
+        const result = await syncPddikti(schema, type);
+        synced = result.synced;
+        failed = result.failed;
+        errors = result.errors;
+        status = failed === 0 ? 'Sukses' : 'Peringatan';
+      } catch (err: any) {
+        failed = total;
+        status = 'Gagal';
+        errorDetail = err.message;
+        errors = validationErrors;
       }
 
-      const { rows } = await dbQuery(
-        `SELECT * FROM ${schema}.pddikti_sync_runs WHERE id = $1`, [runId]
-      );
+      const run = await saveSyncRun(schema, type, synced, failed, status, [...validationErrors, ...errors], errorDetail);
 
-      sendSuccess(res, rows[0], syncStatus === 'Sukses'
-        ? `Sinkronisasi ${type} berhasil (${syncedCount} record)`
-        : `Sinkronisasi ${type} dengan ${failedCount} error`, 201);
-    } catch (err) {
-      next(err);
-    }
+      sendSuccess(res, run, status === 'Sukses'
+        ? `Sinkronisasi ${type} berhasil (${synced}/${total} record)`
+        : `Sinkronisasi ${type} gagal: ${errorDetail || `${failed} error`}`, 201);
+    } catch (err) { next(err); }
   }
 );
 
@@ -225,40 +307,7 @@ router.get(
         totalFailed,
         recordCounts,
       });
-    } catch (err) {
-      next(err);
-    }
-  }
-);
-
-// POST /pddikti — Legacy: create sync log entry
-router.post(
-  '/',
-  authenticate,
-  requireRole(Role.ADMIN, Role.AKADEMIK),
-  [
-    body('type').isString(),
-    body('recordsSynced').optional().isInt(),
-    body('recordsFailed').optional().isInt(),
-    body('status').optional().isString(),
-    validate,
-  ],
-  async (req: Request, res: Response, next: NextFunction) => {
-    try {
-      const schema = s(req);
-      const { type, recordsSynced = 0, recordsFailed = 0, status = 'Diproses' } = req.body;
-
-      const runId = uuid();
-      await dbQuery(
-        `INSERT INTO ${schema}.pddikti_sync_runs (id, entity_type, records_synced, records_failed, status, finished_at)
-         VALUES ($1, $2, $3, $4, $5, NOW())`,
-        [runId, type, recordsSynced, recordsFailed, status]
-      );
-
-      sendSuccess(res, { id: runId }, 'Log sinkronisasi dibuat', 201);
-    } catch (err) {
-      next(err);
-    }
+    } catch (err) { next(err); }
   }
 );
 
