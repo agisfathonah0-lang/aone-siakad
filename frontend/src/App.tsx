@@ -82,6 +82,10 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
     if (location.pathname.startsWith('/vendor')) {
       return <Navigate to="/vendor/login" replace />;
     }
+    if (location.pathname.startsWith('/kampus/')) {
+      const slug = location.pathname.split('/')[2];
+      return <Navigate to={`/login?tenant=${slug}`} replace />;
+    }
     const slug = localStorage.getItem('aone_tenant_slug');
     const to = slug ? `/login?tenant=${slug}` : '/login';
     return <Navigate to={to} replace />;
@@ -91,8 +95,11 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
 
 function RoleGuard({ children, roles }: { children: React.ReactNode; roles: Role[] }) {
   const { user } = useAuth();
+  const location = useLocation();
   if (!user || !canAccess(user.role, roles)) {
-    return <Navigate to="/dashboard" replace />;
+    const slug = location.pathname.split('/')[2] || localStorage.getItem('aone_tenant_slug');
+    if (slug) return <Navigate to={`/kampus/${slug}/dashboard`} replace />;
+    return <Navigate to="/login" replace />;
   }
   return <>{children}</>;
 }
@@ -140,59 +147,65 @@ function AppRoutes() {
   return (
     <Routes>
       <Route path="/" element={<TenantLandingRouter />} />
-      <Route path="/kampus/:slug/ppdb" element={<CampusPPDBPage />} />
-      <Route path="/kampus/:slug" element={<CampusLandingPage />} />
       <Route path="/login" element={<LoginPage />} />
       <Route path="/vendor/login" element={<VendorLoginPage />} />
       <Route path="/register" element={<RegistrasiInstitusiPage />} />
       <Route path="/testimoni" element={<TestimoniPage />} />
       <Route path="/harga" element={<HargaPage />} />
       {features.map(f => <Route key={f.slug} path={`/fitur/${f.slug}`} element={<FeaturePage slug={f.slug} />} />)}
+
+      <Route path="/kampus/:slug">
+        <Route index element={<CampusLandingPage />} />
+        <Route path="ppdb" element={<CampusPPDBPage />} />
+        <Route element={<AuthGuard><AppLayout /></AuthGuard>}>
+          <Route path="dashboard" element={<DashboardPage />} />
+          <Route path="prodi" element={<ProdiPage />} />
+          <Route path="users" element={<UsersPage />} />
+          <Route path="pengaturan" element={<CampusSettingsPage />} />
+          <Route path="transkrip" element={<TranscriptPage />} />
+          <Route path="laporan" element={<LaporanPage />} />
+          <Route path="perwalian" element={<PerwalianPage />} />
+          <Route path="landing-page" element={<LandingSettingsPage />} />
+          <Route path="kalender" element={<KalenderPage />} />
+          <Route path="notifikasi" element={<NotifikasiPage />} />
+          <Route path="cctv" element={<CampusCctvPage />} />
+          <Route path="berita" element={<BeritaPage />} />
+          <Route path="mahasiswa" element={<MahasiswaPage />} />
+          <Route path="mahasiswa/:nim" element={<MahasiswaDetailPage />} />
+          <Route path="dosen" element={<DosenPage />} />
+          <Route path="edom" element={<EdomPage />} />
+          <Route path="mata-kuliah" element={<MatakuliahPage />} />
+          <Route path="jadwal" element={<JadwalPage />} />
+          <Route path="krs" element={<KRSPage />} />
+          <Route path="cetak-pdf" element={<CetakPDFPage />} />
+          <Route path="absensi" element={<AbsensiPage />} />
+          <Route path="nilai" element={<NilaiPage />} />
+          <Route path="kurikulum" element={<KurikulumPage />} />
+          <Route path="rps" element={<RPSPage />} />
+          <Route path="bap" element={<BAPPage />} />
+          <Route path="absensi-dosen" element={<AbsensiDosenPage />} />
+          <Route path="surat" element={<SuratPage />} />
+          <Route path="sidang" element={<SidangPage />} />
+          <Route path="kkn" element={<KKNPage />} />
+          <Route path="pkl" element={<PKLPage />} />
+          <Route path="seminar" element={<SeminarPage />} />
+          <Route path="beasiswa" element={<BeasiswaPage />} />
+          <Route path="akreditasi" element={<AkreditasiPage />} />
+          <Route path="perpustakaan" element={<PerpustakaanPage />} />
+          <Route path="integrasi-lms" element={<LMSPage />} />
+          <Route path="ai" element={<AIPage />} />
+          <Route path="tagihan" element={<TagihanPage />} />
+          <Route path="pembayaran" element={<PembayaranPage />} />
+          <Route path="cms" element={<CMSPage />} />
+          <Route path="ppdb" element={<PPDBPage />} />
+          <Route path="ppdb/config" element={<PPDBConfigPage />} />
+          <Route path="ojs" element={<OJSPage />} />
+          <Route path="pddikti" element={<PDDIKTIPage />} />
+          <Route path="alumni" element={<AlumniPage />} />
+        </Route>
+      </Route>
+
       <Route element={<AuthGuard><AppLayout /></AuthGuard>}>
-        <Route path="dashboard" element={<DashboardPage />} />
-        <Route path="prodi" element={<ProdiPage />} />
-        <Route path="users" element={<UsersPage />} />
-        <Route path="pengaturan" element={<CampusSettingsPage />} />
-        <Route path="transkrip" element={<TranscriptPage />} />
-        <Route path="laporan" element={<LaporanPage />} />
-        <Route path="perwalian" element={<PerwalianPage />} />
-        <Route path="landing-page" element={<LandingSettingsPage />} />
-        <Route path="kalender" element={<KalenderPage />} />
-        <Route path="notifikasi" element={<NotifikasiPage />} />
-        <Route path="cctv" element={<CampusCctvPage />} />
-        <Route path="berita" element={<BeritaPage />} />
-        <Route path="mahasiswa" element={<MahasiswaPage />} />
-        <Route path="mahasiswa/:nim" element={<MahasiswaDetailPage />} />
-        <Route path="dosen" element={<DosenPage />} />
-        <Route path="edom" element={<EdomPage />} />
-        <Route path="mata-kuliah" element={<MatakuliahPage />} />
-        <Route path="jadwal" element={<JadwalPage />} />
-        <Route path="krs" element={<KRSPage />} />
-        <Route path="cetak-pdf" element={<CetakPDFPage />} />
-        <Route path="absensi" element={<AbsensiPage />} />
-        <Route path="nilai" element={<NilaiPage />} />
-        <Route path="kurikulum" element={<KurikulumPage />} />
-        <Route path="rps" element={<RPSPage />} />
-        <Route path="bap" element={<BAPPage />} />
-        <Route path="absensi-dosen" element={<AbsensiDosenPage />} />
-        <Route path="surat" element={<SuratPage />} />
-        <Route path="sidang" element={<SidangPage />} />
-        <Route path="kkn" element={<KKNPage />} />
-        <Route path="pkl" element={<PKLPage />} />
-        <Route path="seminar" element={<SeminarPage />} />
-        <Route path="beasiswa" element={<BeasiswaPage />} />
-        <Route path="akreditasi" element={<AkreditasiPage />} />
-        <Route path="perpustakaan" element={<PerpustakaanPage />} />
-        <Route path="integrasi-lms" element={<LMSPage />} />
-        <Route path="ai" element={<AIPage />} />
-        <Route path="tagihan" element={<TagihanPage />} />
-        <Route path="pembayaran" element={<PembayaranPage />} />
-        <Route path="cms" element={<CMSPage />} />
-        <Route path="ppdb" element={<PPDBPage />} />
-        <Route path="ppdb/config" element={<PPDBConfigPage />} />
-        <Route path="ojs" element={<OJSPage />} />
-        <Route path="pddikti" element={<PDDIKTIPage />} />
-        <Route path="alumni" element={<AlumniPage />} />
         <Route path="vendor" element={<VendorDashboardPage />} />
         <Route path="vendor/tenants" element={<TenantsPage />} />
         <Route path="vendor/tickets" element={<TicketsPage />} />

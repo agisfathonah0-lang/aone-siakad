@@ -79,7 +79,7 @@ function SidebarNavItem({ item, depth, onClose }: { item: MenuItem; depth?: numb
   return (
     <NavLink
       to={item.path!}
-      end={item.path === '/dashboard'}
+      end={item.path === 'dashboard'}
       onClick={onClose}
       className={({ isActive }) =>
         `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${

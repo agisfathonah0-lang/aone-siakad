@@ -29,7 +29,7 @@ export default function LoginPage() {
     setLoading(true);
     try {
       await login(email, password, false, tenantSlug || undefined);
-      navigate('/dashboard');
+      navigate(`/kampus/${tenantSlug}/dashboard`);
     } catch (err: any) {
       setError(err.response?.data?.message || err.message || 'Login gagal');
     } finally {

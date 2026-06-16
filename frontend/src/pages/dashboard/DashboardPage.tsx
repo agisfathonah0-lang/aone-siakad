@@ -5,10 +5,10 @@ import { useAuth } from '../../context/AuthContext';
 import { Users, BookOpen, DollarSign, GraduationCap, Loader2, UserPlus, Plus, FileSpreadsheet, Printer, CalendarPlus, Library, BellRing, TrendingUp, ArrowRight, Sparkles, School, UserCheck, BookMarked } from 'lucide-react';
 
 const quickActions = [
-  { label: 'Tambah Mahasiswa', icon: UserPlus, path: '/mahasiswa', color: 'from-emerald-500 to-emerald-600' },
-  { label: 'Input Nilai', icon: FileSpreadsheet, path: '/nilai', color: 'from-indigo-500 to-indigo-600' },
-  { label: 'Buat Jadwal', icon: CalendarPlus, path: '/jadwal', color: 'from-amber-500 to-amber-600' },
-  { label: 'Cetak KHS', icon: Printer, path: '/cetak-pdf', color: 'from-rose-500 to-rose-600' },
+  { label: 'Tambah Mahasiswa', icon: UserPlus, path: 'mahasiswa', color: 'from-emerald-500 to-emerald-600' },
+  { label: 'Input Nilai', icon: FileSpreadsheet, path: 'nilai', color: 'from-indigo-500 to-indigo-600' },
+  { label: 'Buat Jadwal', icon: CalendarPlus, path: 'jadwal', color: 'from-amber-500 to-amber-600' },
+  { label: 'Cetak KHS', icon: Printer, path: 'cetak-pdf', color: 'from-rose-500 to-rose-600' },
 ];
 
 const gradientMap: Record<string, string> = {
@@ -91,7 +91,7 @@ export default function DashboardPage() {
 
       <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
         {statCards.map((card) => (
-          <div key={card.label} className="relative group bg-white dark:bg-zinc-900/50 rounded-2xl p-4 shadow-sm ring-1 ring-slate-200/50 dark:ring-zinc-800/30 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer" onClick={() => navigate(`/${card.label.toLowerCase().replace(/\s+/g, '-')}`)}>
+          <div key={card.label} className="relative group bg-white dark:bg-zinc-900/50 rounded-2xl p-4 shadow-sm ring-1 ring-slate-200/50 dark:ring-zinc-800/30 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 cursor-pointer" onClick={() => navigate(`${card.label.toLowerCase().replace(/\s+/g, '-')}`)}>
             <div className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${gradientMap[card.label] || 'from-slate-500/5'} opacity-0 group-hover:opacity-100 transition-opacity`} />
             <div className="relative">
               <div className={`w-9 h-9 rounded-xl ${card.bg} flex items-center justify-center ${card.color} mb-2.5`}>
@@ -149,7 +149,7 @@ export default function DashboardPage() {
               </div>
             ))}
           </div>
-          <button onClick={() => navigate('/laporan')} className="mt-4 flex items-center gap-1.5 text-xs font-semibold text-emerald-500 hover:text-emerald-400 transition-colors">
+          <button onClick={() => navigate('laporan')} className="mt-4 flex items-center gap-1.5 text-xs font-semibold text-emerald-500 hover:text-emerald-400 transition-colors">
             Lihat Laporan Lengkap <ArrowRight size={13} />
           </button>
         </div>
@@ -161,12 +161,12 @@ export default function DashboardPage() {
           </div>
           <div className="grid grid-cols-2 gap-2">
             {[
-              { label: 'Perpustakaan', path: '/perpustakaan', icon: Library, color: 'text-amber-500', bg: 'bg-amber-50 dark:bg-amber-900/20' },
-              { label: 'PPDB', path: '/ppdb', icon: UserPlus, color: 'text-indigo-500', bg: 'bg-indigo-50 dark:bg-indigo-900/20' },
-              { label: 'Keuangan', path: '/tagihan', icon: DollarSign, color: 'text-rose-500', bg: 'bg-rose-50 dark:bg-rose-900/20' },
-              { label: 'EDOM', path: '/edom', icon: BellRing, color: 'text-purple-500', bg: 'bg-purple-50 dark:bg-purple-900/20' },
-              { label: 'Akreditasi', path: '/akreditasi', icon: BookOpen, color: 'text-cyan-500', bg: 'bg-cyan-50 dark:bg-cyan-900/20' },
-              { label: 'Integrasi LMS', path: '/integrasi-lms', icon: TrendingUp, color: 'text-emerald-500', bg: 'bg-emerald-50 dark:bg-emerald-900/20' },
+  { label: 'Perpustakaan', path: 'perpustakaan', icon: Library, color: 'text-amber-500', bg: 'bg-amber-50 dark:bg-amber-900/20' },
+  { label: 'PPDB', path: 'ppdb', icon: UserPlus, color: 'text-indigo-500', bg: 'bg-indigo-50 dark:bg-indigo-900/20' },
+  { label: 'Keuangan', path: 'tagihan', icon: DollarSign, color: 'text-rose-500', bg: 'bg-rose-50 dark:bg-rose-900/20' },
+  { label: 'EDOM', path: 'edom', icon: BellRing, color: 'text-purple-500', bg: 'bg-purple-50 dark:bg-purple-900/20' },
+  { label: 'Akreditasi', path: 'akreditasi', icon: BookOpen, color: 'text-cyan-500', bg: 'bg-cyan-50 dark:bg-cyan-900/20' },
+  { label: 'Integrasi LMS', path: 'integrasi-lms', icon: TrendingUp, color: 'text-emerald-500', bg: 'bg-emerald-50 dark:bg-emerald-900/20' },
             ].map((mod) => (
               <button key={mod.label} onClick={() => navigate(mod.path)}
                 className="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-zinc-800/50 transition-all text-left">
