@@ -45,10 +45,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = useCallback(async () => {
     try { await post('/auth/logout', { refreshToken: localStorage.getItem('aone_refresh_token') }); } catch { /* */ }
+    const role = user?.role || '';
+    const tenantSlug = localStorage.getItem('aone_tenant_slug');
     clearTokens();
     setUser(null);
-    window.location.href = '/login';
-  }, []);
+    if (role.startsWith('vendor_')) {
+      window.location.href = '/vendor/login';
+    } else if (tenantSlug) {
+      window.location.href = `/login?tenant=${tenantSlug}`;
+    } else {
+      window.location.href = '/login';
+    }
+  }, [user]);
 
   return (
     <AuthContext.Provider value={{ user, loading, login, logout }}>

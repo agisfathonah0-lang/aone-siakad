@@ -79,7 +79,11 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
   const location = useLocation();
   if (loading) return <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-zinc-950"><Loader2 className="w-6 h-6 animate-spin text-emerald-500" /></div>;
   if (!user) {
-    const to = location.pathname.startsWith('/vendor') ? '/vendor/login' : '/login';
+    if (location.pathname.startsWith('/vendor')) {
+      return <Navigate to="/vendor/login" replace />;
+    }
+    const slug = localStorage.getItem('aone_tenant_slug');
+    const to = slug ? `/login?tenant=${slug}` : '/login';
     return <Navigate to={to} replace />;
   }
   return <>{children}</>;
