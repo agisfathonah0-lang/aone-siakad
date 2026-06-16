@@ -1,10 +1,12 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { get } from '../../api/client';
-import { Loader2, Camera, Play, ExternalLink, RefreshCw, Wifi, WifiOff } from 'lucide-react';
+import { get, post } from '../../api/client';
+import { Loader2, Camera, Play, ExternalLink, RefreshCw, Wifi, WifiOff, StopCircle, Video } from 'lucide-react';
+import Hls from 'hls.js';
 
 interface Camera {
   id: string; name: string; location: string;
   rtsp_url: string; snapshot_url: string; status: string;
+  stream_supported?: boolean;
 }
 
 export default function CctvPage() {
@@ -69,6 +71,11 @@ function CameraCard({ camera, onView }: { camera: Camera; onView: () => void }) 
           {camera.status === 'Aktif' ? <Wifi size={10} className="text-emerald-400" /> : <WifiOff size={10} className="text-red-400" />}
           {camera.status || 'Aktif'}
         </div>
+        {camera.stream_supported && (
+          <div className="absolute top-2 right-2 px-1.5 py-0.5 rounded-md bg-emerald-600/80 text-[9px] text-white flex items-center gap-1">
+            <Video size={9} /> HLS
+          </div>
+        )}
         <div className="absolute inset-0 flex items-center justify-center bg-black/0 hover:bg-black/40 transition-all group/play">
           <div className="w-10 h-10 rounded-full bg-emerald-500/90 flex items-center justify-center opacity-0 group-hover/play:opacity-100 transition-all scale-90 group-hover/play:scale-100">
             <Play size={16} className="text-white ml-0.5" />
@@ -89,40 +96,104 @@ function CameraCard({ camera, onView }: { camera: Camera; onView: () => void }) 
 }
 
 function LiveView({ camera }: { camera: Camera }) {
-  const [loading, setLoading] = useState(true);
+  const [mode, setMode] = useState<'snapshot' | 'hls'>('snapshot');
+  const [streamActive, setStreamActive] = useState(false);
+  const [streamLoading, setStreamLoading] = useState(false);
   const [refresh, setRefresh] = useState(0);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const hlsRef = useRef<Hls | null>(null);
+
+  const startHls = useCallback(async () => {
+    setStreamLoading(true);
+    try {
+      const res = await post<{ stream_url: string }>(`/campus/cctv/${camera.id}/stream/start`, {});
+      setStreamActive(true);
+      setMode('hls');
+
+      if (videoRef.current) {
+        if (Hls.isSupported()) {
+          hlsRef.current = new Hls({ liveDurationInfinity: true, maxLoadingDelay: 4, lowLatencyMode: true });
+          hlsRef.current.loadSource(res.stream_url);
+          hlsRef.current.attachMedia(videoRef.current);
+          hlsRef.current.on(Hls.Events.MANIFEST_PARSED, () => videoRef.current?.play());
+        } else if (videoRef.current.canPlayType('application/vnd.apple.mpegurl')) {
+          videoRef.current.src = res.stream_url;
+        }
+      }
+    } catch (err: any) {
+      alert(err.response?.data?.message || err.message);
+    } finally { setStreamLoading(false); }
+  }, [camera.id]);
+
+  const stopHls = useCallback(async () => {
+    hlsRef.current?.destroy();
+    hlsRef.current = null;
+    setMode('snapshot');
+    setStreamActive(false);
+    await post(`/campus/cctv/${camera.id}/stream/stop`, {}).catch(() => {});
+  }, [camera.id]);
 
   useEffect(() => {
-    setLoading(true);
-    const timer = setInterval(() => setRefresh(r => r + 1), 3000);
-    return () => clearInterval(timer);
+    return () => { hlsRef.current?.destroy(); stopHls(); };
   }, []);
+
+  useEffect(() => {
+    if (mode === 'snapshot') {
+      setRefresh(r => r + 1);
+      const timer = setInterval(() => setRefresh(r => r + 1), 3000);
+      return () => clearInterval(timer);
+    }
+  }, [mode]);
 
   return (
     <div className="relative bg-zinc-900" style={{ minHeight: 350 }}>
-      {camera.snapshot_url ? (
+      {mode === 'hls' ? (
         <>
-          <img key={refresh} src={`${camera.snapshot_url}${camera.snapshot_url.includes('?') ? '&' : '?'}_t=${Date.now()}`}
-            alt={camera.name} className="w-full h-auto object-contain" style={{ maxHeight: '70vh' }}
-            onLoad={() => setLoading(false)} onError={() => setLoading(false)}
-          />
-          {loading && <div className="absolute inset-0 flex items-center justify-center bg-zinc-900/60"><Loader2 className="w-6 h-6 animate-spin text-emerald-500" /></div>}
-          <div className="absolute bottom-3 right-3 flex items-center gap-1 px-2 py-1 rounded-md bg-black/60 text-[9px] text-emerald-400">
-            <RefreshCw size={9} /> Live
+          <video ref={videoRef} className="w-full h-auto" style={{ maxHeight: '70vh' }} autoPlay muted playsInline />
+          <div className="absolute top-3 right-3 flex items-center gap-1 px-2 py-1 rounded-md bg-emerald-600/80 text-[9px] text-white">
+            <Video size={9} /> HLS Live
+          </div>
+          <div className="absolute bottom-3 left-3">
+            <button onClick={stopHls} className="px-2.5 py-1 rounded-lg bg-red-600/80 hover:bg-red-700 text-white font-bold text-[10px] flex items-center gap-1 transition-colors">
+              <StopCircle size={10} /> Stop
+            </button>
           </div>
         </>
       ) : (
-        <div className="flex items-center justify-center" style={{ minHeight: 350 }}>
-          <Camera size={48} className="text-zinc-700" />
+        <>
+          {camera.snapshot_url ? (
+            <img key={refresh} src={`/api/v1/campus/cctv/${camera.id}/snapshot?_t=${Date.now()}`}
+              alt={camera.name} className="w-full h-auto object-contain" style={{ maxHeight: '70vh' }}
+              onLoad={() => setStreamLoading(false)} onError={() => setStreamLoading(false)}
+            />
+          ) : (
+            <div className="flex items-center justify-center" style={{ minHeight: 350 }}>
+              <Camera size={48} className="text-zinc-700" />
+            </div>
+          )}
+          <div className="absolute bottom-3 right-3 flex items-center gap-1 px-2 py-1 rounded-md bg-black/60 text-[9px] text-emerald-400">
+            <RefreshCw size={9} /> Snapshot
+          </div>
+          <div className="absolute bottom-3 left-3 flex gap-2">
+            {camera.stream_supported && !streamActive && (
+              <button onClick={startHls} disabled={streamLoading} className="px-2.5 py-1 rounded-lg bg-emerald-600/80 hover:bg-emerald-700 text-white font-bold text-[10px] flex items-center gap-1 transition-colors disabled:opacity-50">
+                {streamLoading ? <Loader2 size={10} className="animate-spin" /> : <Play size={10} />}
+                {streamLoading ? 'Starting...' : 'Live HLS'}
+              </button>
+            )}
+            {camera.rtsp_url && (
+              <a href={camera.rtsp_url} target="_blank" rel="noopener noreferrer" className="px-2.5 py-1 rounded-lg bg-black/60 hover:bg-black/80 text-zinc-300 font-bold text-[10px] flex items-center gap-1 transition-colors">
+                <ExternalLink size={10} /> Buka di VLC
+              </a>
+            )}
+          </div>
+        </>
+      )}
+      {streamLoading && mode === 'snapshot' && (
+        <div className="absolute inset-0 flex items-center justify-center bg-zinc-900/60">
+          <Loader2 className="w-6 h-6 animate-spin text-emerald-500" />
         </div>
       )}
-      <div className="absolute bottom-3 left-3">
-        {camera.rtsp_url && (
-          <a href={camera.rtsp_url} target="_blank" rel="noopener noreferrer" className="px-2.5 py-1 rounded-lg bg-black/60 hover:bg-black/80 text-zinc-300 font-bold text-[10px] flex items-center gap-1 transition-colors">
-            <ExternalLink size={10} /> Buka di VLC
-          </a>
-        )}
-      </div>
     </div>
   );
 }
