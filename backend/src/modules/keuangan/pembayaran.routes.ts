@@ -5,7 +5,7 @@ import { query } from '../../config/database.js';
 import { validate } from '../../middleware/validator.js';
 import { authenticate } from '../../middleware/auth.js';
 import { requireRole } from '../../middleware/role.js';
-import { sendSuccess } from '../../middleware/response.js';
+import { sendSuccess, sendPaginated } from '../../middleware/response.js';
 import { AppError } from '../../middleware/errorHandler.js';
 import { Role, StatusPembayaran } from '../../types/enums.js';
 import { getSnap } from '../../services/midtrans.js';
@@ -23,14 +23,15 @@ router.get(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const schema = s(req);
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 20;
+      const offset = (page - 1) * limit;
       const tagihanId = req.query.tagihan_id as string;
       const mahasiswaId = req.query.mahasiswa_id as string;
 
-      let sql = `SELECT p.*, t.tahun_akademik, t.semester, t.nominal as tagihan_nominal, t.jenis,
-                        m.nim, m.nama as mahasiswa_nama
-                 FROM ${schema}.ukt_pembayaran p
-                 JOIN ${schema}.ukt_tagihan t ON t.id = p.tagihan_id
-                 JOIN ${schema}.mahasiswa m ON m.id = p.mahasiswa_id`;
+      const baseFrom = `FROM ${schema}.ukt_pembayaran p
+                        JOIN ${schema}.ukt_tagihan t ON t.id = p.tagihan_id
+                        JOIN ${schema}.mahasiswa m ON m.id = p.mahasiswa_id`;
 
       const params: unknown[] = [];
       const conditions: string[] = [];
@@ -38,11 +39,20 @@ router.get(
       if (tagihanId) { conditions.push(`p.tagihan_id = $${params.length + 1}`); params.push(tagihanId); }
       if (mahasiswaId) { conditions.push(`p.mahasiswa_id = $${params.length + 1}`); params.push(mahasiswaId); }
 
-      if (conditions.length > 0) sql += ` WHERE ${conditions.join(' AND ')}`;
-      sql += ` ORDER BY p.created_at DESC`;
+      const where = conditions.length > 0 ? ` WHERE ${conditions.join(' AND ')}` : '';
 
-      const { rows } = await query(sql, params);
-      sendSuccess(res, rows);
+      const { rows: totalRows } = await query(`SELECT COUNT(*) as count ${baseFrom}${where}`, params);
+      const total = parseInt(totalRows[0].count, 10);
+
+      const { rows } = await query(
+        `SELECT p.*, t.tahun_akademik, t.semester, t.nominal as tagihan_nominal, t.jenis,
+                m.nim, m.nama as mahasiswa_nama
+         ${baseFrom}${where}
+         ORDER BY p.created_at DESC LIMIT $${params.length + 1} OFFSET $${params.length + 2}`,
+        [...params, limit, offset]
+      );
+
+      sendPaginated(res, rows, total, page, limit);
     } catch (err) {
       next(err);
     }
@@ -97,7 +107,7 @@ router.post(
       sendSuccess(res, {
         pembayaran_id: pembayaranId,
         order_id: orderId,
-        token: transaction.token,
+        snap_token: transaction.token,
         redirect_url: transaction.redirect_url,
       }, 'Transaksi Midtrans berhasil dibuat');
     } catch (err) {
@@ -152,11 +162,20 @@ async function checkTagihanLunas(schema: string, tagihanId: string): Promise<voi
     [tagihanId]
   );
 
-  if (rows.length > 0 && parseFloat(rows[0].total_bayar) >= parseFloat(rows[0].nominal)) {
-    await query(
-      `UPDATE ${schema}.ukt_tagihan SET status = 'lunas', updated_at = NOW() WHERE id = $1`,
-      [tagihanId]
-    );
+  if (rows.length > 0) {
+    const totalBayar = parseFloat(rows[0].total_bayar);
+    const nominal = parseFloat(rows[0].nominal);
+    if (totalBayar >= nominal) {
+      await query(
+        `UPDATE ${schema}.ukt_tagihan SET status = 'lunas', updated_at = NOW() WHERE id = $1`,
+        [tagihanId]
+      );
+    } else if (totalBayar > 0) {
+      await query(
+        `UPDATE ${schema}.ukt_tagihan SET status = 'sebagian', updated_at = NOW() WHERE id = $1`,
+        [tagihanId]
+      );
+    }
   }
 }
 

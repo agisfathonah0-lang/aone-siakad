@@ -32,6 +32,7 @@ import JadwalPage from './pages/akademik/JadwalPage';
 import KRSPage from './pages/akademik/KRSPage';
 import AbsensiPage from './pages/akademik/AbsensiPage';
 import NilaiPage from './pages/akademik/NilaiPage';
+import KHSPage from './pages/akademik/KHSPage';
 import CetakPDFPage from './pages/akademik/CetakPDFPage';
 import KurikulumPage from './pages/akademik/KurikulumPage';
 import RPSPage from './pages/akademik/RPSPage';
@@ -48,6 +49,7 @@ import PerpustakaanPage from './pages/akademik/PerpustakaanPage';
 import LMSPage from './pages/akademik/LMSPage';
 import AIPage from './pages/ai/AIPage';
 import TagihanPage from './pages/keuangan/TagihanPage';
+import TagihanMahasiswaPage from './pages/keuangan/TagihanMahasiswaPage';
 import PembayaranPage from './pages/keuangan/PembayaranPage';
 import CMSPage from './pages/cms/CMSPage';
 import PPDBPage from './pages/ppdb/PPDBPage';
@@ -143,6 +145,12 @@ function TenantLandingRouter() {
   return <LandingPage />;
 }
 
+function TagihanRouter() {
+  const { user } = useAuth();
+  if (user?.role === 'mahasiswa') return <TagihanMahasiswaPage />;
+  return <TagihanPage />;
+}
+
 function AppRoutes() {
   return (
     <Routes>
@@ -180,6 +188,7 @@ function AppRoutes() {
           <Route path="cetak-pdf" element={<CetakPDFPage />} />
           <Route path="absensi" element={<AbsensiPage />} />
           <Route path="nilai" element={<NilaiPage />} />
+          <Route path="khs" element={<KHSPage />} />
           <Route path="kurikulum" element={<KurikulumPage />} />
           <Route path="rps" element={<RPSPage />} />
           <Route path="bap" element={<BAPPage />} />
@@ -194,7 +203,7 @@ function AppRoutes() {
           <Route path="perpustakaan" element={<PerpustakaanPage />} />
           <Route path="integrasi-lms" element={<LMSPage />} />
           <Route path="ai" element={<AIPage />} />
-          <Route path="tagihan" element={<TagihanPage />} />
+          <Route path="tagihan" element={<TagihanRouter />} />
           <Route path="pembayaran" element={<PembayaranPage />} />
           <Route path="cms" element={<CMSPage />} />
           <Route path="ppdb" element={<PPDBPage />} />

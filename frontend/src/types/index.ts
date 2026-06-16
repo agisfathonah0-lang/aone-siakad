@@ -14,7 +14,8 @@ export interface Pagination {
 
 export interface PaginatedResponse<T> {
   success: boolean;
-  data: { rows: T[]; pagination: Pagination };
+  data?: { rows: T[]; pagination: Pagination };
+  message?: string;
 }
 
 export type Role = 'vendor_super_admin' | 'super_admin' | 'rektor' | 'admin' | 'dekan' | 'akademik' | 'kaprodi' | 'keuangan' | 'pustakawan' | 'dosen' | 'mahasiswa' | 'calon_mahasiswa' | 'alumni';

@@ -156,4 +156,68 @@ router.post(
   }
 );
 
+router.get(
+  '/khs',
+  authenticate,
+  requireRole(Role.MAHASISWA),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const s = schema(req);
+      const { rows: mhs } = await query(
+        `SELECT id FROM ${s}.mahasiswa WHERE user_id = $1`,
+        [req.user!.id]
+      );
+      if (mhs.length === 0) throw new AppError(404, 'Data mahasiswa tidak ditemukan');
+
+      const { rows } = await query(
+        `SELECT mk.kode, mk.nama as mk_nama, mk.sks, n.nilai_tugas, n.nilai_uts, n.nilai_uas, n.nilai_akhir, n.nilai_huruf,
+                j.semester, j.tahun_akademik
+         FROM ${s}.krs k
+         JOIN ${s}.jadwal_kuliah j ON j.id = k.jadwal_id
+         JOIN ${s}.mata_kuliah mk ON mk.id = j.mata_kuliah_id
+         LEFT JOIN ${s}.nilai n ON n.krs_id = k.id
+         WHERE k.mahasiswa_id = $1 AND k.status = 'disetujui'
+         ORDER BY j.tahun_akademik, j.semester, mk.kode`,
+        [mhs[0].id]
+      );
+
+      const nilaiMap: Record<string, number> = { A: 4, 'A-': 3.7, 'B+': 3.3, B: 3, 'B-': 2.7, 'C+': 2.3, C: 2, D: 1, E: 0 };
+      const semesterSet = new Set<string>();
+      const semesterData: Record<string, { mk: typeof rows; totalSks: number; totalBobot: number }> = {};
+      let totalSksKumulatif = 0, totalBobotKumulatif = 0;
+
+      for (const r of rows) {
+        const key = `${r.tahun_akademik}-${r.semester}`;
+        semesterSet.add(key);
+        if (!semesterData[key]) semesterData[key] = { mk: [], totalSks: 0, totalBobot: 0 };
+        semesterData[key].mk.push(r);
+        if (r.nilai_huruf && nilaiMap[r.nilai_huruf] !== undefined) {
+          semesterData[key].totalSks += r.sks;
+          semesterData[key].totalBobot += nilaiMap[r.nilai_huruf] * r.sks;
+        }
+      }
+
+      const semesters = Array.from(semesterSet).sort().map((key) => {
+        const sd = semesterData[key];
+        const ipSemester = sd.totalSks > 0 ? +(sd.totalBobot / sd.totalSks).toFixed(2) : 0;
+        totalSksKumulatif += sd.totalSks;
+        totalBobotKumulatif += sd.totalBobot;
+        return {
+          tahunAkademik: key.split('-')[0],
+          semester: key.split('-')[1],
+          mataKuliah: sd.mk,
+          totalSks: sd.totalSks,
+          ip: ipSemester,
+          ipKumulatif: totalSksKumulatif > 0 ? +(totalBobotKumulatif / totalSksKumulatif).toFixed(2) : 0,
+          totalSksKumulatif,
+        };
+      });
+
+      sendSuccess(res, { semesters, ipk: totalSksKumulatif > 0 ? +(totalBobotKumulatif / totalSksKumulatif).toFixed(2) : 0, totalSks: totalSksKumulatif });
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
 export default router;

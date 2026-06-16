@@ -35,12 +35,12 @@ export default function PembayaranPage() {
     try {
       let url = `/keuangan/pembayaran?page=${page}`;
       if (filterSearch) url += `&search=${filterSearch}`;
-      const res = await getPaginated<Pembayaran>(url); setData(res.rows); setTotalPages(res.pagination.totalPages);
+      const res = await getPaginated<Pembayaran>(url); setData(res?.rows || []); setTotalPages(res?.pagination?.totalPages || 1);
     } catch (err: any) { setError(err.message); } finally { setLoading(false); }
   }, [page, filterSearch]);
   useEffect(() => { fetchData(); }, [fetchData]);
 
-  useEffect(() => { getPaginated<Mahasiswa>('/akademik/mahasiswa?limit=500').then(r => setMahasiswaList(r.rows)).catch(() => {}); }, []);
+  useEffect(() => { getPaginated<Mahasiswa>('/akademik/mahasiswa?limit=500').then(r => setMahasiswaList(r?.rows || [])).catch(() => {}); }, []);
 
   useEffect(() => { setPage(1); }, [filterSearch]);
 
@@ -48,7 +48,7 @@ export default function PembayaranPage() {
     if (!mahasiswaId) { setTagihanList([]); return; }
     try {
       const res = await getPaginated<Tagihan>(`/keuangan/tagihan?mahasiswa_id=${mahasiswaId}&limit=100`);
-      setTagihanList(res.rows);
+      setTagihanList(res?.rows || []);
     } catch { setTagihanList([]); }
   };
 

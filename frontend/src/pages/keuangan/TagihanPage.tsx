@@ -30,12 +30,12 @@ export default function TagihanPage() {
       let url = `/keuangan/tagihan?page=${page}`;
       if (filterStatus) url += `&status=${filterStatus}`;
       if (filterSearch) url += `&search=${filterSearch}`;
-      const res = await getPaginated<Tagihan>(url); setData(res.rows); setTotalPages(res.pagination.totalPages);
+      const res = await getPaginated<Tagihan>(url); setData(res?.rows || []); setTotalPages(res?.pagination?.totalPages || 1);
     } catch (err: any) { setError(err.message); } finally { setLoading(false); }
   }, [page, filterStatus, filterSearch]);
   useEffect(() => { fetchData(); }, [fetchData]);
 
-  useEffect(() => { getPaginated<Mahasiswa>('/akademik/mahasiswa?limit=500').then(r => setMahasiswaList(r.rows)).catch(() => {}); }, []);
+  useEffect(() => { getPaginated<Mahasiswa>('/akademik/mahasiswa?limit=500').then(r => setMahasiswaList(r?.rows || [])).catch(() => {}); }, []);
 
   useEffect(() => { setPage(1); }, [filterStatus, filterSearch]);
 
@@ -65,7 +65,7 @@ export default function TagihanPage() {
 
   const openDetail = async (r: Tagihan) => {
     setDetailTagihan(r);
-    try { const res = await getPaginated<Pembayaran>(`/keuangan/pembayaran?tagihan_id=${r.id}&limit=100`); setRiwayat(res.rows); }
+    try { const res = await getPaginated<Pembayaran>(`/keuangan/pembayaran?tagihan_id=${r.id}&limit=100`); setRiwayat(res?.rows || []); }
     catch { setRiwayat([]); }
     setDetailModal(true);
   };

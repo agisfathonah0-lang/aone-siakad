@@ -52,6 +52,7 @@ export async function get<T>(url: string): Promise<T> {
 
 export async function getPaginated<T>(url: string): Promise<{ rows: T[]; pagination: { total: number; page: number; limit: number; totalPages: number } }> {
   const { data } = await api.get<PaginatedResponse<T>>(url);
+  if (!data.success || !data.data) throw new Error(data.message || 'Gagal memuat data');
   return data.data;
 }
 

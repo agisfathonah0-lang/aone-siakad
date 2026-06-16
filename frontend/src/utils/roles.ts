@@ -48,7 +48,7 @@ export const SIDEBAR_MENUS: MenuItem[] = [
   {
     label: 'Akademik',
     icon: 'GraduationCap',
-    roles: ['super_admin', 'rektor', 'admin', 'dekan', 'akademik', 'kaprodi', 'dosen'],
+    roles: ['super_admin', 'rektor', 'admin', 'dekan', 'akademik', 'kaprodi', 'dosen', 'mahasiswa'],
     children: [
       { label: 'Mahasiswa', path: 'mahasiswa', icon: 'Users', roles: ['super_admin', 'admin', 'akademik', 'dosen'] },
       { label: 'Dosen', path: 'dosen', icon: 'UserCheck', roles: ['super_admin', 'rektor', 'admin', 'dekan', 'akademik', 'kaprodi'] },
@@ -58,6 +58,7 @@ export const SIDEBAR_MENUS: MenuItem[] = [
       { label: 'Jadwal', path: 'jadwal', icon: 'CalendarDays', roles: ['super_admin', 'admin', 'akademik', 'dosen'] },
       { label: 'KRS', path: 'krs', icon: 'ClipboardCheck', roles: ['super_admin', 'rektor', 'admin', 'dekan', 'akademik', 'kaprodi', 'dosen', 'mahasiswa'] },
       { label: 'Nilai', path: 'nilai', icon: 'Award', roles: ['super_admin', 'admin', 'akademik', 'dosen'] },
+      { label: 'KHS', path: 'khs', icon: 'ScrollText', roles: ['super_admin', 'rektor', 'admin', 'dekan', 'akademik', 'kaprodi', 'dosen', 'mahasiswa'] },
       { label: 'Absensi', path: 'absensi', icon: 'ClipboardList', roles: ['super_admin', 'admin', 'akademik', 'dosen'] },
       { label: 'Kurikulum', path: 'kurikulum', icon: 'BookTemplate', roles: ['super_admin', 'rektor', 'admin', 'dekan', 'akademik', 'kaprodi'] },
       { label: 'RPS', path: 'rps', icon: 'FileText', roles: ['super_admin', 'admin', 'akademik', 'dosen'] },
@@ -86,7 +87,7 @@ export const SIDEBAR_MENUS: MenuItem[] = [
     icon: 'Wallet',
     roles: ['super_admin', 'rektor', 'admin', 'dekan', 'akademik', 'kaprodi', 'keuangan', 'mahasiswa'],
     children: [
-      { label: 'Tagihan', path: 'tagihan', icon: 'Receipt', roles: ['super_admin', 'rektor', 'admin', 'dekan', 'akademik', 'kaprodi', 'keuangan'] },
+      { label: 'Tagihan', path: 'tagihan', icon: 'Receipt', roles: ['super_admin', 'rektor', 'admin', 'dekan', 'akademik', 'kaprodi', 'keuangan', 'mahasiswa'] },
       { label: 'Pembayaran', path: 'pembayaran', icon: 'CreditCard', roles: ['super_admin', 'rektor', 'admin', 'dekan', 'akademik', 'kaprodi', 'keuangan'] },
     ],
   },

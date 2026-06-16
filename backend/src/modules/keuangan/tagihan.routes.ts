@@ -48,6 +48,35 @@ router.get(
 );
 
 router.get(
+  '/me',
+  authenticate,
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const schema = s(req);
+      const { rows: mhs } = await query(
+        `SELECT id, nim FROM ${schema}.mahasiswa WHERE user_id = $1`,
+        [req.user!.id]
+      );
+      if (mhs.length === 0) throw new AppError(404, 'Data mahasiswa tidak ditemukan');
+
+      const { rows } = await query(
+        `SELECT t.*, m.nim, m.nama as mahasiswa_nama, m.angkatan,
+                p.nama as prodi_nama
+         FROM ${schema}.ukt_tagihan t
+         JOIN ${schema}.mahasiswa m ON m.id = t.mahasiswa_id
+         LEFT JOIN ${schema}.program_studi p ON p.id = m.program_studi_id
+         WHERE m.id = $1
+         ORDER BY t.tahun_akademik DESC, t.semester DESC`,
+        [mhs[0].id]
+      );
+      sendSuccess(res, rows);
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
+router.get(
   '/mahasiswa/:nim',
   authenticate,
   async (req: Request, res: Response, next: NextFunction) => {

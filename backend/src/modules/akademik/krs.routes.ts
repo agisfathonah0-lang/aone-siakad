@@ -19,7 +19,7 @@ function schema(req: Request): string {
 router.get(
   '/',
   authenticate,
-  requireRole(Role.ADMIN, Role.AKADEMIK, Role.DOSEN),
+  requireRole(Role.ADMIN, Role.AKADEMIK, Role.DOSEN, Role.MAHASISWA),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const s = schema(req);
@@ -92,6 +92,28 @@ router.post(
         [mahasiswa_id, jadwal_id, tahun_akademik, semester]
       );
       if (conflict.length > 0) throw new AppError(409, 'Mahasiswa sudah terdaftar di jadwal ini');
+
+      const { rows: minSetting } = await query(
+        `SELECT value FROM public.tenant_settings WHERE tenant_id = $1 AND key = 'min_payment_for_krs'`,
+        [req.tenant!.id]
+      );
+      const minPaymentPct = minSetting.length > 0 ? parseFloat(minSetting[0].value) || 0 : 0;
+      if (minPaymentPct > 0) {
+        const { rows: tagihanRows } = await query(
+          `SELECT t.nominal, COALESCE((SELECT SUM(p.nominal) FROM ${s}.ukt_pembayaran p WHERE p.tagihan_id = t.id AND p.status = 'settlement'), 0) as total_bayar
+           FROM ${s}.ukt_tagihan t
+           WHERE t.mahasiswa_id = $1 AND t.tahun_akademik = $2 AND t.semester = $3`,
+          [mahasiswa_id, tahun_akademik, semester]
+        );
+        let totalTagihan = 0, totalBayar = 0;
+        for (const tr of tagihanRows) { totalTagihan += parseFloat(tr.nominal); totalBayar += parseFloat(tr.total_bayar); }
+        if (totalTagihan > 0) {
+          const pct = (totalBayar / totalTagihan) * 100;
+          if (pct < minPaymentPct) {
+            throw new AppError(403, `Belum memenuhi minimal pembayaran ${minPaymentPct}%. Tagihan Rp${Math.round(totalTagihan).toLocaleString('id-ID')}, sudah dibayar Rp${Math.round(totalBayar).toLocaleString('id-ID')}`);
+          }
+        }
+      }
 
       const { rows } = await query(
         `SELECT COUNT(*) as count FROM ${s}.krs k
