@@ -38,7 +38,7 @@ export default function CampusSettingsPage() {
     { key: 'batas_min_sks', label: 'Batas Minimal SKS', type: 'number' },
     { key: 'batas_maks_sks', label: 'Batas Maksimal SKS', type: 'number' },
     { key: 'nilai_minimal_lulus', label: 'Nilai Minimal Lulus', type: 'number' },
-    { key: 'min_payment_for_krs', label: 'Min. Pembayaran untuk KRS (%)', type: 'number', placeholder: '0 = tidak wajib bayar' },
+    { key: 'min_payment_for_krs', label: 'Min. Pembayaran/Cicilan untuk KRS (%)', type: 'number', placeholder: '0 = bebas, 50 = bayar 50%, 100 = lunas' },
     { key: 'nama_pt', label: 'Nama Perguruan Tinggi', type: 'text' },
     { key: 'alamat_pt', label: 'Alamat PT', type: 'textarea' },
   ];
