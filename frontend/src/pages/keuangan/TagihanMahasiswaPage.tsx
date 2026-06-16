@@ -39,8 +39,17 @@ export default function TagihanMahasiswaPage() {
         mahasiswa_id: tagihan.mahasiswa_id,
         nominal: tagihan.nominal,
       });
+      const pollStatus = async (tagihanId: string, attempts = 0) => {
+        if (attempts >= 15) { setPayingId(null); fetchData(); return; }
+        try {
+          const data = await get<Tagihan[]>('/keuangan/tagihan/me');
+          const updated = (data || []).find((t) => t.id === tagihanId);
+          if (updated && updated.status !== 'pending') { setPayingId(null); setTagihanList(data || []); return; }
+        } catch {}
+        setTimeout(() => pollStatus(tagihanId, attempts + 1), 2000);
+      };
       midtrans.pay(result.snap_token, {
-        onSuccess: () => { clearTimeout(safetyTimer); setPayingId(null); fetchData(); },
+        onSuccess: () => { clearTimeout(safetyTimer); pollStatus(tagihan.id); },
         onPending: () => { clearTimeout(safetyTimer); setPayingId(null); fetchData(); },
         onError: () => { clearTimeout(safetyTimer); setPayingId(null); fetchData(); },
         onClose: () => { clearTimeout(safetyTimer); setPayingId(null); },
