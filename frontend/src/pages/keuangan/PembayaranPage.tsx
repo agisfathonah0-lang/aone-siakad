@@ -40,7 +40,7 @@ export default function PembayaranPage() {
   }, [page, filterSearch]);
   useEffect(() => { fetchData(); }, [fetchData]);
 
-  useEffect(() => { get<Mahasiswa[]>('/akademik/mahasiswa?limit=500').then(setMahasiswaList).catch(() => {}); }, []);
+  useEffect(() => { getPaginated<Mahasiswa>('/akademik/mahasiswa?limit=500').then(r => setMahasiswaList(r.rows)).catch(() => {}); }, []);
 
   useEffect(() => { setPage(1); }, [filterSearch]);
 
