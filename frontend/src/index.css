@@ -358,3 +358,16 @@ h1, h2, h3, h4, h5, h6 {
   background: rgb(30 64 175 / 0.3);
   color: rgb(96 165 250);
 }
+
+@media print {
+  body * { visibility: hidden; }
+  .receipt-print, .receipt-print * { visibility: visible; }
+  .receipt-print { position: fixed; inset: 0; background: white; z-index: 9999; overflow: visible; }
+  .receipt-print .print\:hidden { display: none !important; }
+  .receipt-print .dark\:text-white { color: #0f172a !important; }
+  .receipt-print .dark\:text-zinc-100 { color: #0f172a !important; }
+  .receipt-print .dark\:text-emerald-400 { color: #16a34a !important; }
+  .receipt-print .dark\:text-zinc-400 { color: #64748b !important; }
+  .receipt-print .dark\:bg-zinc-900 { background: white !important; }
+  .receipt-print .dark\:border-zinc-700 { border-color: #e2e8f0 !important; }
+}

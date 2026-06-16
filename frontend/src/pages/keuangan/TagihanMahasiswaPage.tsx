@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
 import { get, post } from '../../api/client';
 import { useMidtransSnap } from '../../hooks/useMidtransSnap';
-import type { Tagihan } from '../../types';
+import type { Tagihan, StrukPembayaran } from '../../types';
 import Badge from '../../components/ui/Badge';
+import StrukPembayaranModal from '../../components/keuangan/StrukPembayaran';
 import { CreditCard, Loader2, AlertCircle, CheckCircle, Clock } from 'lucide-react';
 
 const statusBadge: Record<string, 'warning' | 'success' | 'danger'> = { pending: 'warning', lunas: 'success', overdue: 'danger' };
@@ -14,6 +15,7 @@ export default function TagihanMahasiswaPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [payingId, setPayingId] = useState<string | null>(null);
+  const [receiptStruk, setReceiptStruk] = useState<StrukPembayaran | null>(null);
   const midtrans = useMidtransSnap();
 
   const fetchData = async () => {
@@ -34,22 +36,30 @@ export default function TagihanMahasiswaPage() {
     setPayingId(tagihan.id);
     const safetyTimer = setTimeout(() => setPayingId(null), 120000);
     try {
-      const result = await post<{ snap_token: string }>('/keuangan/pembayaran/midtrans-snap', {
+      const result = await post<{ snap_token: string; pembayaran_id: string }>('/keuangan/pembayaran/midtrans-snap', {
         tagihan_id: tagihan.id,
         mahasiswa_id: tagihan.mahasiswa_id,
         nominal: tagihan.nominal,
       });
-      const pollStatus = async (tagihanId: string, attempts = 0) => {
+      const pollAndShowReceipt = async (tagihanId: string, pembayaranId: string, attempts = 0) => {
         if (attempts >= 15) { setPayingId(null); fetchData(); return; }
         try {
           const data = await get<Tagihan[]>('/keuangan/tagihan/me');
           const updated = (data || []).find((t) => t.id === tagihanId);
-          if (updated && updated.status !== 'pending') { setPayingId(null); setTagihanList(data || []); return; }
+          if (updated && updated.status !== 'pending') {
+            setPayingId(null);
+            setTagihanList(data || []);
+            try {
+              const struk = await get<StrukPembayaran>(`/keuangan/pembayaran/${pembayaranId}/struk`);
+              setReceiptStruk(struk);
+            } catch {}
+            return;
+          }
         } catch {}
-        setTimeout(() => pollStatus(tagihanId, attempts + 1), 2000);
+        setTimeout(() => pollAndShowReceipt(tagihanId, pembayaranId, attempts + 1), 2000);
       };
       midtrans.pay(result.snap_token, {
-        onSuccess: () => { clearTimeout(safetyTimer); pollStatus(tagihan.id); },
+        onSuccess: () => { clearTimeout(safetyTimer); pollAndShowReceipt(tagihan.id, result.pembayaran_id); },
         onPending: () => { clearTimeout(safetyTimer); setPayingId(null); fetchData(); },
         onError: () => { clearTimeout(safetyTimer); setPayingId(null); fetchData(); },
         onClose: () => { clearTimeout(safetyTimer); setPayingId(null); },
@@ -130,6 +140,7 @@ export default function TagihanMahasiswaPage() {
           })}
         </div>
       )}
+      {receiptStruk && <StrukPembayaranModal struk={receiptStruk} onClose={() => setReceiptStruk(null)} />}
     </div>
   );
 }

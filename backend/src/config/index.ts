@@ -84,6 +84,12 @@ export const config = {
     context: process.env.OJS_CONTEXT || '',
     apiTimeout: parseInt(process.env.OJS_API_TIMEOUT || '10000', 10),
   },
+
+  brevo: {
+    apiKey: process.env.BREVO_API_KEY || '',
+    fromName: process.env.BREVO_FROM_NAME || 'AOne Siakad',
+    fromEmail: process.env.BREVO_FROM_EMAIL || 'noreply@aone-project.com',
+  },
 } as const;
 
 export type Config = typeof config;

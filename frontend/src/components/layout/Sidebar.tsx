@@ -7,7 +7,7 @@ import {
   Cctv, Ticket, ScrollText, Bell, Palette, Printer, Award, Share2,
   UserCog, ClipboardCheck, Star, Trophy, Wallet, MessageSquare,
   Library, Newspaper, Presentation, Receipt, Ellipsis, DoorOpen,
-  BookDashed, ClipboardPenLine, Briefcase, Sparkles, Bot, AlertTriangle, type LucideIcon,
+  BookDashed, ClipboardPenLine, Briefcase, Sparkles, Bot, AlertTriangle, ReceiptText, type LucideIcon,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { filterMenusByRole, SIDEBAR_MENUS, type MenuItem } from '../../utils/roles';
@@ -21,7 +21,7 @@ const iconMap: Record<string, LucideIcon> = {
   Share2, UserCog, ClipboardCheck, Star, Trophy, Wallet, MessageSquare,
   Library, Newspaper, Presentation, Receipt, EllipsisHorizontal: Ellipsis,
   DoorOpen,   BookTemplate: BookDashed, ClipboardSignature: ClipboardPenLine,
-  Briefcase, Sparkles, Bot, AlertTriangle,
+  Briefcase, Sparkles, Bot, AlertTriangle, ReceiptText,
 };
 
 interface SidebarProps {

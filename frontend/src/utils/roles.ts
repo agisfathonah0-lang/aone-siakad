@@ -89,6 +89,7 @@ export const SIDEBAR_MENUS: MenuItem[] = [
     children: [
       { label: 'Tagihan', path: 'tagihan', icon: 'Receipt', roles: ['super_admin', 'rektor', 'admin', 'dekan', 'akademik', 'kaprodi', 'keuangan', 'mahasiswa'] },
       { label: 'Pembayaran', path: 'pembayaran', icon: 'CreditCard', roles: ['super_admin', 'rektor', 'admin', 'dekan', 'akademik', 'kaprodi', 'keuangan'] },
+      { label: 'Riwayat Pembayaran', path: 'riwayat-pembayaran', icon: 'ReceiptText', roles: ['mahasiswa'] },
     ],
   },
   {

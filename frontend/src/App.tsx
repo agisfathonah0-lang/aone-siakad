@@ -51,6 +51,7 @@ import AIPage from './pages/ai/AIPage';
 import TagihanPage from './pages/keuangan/TagihanPage';
 import TagihanMahasiswaPage from './pages/keuangan/TagihanMahasiswaPage';
 import PembayaranPage from './pages/keuangan/PembayaranPage';
+import RiwayatPembayaranPage from './pages/keuangan/RiwayatPembayaranPage';
 import CMSPage from './pages/cms/CMSPage';
 import PPDBPage from './pages/ppdb/PPDBPage';
 import PPDBConfigPage from './pages/ppdb/PPDBConfigPage';
@@ -205,6 +206,7 @@ function AppRoutes() {
           <Route path="ai" element={<AIPage />} />
           <Route path="tagihan" element={<TagihanRouter />} />
           <Route path="pembayaran" element={<PembayaranPage />} />
+          <Route path="riwayat-pembayaran" element={<RiwayatPembayaranPage />} />
           <Route path="cms" element={<CMSPage />} />
           <Route path="ppdb" element={<PPDBPage />} />
           <Route path="ppdb/config" element={<PPDBConfigPage />} />

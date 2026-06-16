@@ -59,6 +59,103 @@ router.get(
   }
 );
 
+router.get(
+  '/me',
+  authenticate,
+  requireRole(Role.MAHASISWA),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const schema = s(req);
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 20;
+      const offset = (page - 1) * limit;
+
+      const userId = req.user!.id;
+      const { rows: mhs } = await query(
+        `SELECT id FROM ${schema}.mahasiswa WHERE user_id = $1`, [userId]
+      );
+      if (mhs.length === 0) throw new AppError(404, 'Mahasiswa tidak ditemukan');
+
+      const { rows: totalRows } = await query(
+        `SELECT COUNT(*) as count FROM ${schema}.ukt_pembayaran WHERE mahasiswa_id = $1`,
+        [mhs[0].id]
+      );
+      const total = parseInt(totalRows[0].count, 10);
+
+      const { rows } = await query(
+        `SELECT p.*, t.tahun_akademik, t.semester, t.nominal as tagihan_nominal, t.jenis,
+                m.nim, m.nama as mahasiswa_nama
+         FROM ${schema}.ukt_pembayaran p
+         JOIN ${schema}.ukt_tagihan t ON t.id = p.tagihan_id
+         JOIN ${schema}.mahasiswa m ON m.id = p.mahasiswa_id
+         WHERE p.mahasiswa_id = $1
+         ORDER BY p.created_at DESC
+         LIMIT $2 OFFSET $3`,
+        [mhs[0].id, limit, offset]
+      );
+
+      sendPaginated(res, rows, total, page, limit);
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
+router.get(
+  '/:id/struk',
+  authenticate,
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const schema = s(req);
+      const { id } = req.params;
+
+      const { rows } = await query(
+        `SELECT p.*, t.tahun_akademik, t.semester, t.nominal as tagihan_nominal, t.jenis, t.status as tagihan_status,
+                m.nim, m.nama as mahasiswa_nama, m.angkatan,
+                COALESCE(p2.nama, '-') as prodi_nama, COALESCE(p2.jenjang, '-') as prodi_jenjang
+         FROM ${schema}.ukt_pembayaran p
+         JOIN ${schema}.ukt_tagihan t ON t.id = p.tagihan_id
+         JOIN ${schema}.mahasiswa m ON m.id = p.mahasiswa_id
+         LEFT JOIN ${schema}.program_studi p2 ON p2.id = m.program_studi_id
+         WHERE p.id = $1`,
+        [id]
+      );
+
+      if (rows.length === 0) throw new AppError(404, 'Pembayaran tidak ditemukan');
+
+      const r = rows[0];
+      const created = r.created_at || r.paid_at || new Date();
+      const d = new Date(created);
+      const receiptNumber = `STR-${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}-${r.id.substring(0, 8).toUpperCase()}`;
+
+      sendSuccess(res, {
+        receipt_number: receiptNumber,
+        pembayaran_id: r.id,
+        tagihan_id: r.tagihan_id,
+        nim: r.nim,
+        mahasiswa_nama: r.mahasiswa_nama,
+        prodi: `${r.prodi_jenjang} ${r.prodi_nama}`,
+        angkatan: r.angkatan,
+        tahun_akademik: r.tahun_akademik,
+        semester: r.semester,
+        jenis_tagihan: r.jenis,
+        nominal_tagihan: parseFloat(r.tagihan_nominal),
+        nominal_dibayar: parseFloat(r.nominal),
+        cicilan_ke: r.cicilan_ke,
+        metode: r.metode,
+        status: r.status,
+        paid_at: r.paid_at,
+        created_at: r.created_at,
+        midtrans_order_id: r.midtrans_order_id,
+        midtrans_transaction_id: r.midtrans_transaction_id,
+        tagihan_status: r.tagihan_status,
+      });
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
 router.post(
   '/midtrans-snap',
   authenticate,

@@ -3,6 +3,8 @@ import { query } from '../../config/database.js';
 import { sendSuccess } from '../../middleware/response.js';
 import { AppError } from '../../middleware/errorHandler.js';
 import { checkTagihanLunas } from './pembayaran.routes.js';
+import { sendEmail, paymentReceiptHtml } from '../../services/email.js';
+import { createNotification } from '../../services/notifikasi.js';
 
 const router = Router();
 
@@ -39,7 +41,7 @@ export async function midtransNotificationHandler(req: Request, res: Response): 
       return;
     }
 
-    const { rows: tenants } = await query('SELECT schema_name FROM public.tenants WHERE is_active = true');
+    const { rows: tenants } = await query('SELECT schema_name, slug FROM public.tenants WHERE is_active = true');
     let found = false;
 
     for (const tenant of tenants) {
@@ -68,11 +70,64 @@ export async function midtransNotificationHandler(req: Request, res: Response): 
 
         if (mappedStatus === 'settlement') {
           const { rows: p } = await query(
-            `SELECT tagihan_id FROM ${schema}.ukt_pembayaran WHERE midtrans_order_id = $1`,
+            `SELECT id as pembayaran_id, tagihan_id FROM ${schema}.ukt_pembayaran WHERE midtrans_order_id = $1`,
             [order_id]
           );
           if (p.length > 0) {
             await checkTagihanLunas(tenant.schema_name, p[0].tagihan_id);
+
+            const { rows: detail } = await query(
+              `SELECT p.*, t.tahun_akademik, t.semester, t.nominal as tagihan_nominal, t.jenis,
+                      m.nim, m.nama as mahasiswa_nama, m.angkatan,
+                      COALESCE(p2.nama, '-') as prodi_nama, COALESCE(p2.jenjang, '-') as prodi_jenjang,
+                      u.email, u.id as user_id
+               FROM ${schema}.ukt_pembayaran p
+               JOIN ${schema}.ukt_tagihan t ON t.id = p.tagihan_id
+               JOIN ${schema}.mahasiswa m ON m.id = p.mahasiswa_id
+               LEFT JOIN ${schema}.program_studi p2 ON p2.id = m.program_studi_id
+               JOIN ${schema}.users u ON u.id = m.user_id
+               WHERE p.id = $1`,
+              [p[0].pembayaran_id]
+            );
+
+            if (detail.length > 0) {
+              const d = detail[0];
+              const created = d.paid_at || d.created_at || new Date();
+              const dt = new Date(created);
+              const receiptNumber = `STR-${dt.getFullYear()}${String(dt.getMonth() + 1).padStart(2, '0')}${String(dt.getDate()).padStart(2, '0')}-${d.id.substring(0, 8).toUpperCase()}`;
+
+              const emailHtml = paymentReceiptHtml({
+                receipt_number: receiptNumber,
+                mahasiswa_nama: d.mahasiswa_nama,
+                nim: d.nim,
+                prodi: `${d.prodi_jenjang} ${d.prodi_nama}`,
+                tahun_akademik: d.tahun_akademik,
+                semester: d.semester,
+                jenis_tagihan: d.jenis,
+                nominal_tagihan: parseFloat(d.tagihan_nominal),
+                nominal_dibayar: parseFloat(d.nominal),
+                metode: d.metode,
+                paid_at: d.paid_at,
+                midtrans_order_id: d.midtrans_order_id,
+                status: d.status,
+              });
+
+              await Promise.all([
+                sendEmail({
+                  to: { email: d.email, name: d.mahasiswa_nama },
+                  subject: `Struk Pembayaran - ${d.jenis.replace('_', ' ')} - ${receiptNumber}`,
+                  htmlContent: emailHtml,
+                }),
+                createNotification(
+                  tenant.schema_name,
+                  d.user_id,
+                  'Pembayaran Diterima',
+                  `Pembayaran ${d.jenis.replace('_', ' ')} sebesar ${new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(parseFloat(d.nominal))} telah diterima.`,
+                  'success',
+                  `/kampus/${tenant.slug}/tagihan`
+                ),
+              ]);
+            }
           }
         }
 

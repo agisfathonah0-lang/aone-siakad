@@ -156,6 +156,38 @@ export interface Pembayaran {
   paid_at?: string;
   mahasiswa_nama?: string;
   nim?: string;
+  cicilan_ke?: number;
+  midtrans_order_id?: string;
+  midtrans_transaction_id?: string;
+  midtrans_status?: string;
+  tagihan_nominal?: number;
+  tahun_akademik?: string;
+  semester?: string;
+  jenis?: string;
+  created_at?: string;
+}
+
+export interface StrukPembayaran {
+  receipt_number: string;
+  pembayaran_id: string;
+  tagihan_id: string;
+  nim: string;
+  mahasiswa_nama: string;
+  prodi: string;
+  angkatan: number;
+  tahun_akademik: string;
+  semester: string;
+  jenis_tagihan: string;
+  nominal_tagihan: number;
+  nominal_dibayar: number;
+  cicilan_ke?: number;
+  metode: string;
+  status: string;
+  paid_at?: string;
+  created_at?: string;
+  midtrans_order_id?: string;
+  midtrans_transaction_id?: string;
+  tagihan_status: string;
 }
 
 export interface CmsSection {

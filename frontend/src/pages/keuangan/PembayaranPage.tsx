@@ -1,11 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import { getPaginated, post, get } from '../../api/client';
 import { useMidtransSnap } from '../../hooks/useMidtransSnap';
-import type { Pembayaran, Tagihan, Mahasiswa } from '../../types';
+import type { Pembayaran, Tagihan, Mahasiswa, StrukPembayaran } from '../../types';
 import DataTable from '../../components/ui/DataTable';
 import Modal from '../../components/ui/Modal';
 import Badge from '../../components/ui/Badge';
-import { Eye, Search, RefreshCw } from 'lucide-react';
+import StrukPembayaranModal from '../../components/keuangan/StrukPembayaran';
+import { Eye, Search, RefreshCw, Receipt } from 'lucide-react';
 
 const statusBadge: Record<string, 'success' | 'warning' | 'danger'> = { settlement: 'success', pending: 'warning', expired: 'danger', deny: 'danger', cancel: 'danger' };
 
@@ -21,6 +22,7 @@ export default function PembayaranPage() {
   const [tagihanList, setTagihanList] = useState<Tagihan[]>([]);
   const [filterSearch, setFilterSearch] = useState('');
   const [midtransLoading, setMidtransLoading] = useState(false);
+  const [receiptStruk, setReceiptStruk] = useState<StrukPembayaran | null>(null);
   const midtrans = useMidtransSnap();
 
   const fetchData = useCallback(async () => {
@@ -75,6 +77,15 @@ export default function PembayaranPage() {
     setDetailModal(true);
   };
 
+  const showStruk = async (id: string) => {
+    try {
+      const struk = await get<StrukPembayaran>(`/keuangan/pembayaran/${id}/struk`);
+      setReceiptStruk(struk);
+    } catch (err: any) {
+      alert(err.response?.data?.message || err.message);
+    }
+  };
+
   const rupiah = (n: number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(n);
 
   const columns = [
@@ -83,6 +94,9 @@ export default function PembayaranPage() {
     { key: 'metode', label: 'Metode' },
     { key: 'status', label: 'Status', render: (r: Pembayaran) => <Badge variant={statusBadge[r.status as keyof typeof statusBadge] || 'default'}>{r.status}</Badge> },
     { key: 'paid_at', label: 'Dibayar', render: (r: Pembayaran) => r.paid_at ? new Date(r.paid_at).toLocaleDateString('id') : '-' },
+    { key: 'struk', label: '', render: (r: Pembayaran) => (
+      <button onClick={() => showStruk(r.id)} className="p-1.5 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 rounded-lg" title="Lihat Struk"><Receipt size={14} /></button>
+    )},
     { key: 'detail', label: '', render: (r: Pembayaran) => (
       <button onClick={() => openDetail(r)} className="p-1.5 text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg" title="Detail"><Eye size={14} /></button>
     )},
@@ -132,6 +146,7 @@ export default function PembayaranPage() {
           </div>
         )}
       </Modal>
+      {receiptStruk && <StrukPembayaranModal struk={receiptStruk} onClose={() => setReceiptStruk(null)} />}
     </div>
   );
 }
