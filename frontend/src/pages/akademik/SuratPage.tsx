@@ -227,6 +227,7 @@ export default function SuratPage() {
   const [pengajuanTotal, setPengajuanTotal] = useState(0);
   const [pengajuanForm, setPengajuanForm] = useState({ kategori_id: '', keperluan: '', tujuan: '', file_url: '' });
   const [pengajuanModal, setPengajuanModal] = useState(false);
+  const [statusModal, setStatusModal] = useState<{ id: string; status: string; catatan_penolakan: string } | null>(null);
 
   useEffect(() => { loadPengajuan(); }, [pengajuanPage]);
 
@@ -251,16 +252,34 @@ export default function SuratPage() {
     finally { setSubmitting(false); }
   }
 
+  async function updatePengajuanStatus(id: string, status: string, catatan_penolakan?: string) {
+    setSubmitting(true);
+    try {
+      await put(`/akademik/surat/pengajuan/${id}/status`, { status, catatan_penolakan });
+      setStatusModal(null);
+      loadPengajuan();
+    } catch (err: any) { alert(err.response?.data?.message || err.message); }
+    finally { setSubmitting(false); }
+  }
+
   const pengajuanCols = [
     { key: 'nomor_surat', label: 'No Surat', render: (r: SuratPengajuan) => r.nomor_surat || '-' },
     { key: 'kategori_nama', label: 'Kategori', render: (r: SuratPengajuan) => r.kategori_nama || '-' },
     { key: 'keperluan', label: 'Keperluan' },
     { key: 'status', label: 'Status', render: (r: SuratPengajuan) => <Badge variant={pengajuanStatusBadge[r.status as keyof typeof pengajuanStatusBadge] || 'default'}>{pengajuanStatusLabel[r.status as keyof typeof pengajuanStatusLabel] || r.status}</Badge> },
     { key: 'id', label: 'Detail', render: (r: SuratPengajuan) => (
-      <div className="flex gap-1 items-center">
-        {r.status === 'ditolak' && r.catatan_penolakan && <span className="text-xs text-red-500 max-w-[120px] truncate" title={r.catatan_penolakan}>{r.catatan_penolakan}</span>}
+      <div className="flex gap-1 items-center flex-wrap">
+        {r.status === 'ditolak' && r.catatan_penolakan && <span className="text-xs text-red-500 max-w-[100px] truncate" title={r.catatan_penolakan}>{r.catatan_penolakan}</span>}
         {r.status === 'selesai' && r.file_url && <a href={r.file_url} target="_blank" rel="noopener noreferrer" className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1"><FileText size={12} /> Lihat</a>}
         {r.status === 'selesai' && <button onClick={async () => { try { const res = await get<any>(`/akademik/surat/pengajuan/${r.id}/cetak`); setKeluarCetak({ ...res, tujuan: res.tujuan || '', pengirim: '', penandatangan: '', lampiran: '' }); } catch {} }} className="p-1.5 rounded-lg text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors" title="Cetak"><FileOutput size={14} /></button>}
+        {isAdmin && r.status === 'diajukan' && <>
+          <button onClick={() => updatePengajuanStatus(r.id, 'diproses')} className="px-2 py-1 text-xs rounded bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300 hover:bg-indigo-200" title="Proses"><Clock size={12} className="inline mr-0.5" /> Proses</button>
+          <button onClick={() => setStatusModal({ id: r.id, status: 'ditolak', catatan_penolakan: '' })} className="px-2 py-1 text-xs rounded bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300 hover:bg-red-200" title="Tolak"><XCircle size={12} className="inline mr-0.5" /> Tolak</button>
+        </>}
+        {isAdmin && r.status === 'diproses' && <>
+          <button onClick={() => updatePengajuanStatus(r.id, 'selesai')} className="px-2 py-1 text-xs rounded bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300 hover:bg-emerald-200" title="Selesai"><CheckCircle size={12} className="inline mr-0.5" /> Selesai</button>
+          <button onClick={() => setStatusModal({ id: r.id, status: 'ditolak', catatan_penolakan: '' })} className="px-2 py-1 text-xs rounded bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-300 hover:bg-red-200" title="Tolak"><XCircle size={12} className="inline mr-0.5" /> Tolak</button>
+        </>}
       </div>
     )},
   ];
@@ -680,6 +699,21 @@ export default function SuratPage() {
             <button type="submit" disabled={submitting} className="btn-primary text-xs">{submitting ? 'Mengirim...' : 'Ajukan'}</button>
           </div>
         </form>
+      </Modal>
+
+      <Modal open={!!statusModal} onClose={() => setStatusModal(null)} title="Tolak Pengajuan Surat" size="sm">
+        {statusModal && (
+          <form onSubmit={(e) => { e.preventDefault(); updatePengajuanStatus(statusModal.id, statusModal.status, statusModal.catatan_penolakan); }} className="space-y-3">
+            <div>
+              <label className="text-xs font-semibold text-slate-500 dark:text-zinc-400 block mb-1">Alasan Penolakan</label>
+              <textarea rows={3} value={statusModal.catatan_penolakan} onChange={e => setStatusModal({ ...statusModal, catatan_penolakan: e.target.value })} required className="input-field text-sm" placeholder="Jelaskan alasan penolakan..." />
+            </div>
+            <div className="flex justify-end gap-2 pt-2">
+              <button type="button" onClick={() => setStatusModal(null)} className="btn-secondary text-xs">Batal</button>
+              <button type="submit" disabled={submitting} className="btn-danger text-xs">{submitting ? 'Menyimpan...' : 'Tolak Pengajuan'}</button>
+            </div>
+          </form>
+        )}
       </Modal>
 
       <Modal open={kategoriModal} onClose={() => setKategoriModal(false)} title={kategoriEdit ? 'Edit Kategori' : 'Tambah Kategori'} size="md">
