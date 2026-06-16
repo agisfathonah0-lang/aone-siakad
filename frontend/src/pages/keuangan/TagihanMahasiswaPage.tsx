@@ -32,6 +32,7 @@ export default function TagihanMahasiswaPage() {
   const handleBayar = async (tagihan: Tagihan) => {
     if (!midtrans.ready) { alert(midtrans.error || 'Midtrans belum siap'); return; }
     setPayingId(tagihan.id);
+    const safetyTimer = setTimeout(() => setPayingId(null), 120000);
     try {
       const result = await post<{ snap_token: string }>('/keuangan/pembayaran/midtrans-snap', {
         tagihan_id: tagihan.id,
@@ -39,12 +40,13 @@ export default function TagihanMahasiswaPage() {
         nominal: tagihan.nominal,
       });
       midtrans.pay(result.snap_token, {
-        onSuccess: () => fetchData(),
-        onPending: () => fetchData(),
-        onError: () => fetchData(),
-        onClose: () => { setPayingId(null); },
+        onSuccess: () => { clearTimeout(safetyTimer); setPayingId(null); fetchData(); },
+        onPending: () => { clearTimeout(safetyTimer); setPayingId(null); fetchData(); },
+        onError: () => { clearTimeout(safetyTimer); setPayingId(null); fetchData(); },
+        onClose: () => { clearTimeout(safetyTimer); setPayingId(null); },
       });
     } catch (err: any) {
+      clearTimeout(safetyTimer);
       alert(err.response?.data?.message || err.message);
       setPayingId(null);
     }
