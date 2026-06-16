@@ -168,51 +168,51 @@ function AppRoutes() {
         <Route path="ppdb" element={<CampusPPDBPage />} />
         <Route element={<AuthGuard><AppLayout /></AuthGuard>}>
           <Route path="dashboard" element={<DashboardPage />} />
-          <Route path="prodi" element={<ProdiPage />} />
-          <Route path="users" element={<UsersPage />} />
-          <Route path="pengaturan" element={<CampusSettingsPage />} />
-          <Route path="transkrip" element={<TranscriptPage />} />
-          <Route path="laporan" element={<LaporanPage />} />
-          <Route path="perwalian" element={<PerwalianPage />} />
-          <Route path="landing-page" element={<LandingSettingsPage />} />
-          <Route path="kalender" element={<KalenderPage />} />
-          <Route path="notifikasi" element={<NotifikasiPage />} />
-          <Route path="cctv" element={<CampusCctvPage />} />
-          <Route path="berita" element={<BeritaPage />} />
-          <Route path="mahasiswa" element={<MahasiswaPage />} />
-          <Route path="mahasiswa/:nim" element={<MahasiswaDetailPage />} />
-          <Route path="dosen" element={<DosenPage />} />
-          <Route path="edom" element={<EdomPage />} />
-          <Route path="mata-kuliah" element={<MatakuliahPage />} />
-          <Route path="jadwal" element={<JadwalPage />} />
-          <Route path="krs" element={<KRSPage />} />
-          <Route path="cetak-pdf" element={<CetakPDFPage />} />
-          <Route path="absensi" element={<AbsensiPage />} />
-          <Route path="nilai" element={<NilaiPage />} />
-          <Route path="khs" element={<KHSPage />} />
-          <Route path="kurikulum" element={<KurikulumPage />} />
-          <Route path="rps" element={<RPSPage />} />
-          <Route path="bap" element={<BAPPage />} />
-          <Route path="absensi-dosen" element={<AbsensiDosenPage />} />
-          <Route path="surat" element={<SuratPage />} />
-          <Route path="sidang" element={<SidangPage />} />
-          <Route path="kkn" element={<KKNPage />} />
-          <Route path="pkl" element={<PKLPage />} />
-          <Route path="seminar" element={<SeminarPage />} />
-          <Route path="beasiswa" element={<BeasiswaPage />} />
-          <Route path="akreditasi" element={<AkreditasiPage />} />
-          <Route path="perpustakaan" element={<PerpustakaanPage />} />
-          <Route path="integrasi-lms" element={<LMSPage />} />
-          <Route path="ai" element={<AIPage />} />
-          <Route path="tagihan" element={<TagihanRouter />} />
-          <Route path="pembayaran" element={<PembayaranPage />} />
-          <Route path="riwayat-pembayaran" element={<RiwayatPembayaranPage />} />
-          <Route path="cms" element={<CMSPage />} />
-          <Route path="ppdb" element={<PPDBPage />} />
-          <Route path="ppdb/config" element={<PPDBConfigPage />} />
-          <Route path="ojs" element={<OJSPage />} />
-          <Route path="pddikti" element={<PDDIKTIPage />} />
-          <Route path="alumni" element={<AlumniPage />} />
+          <Route path="prodi" element={<RoleGuard roles={['super_admin','rektor','admin','dekan','akademik','kaprodi']}><ProdiPage /></RoleGuard>} />
+          <Route path="users" element={<RoleGuard roles={['super_admin','rektor','admin','dekan']}><UsersPage /></RoleGuard>} />
+          <Route path="pengaturan" element={<RoleGuard roles={['super_admin','rektor','admin','dekan','akademik','kaprodi','keuangan']}><CampusSettingsPage /></RoleGuard>} />
+          <Route path="transkrip" element={<RoleGuard roles={['super_admin','admin','akademik','dosen','mahasiswa','alumni']}><TranscriptPage /></RoleGuard>} />
+          <Route path="laporan" element={<RoleGuard roles={['super_admin','rektor','admin','dekan','akademik','kaprodi','keuangan']}><LaporanPage /></RoleGuard>} />
+          <Route path="perwalian" element={<RoleGuard roles={['super_admin','rektor','admin','dekan','akademik','kaprodi','dosen','mahasiswa']}><PerwalianPage /></RoleGuard>} />
+          <Route path="landing-page" element={<RoleGuard roles={['super_admin','rektor','admin','dekan','akademik','kaprodi']}><LandingSettingsPage /></RoleGuard>} />
+          <Route path="kalender" element={<RoleGuard roles={['super_admin','rektor','admin','dekan','akademik','kaprodi','dosen','mahasiswa']}><KalenderPage /></RoleGuard>} />
+          <Route path="notifikasi" element={<RoleGuard roles={['super_admin','rektor','admin','dekan','akademik','kaprodi','dosen','mahasiswa']}><NotifikasiPage /></RoleGuard>} />
+          <Route path="cctv" element={<RoleGuard roles={['super_admin','rektor','admin','dekan','akademik','kaprodi']}><CampusCctvPage /></RoleGuard>} />
+          <Route path="berita" element={<RoleGuard roles={['super_admin','rektor','admin','dekan','akademik','kaprodi']}><BeritaPage /></RoleGuard>} />
+          <Route path="mahasiswa" element={<RoleGuard roles={['super_admin','admin','akademik','dosen']}><MahasiswaPage /></RoleGuard>} />
+          <Route path="mahasiswa/:nim" element={<RoleGuard roles={['super_admin','admin','akademik','dosen']}><MahasiswaDetailPage /></RoleGuard>} />
+          <Route path="dosen" element={<RoleGuard roles={['super_admin','rektor','admin','dekan','akademik','kaprodi']}><DosenPage /></RoleGuard>} />
+          <Route path="edom" element={<RoleGuard roles={['super_admin','rektor','admin','dekan','akademik','kaprodi','dosen','mahasiswa']}><EdomPage /></RoleGuard>} />
+          <Route path="mata-kuliah" element={<RoleGuard roles={['super_admin','rektor','admin','dekan','akademik','kaprodi']}><MatakuliahPage /></RoleGuard>} />
+          <Route path="jadwal" element={<RoleGuard roles={['super_admin','admin','akademik','dosen']}><JadwalPage /></RoleGuard>} />
+          <Route path="krs" element={<RoleGuard roles={['super_admin','rektor','admin','dekan','akademik','kaprodi','dosen','mahasiswa']}><KRSPage /></RoleGuard>} />
+          <Route path="cetak-pdf" element={<RoleGuard roles={['super_admin','rektor','admin','dekan','akademik','kaprodi','dosen','mahasiswa']}><CetakPDFPage /></RoleGuard>} />
+          <Route path="absensi" element={<RoleGuard roles={['super_admin','admin','akademik','dosen']}><AbsensiPage /></RoleGuard>} />
+          <Route path="nilai" element={<RoleGuard roles={['super_admin','admin','akademik','dosen']}><NilaiPage /></RoleGuard>} />
+          <Route path="khs" element={<RoleGuard roles={['super_admin','rektor','admin','dekan','akademik','kaprodi','dosen','mahasiswa']}><KHSPage /></RoleGuard>} />
+          <Route path="kurikulum" element={<RoleGuard roles={['super_admin','rektor','admin','dekan','akademik','kaprodi']}><KurikulumPage /></RoleGuard>} />
+          <Route path="rps" element={<RoleGuard roles={['super_admin','admin','akademik','dosen']}><RPSPage /></RoleGuard>} />
+          <Route path="bap" element={<RoleGuard roles={['super_admin','admin','akademik','dosen']}><BAPPage /></RoleGuard>} />
+          <Route path="absensi-dosen" element={<RoleGuard roles={['super_admin','admin','akademik','kaprodi','dosen']}><AbsensiDosenPage /></RoleGuard>} />
+          <Route path="surat" element={<RoleGuard roles={['super_admin','rektor','admin','dekan','akademik','kaprodi','mahasiswa']}><SuratPage /></RoleGuard>} />
+          <Route path="sidang" element={<RoleGuard roles={['super_admin','admin','akademik','kaprodi','dosen']}><SidangPage /></RoleGuard>} />
+          <Route path="kkn" element={<RoleGuard roles={['super_admin','admin','akademik','kaprodi','dosen']}><KKNPage /></RoleGuard>} />
+          <Route path="pkl" element={<RoleGuard roles={['super_admin','admin','akademik','kaprodi','dosen','mahasiswa']}><PKLPage /></RoleGuard>} />
+          <Route path="seminar" element={<RoleGuard roles={['super_admin','admin','akademik','kaprodi','dosen']}><SeminarPage /></RoleGuard>} />
+          <Route path="beasiswa" element={<RoleGuard roles={['super_admin','rektor','admin','dekan','akademik','kaprodi','mahasiswa']}><BeasiswaPage /></RoleGuard>} />
+          <Route path="akreditasi" element={<RoleGuard roles={['super_admin','rektor','admin','dekan','akademik','kaprodi']}><AkreditasiPage /></RoleGuard>} />
+          <Route path="perpustakaan" element={<RoleGuard roles={['super_admin','rektor','admin','dekan','akademik','kaprodi','pustakawan','dosen','mahasiswa']}><PerpustakaanPage /></RoleGuard>} />
+          <Route path="integrasi-lms" element={<RoleGuard roles={['super_admin','rektor','admin','dekan','akademik','kaprodi']}><LMSPage /></RoleGuard>} />
+          <Route path="ai" element={<RoleGuard roles={['super_admin','rektor','admin','dekan','akademik','kaprodi','dosen','mahasiswa','alumni']}><AIPage /></RoleGuard>} />
+          <Route path="tagihan" element={<RoleGuard roles={['super_admin','rektor','admin','dekan','akademik','kaprodi','keuangan','mahasiswa']}><TagihanRouter /></RoleGuard>} />
+          <Route path="pembayaran" element={<RoleGuard roles={['super_admin','rektor','admin','dekan','akademik','kaprodi','keuangan']}><PembayaranPage /></RoleGuard>} />
+          <Route path="riwayat-pembayaran" element={<RoleGuard roles={['mahasiswa']}><RiwayatPembayaranPage /></RoleGuard>} />
+          <Route path="cms" element={<RoleGuard roles={['super_admin','rektor','admin','dekan','akademik','kaprodi']}><CMSPage /></RoleGuard>} />
+          <Route path="ppdb" element={<RoleGuard roles={['super_admin','rektor','admin','dekan','akademik','kaprodi']}><PPDBPage /></RoleGuard>} />
+          <Route path="ppdb/config" element={<RoleGuard roles={['super_admin','admin']}><PPDBConfigPage /></RoleGuard>} />
+          <Route path="ojs" element={<RoleGuard roles={['super_admin','rektor','admin','dekan','akademik','kaprodi']}><OJSPage /></RoleGuard>} />
+          <Route path="pddikti" element={<RoleGuard roles={['super_admin','rektor','admin','dekan','akademik','kaprodi']}><PDDIKTIPage /></RoleGuard>} />
+          <Route path="alumni" element={<RoleGuard roles={['super_admin','rektor','admin','dekan','akademik','kaprodi','alumni']}><AlumniPage /></RoleGuard>} />
         </Route>
       </Route>
 

@@ -18,6 +18,7 @@ function schema(req: Request): string {
 router.get(
   '/',
   authenticate,
+  requireRole(Role.ADMIN, Role.AKADEMIK, Role.KAPRODI, Role.DOSEN),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const s = schema(req);
@@ -85,6 +86,7 @@ router.get(
 router.get(
   '/:id',
   authenticate,
+  requireRole(Role.ADMIN, Role.AKADEMIK, Role.KAPRODI, Role.DOSEN),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const s = schema(req);
@@ -189,6 +191,7 @@ router.delete(
 router.get(
   '/:pkl_id/logbook',
   authenticate,
+  requireRole(Role.ADMIN, Role.AKADEMIK, Role.KAPRODI, Role.DOSEN, Role.MAHASISWA),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const s = schema(req);
@@ -230,6 +233,7 @@ router.post(
 router.put(
   '/logbook/:id',
   authenticate,
+  requireRole(Role.MAHASISWA, Role.ADMIN, Role.AKADEMIK),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const s = schema(req);
@@ -249,6 +253,7 @@ router.put(
 router.delete(
   '/logbook/:id',
   authenticate,
+  requireRole(Role.MAHASISWA, Role.ADMIN, Role.AKADEMIK),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const s = schema(req);

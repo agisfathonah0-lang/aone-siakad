@@ -50,6 +50,7 @@ router.get(
 router.get(
   '/me',
   authenticate,
+  requireRole(Role.MAHASISWA),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const schema = s(req);
@@ -79,6 +80,7 @@ router.get(
 router.get(
   '/mahasiswa/:nim',
   authenticate,
+  requireRole(Role.ADMIN, Role.KEUANGAN),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const schema = s(req);
@@ -102,6 +104,7 @@ router.get(
 router.get(
   '/:id',
   authenticate,
+  requireRole(Role.ADMIN, Role.KEUANGAN),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const schema = s(req);

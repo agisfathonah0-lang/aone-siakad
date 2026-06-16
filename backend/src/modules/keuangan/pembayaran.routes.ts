@@ -22,6 +22,7 @@ function s(req: Request): string {
 router.get(
   '/',
   authenticate,
+  requireRole(Role.ADMIN, Role.KEUANGAN),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const schema = s(req);
@@ -106,6 +107,7 @@ router.get(
 router.get(
   '/:id/struk',
   authenticate,
+  requireRole(Role.ADMIN, Role.KEUANGAN, Role.MAHASISWA),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const schema = s(req);

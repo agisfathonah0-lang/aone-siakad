@@ -5,9 +5,13 @@ import { AppError } from './errorHandler.js';
 const roleHierarchy: Record<string, number> = {
   [Role.SUPER_ADMIN]: 100,
   [Role.ADMIN]: 80,
+  [Role.REKTOR]: 75,
+  [Role.DEKAN]: 70,
   [Role.KEUANGAN]: 60,
   [Role.AKADEMIK]: 60,
+  [Role.KAPRODI]: 50,
   [Role.DOSEN]: 40,
+  [Role.PUSTAKAWAN]: 30,
   [Role.MAHASISWA]: 20,
   [Role.CALON_MAHASISWA]: 10,
   [Role.ALUMNI]: 10,

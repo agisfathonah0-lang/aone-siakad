@@ -24,8 +24,18 @@ export default function SuratPage() {
   const [activeTab, setActiveTab] = useState(isMahasiswa ? 2 : 0);
   const [kategoriList, setKategoriList] = useState<SuratKategori[]>([]);
   const [submitting, setSubmitting] = useState(false);
+  const [tenantData, setTenantData] = useState<{ nama_pt: string; logo_url: string | null; alamat: string; telepon: string; email: string; website: string } | null>(null);
 
-  useEffect(() => { loadKategori(); }, []);
+  useEffect(() => { loadKategori(); loadTenant(); }, []);
+
+  async function loadTenant() {
+    try {
+      const slug = window.location.pathname.split('/')[2] || localStorage.getItem('aone_tenant_slug');
+      if (!slug) return;
+      const res = await get<any>(`/public/kampus/${slug}`);
+      setTenantData(res);
+    } catch {}
+  }
 
   async function loadKategori() {
     try {
@@ -150,7 +160,7 @@ export default function SuratPage() {
   const [keluarForm, setKeluarForm] = useState({ nomor_surat: '', tanggal_surat: '', tujuan: '', perihal: '', lampiran: '', kategori_id: '', file_url: '', status: 'draft', pengirim: '', penandatangan: '', catatan: '' });
   const [keluarModal, setKeluarModal] = useState(false);
   const [keluarEdit, setKeluarEdit] = useState<SuratKeluar | null>(null);
-  const [keluarCetak, setKeluarCetak] = useState<SuratKeluar | null>(null);
+  const [keluarCetak, setKeluarCetak] = useState<any>(null);
 
   useEffect(() => { loadKeluar(); }, [keluarPage, keluarSearch, keluarStatusFilter]);
 
@@ -204,7 +214,7 @@ export default function SuratPage() {
     { key: 'status', label: 'Status', render: (r: SuratKeluar) => <Badge variant={keluarStatusBadge[r.status as keyof typeof keluarStatusBadge] || 'default'}>{keluarStatusLabel[r.status as keyof typeof keluarStatusLabel] || r.status}</Badge> },
     { key: 'id', label: 'Aksi', render: (r: SuratKeluar) => (
       <div className="flex gap-1">
-        <button onClick={() => { const k = kategoriList.find(kat => kat.id === r.kategori_id); setKeluarCetak({ ...r, template_content: k?.template || '' }); }} className="p-1.5 rounded-lg text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors" title="Cetak"><FileOutput size={14} /></button>
+        <button onClick={async () => { try { const res = await get<any>(`/akademik/surat/keluar/${r.id}/cetak`); setKeluarCetak(res); } catch {} }} className="p-1.5 rounded-lg text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors" title="Cetak"><FileOutput size={14} /></button>
         <button onClick={() => openKeluarEdit(r)} className="p-1.5 rounded-lg text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-colors"><Pencil size={14} /></button>
         <button onClick={() => deleteKeluar(r.id)} className="p-1.5 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"><Trash2 size={14} /></button>
       </div>
@@ -215,7 +225,7 @@ export default function SuratPage() {
   const [pengajuanLoading, setPengajuanLoading] = useState(true);
   const [pengajuanPage, setPengajuanPage] = useState(1);
   const [pengajuanTotal, setPengajuanTotal] = useState(0);
-  const [pengajuanForm, setPengajuanForm] = useState({ kategori_id: '', keperluan: '', tujuan: '' });
+  const [pengajuanForm, setPengajuanForm] = useState({ kategori_id: '', keperluan: '', tujuan: '', file_url: '' });
   const [pengajuanModal, setPengajuanModal] = useState(false);
 
   useEffect(() => { loadPengajuan(); }, [pengajuanPage]);
@@ -235,7 +245,7 @@ export default function SuratPage() {
     try {
       await post('/akademik/surat/pengajuan', pengajuanForm);
       setPengajuanModal(false);
-      setPengajuanForm({ kategori_id: '', keperluan: '', tujuan: '' });
+      setPengajuanForm({ kategori_id: '', keperluan: '', tujuan: '', file_url: '' });
       loadPengajuan();
     } catch (err: any) { alert(err.response?.data?.message || err.message); }
     finally { setSubmitting(false); }
@@ -250,6 +260,7 @@ export default function SuratPage() {
       <div className="flex gap-1 items-center">
         {r.status === 'ditolak' && r.catatan_penolakan && <span className="text-xs text-red-500 max-w-[120px] truncate" title={r.catatan_penolakan}>{r.catatan_penolakan}</span>}
         {r.status === 'selesai' && r.file_url && <a href={r.file_url} target="_blank" rel="noopener noreferrer" className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline flex items-center gap-1"><FileText size={12} /> Lihat</a>}
+        {r.status === 'selesai' && <button onClick={async () => { try { const res = await get<any>(`/akademik/surat/pengajuan/${r.id}/cetak`); setKeluarCetak({ ...res, tujuan: res.tujuan || '', pengirim: '', penandatangan: '', lampiran: '' }); } catch {} }} className="p-1.5 rounded-lg text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors" title="Cetak"><FileOutput size={14} /></button>}
       </div>
     )},
   ];
@@ -365,7 +376,7 @@ export default function SuratPage() {
         <>
           <div className="flex items-center justify-between">
             <div />
-            <button onClick={() => { setPengajuanForm({ kategori_id: '', keperluan: '', tujuan: '' }); setPengajuanModal(true); }} className="btn-primary text-xs flex items-center gap-1.5"><Plus size={14} /> Ajukan Surat</button>
+            <button onClick={() => { setPengajuanForm({ kategori_id: '', keperluan: '', tujuan: '', file_url: '' }); setPengajuanModal(true); }} className="btn-primary text-xs flex items-center gap-1.5"><Plus size={14} /> Ajukan Surat</button>
           </div>
           <DataTable columns={pengajuanCols} data={pengajuanData} loading={pengajuanLoading} page={pengajuanPage} totalPages={Math.ceil(pengajuanTotal / 20)} onPageChange={setPengajuanPage} emptyMessage="Belum ada pengajuan surat" />
         </>
@@ -603,9 +614,17 @@ export default function SuratPage() {
             <style>{`@media print { body * { visibility: hidden; } .print-area, .print-area * { visibility: visible; } .print-area { position: absolute; left: 0; top: 0; width: 100%; padding: 2cm; } .no-print { display: none !important; } }`}</style>
             <div className="print-area">
               <div className="text-center mb-6">
-                <p className="font-bold text-lg">KOP SURAT</p>
-                <p className="text-sm">(Nama Instansi / Universitas)</p>
-                <p className="text-xs">Alamat lengkap</p>
+                {(keluarCetak.tenant?.logo_url || tenantData?.logo_url) && <img src={keluarCetak.tenant?.logo_url || tenantData?.logo_url} alt="Logo" className="h-16 mx-auto mb-2" />}
+                <p className="font-bold text-lg">{keluarCetak.tenant?.nama_pt || tenantData?.nama_pt || 'KOP SURAT'}</p>
+                {(keluarCetak.tenant?.alamat || tenantData?.alamat) && <p className="text-xs">{keluarCetak.tenant?.alamat || tenantData?.alamat}</p>}
+                {((keluarCetak.tenant?.telepon || tenantData?.telepon) || (keluarCetak.tenant?.email || tenantData?.email) || (keluarCetak.tenant?.website || tenantData?.website)) && (
+                  <p className="text-xs">
+                    {keluarCetak.tenant?.telepon || tenantData?.telepon ? `Telp: ${keluarCetak.tenant?.telepon || tenantData?.telepon}` : ''}
+                    {(keluarCetak.tenant?.telepon || tenantData?.telepon) && (keluarCetak.tenant?.email || tenantData?.email) ? ' | ' : ''}
+                    {keluarCetak.tenant?.email || tenantData?.email ? `Email: ${keluarCetak.tenant?.email || tenantData?.email}` : ''}
+                    {(keluarCetak.tenant?.website || tenantData?.website) ? ` | Web: ${keluarCetak.tenant?.website || tenantData?.website}` : ''}
+                  </p>
+                )}
                 <hr className="my-3 border-black" />
               </div>
               <table className="w-full text-sm mb-4">
@@ -618,8 +637,8 @@ export default function SuratPage() {
               <p className="text-right text-sm mb-8">{keluarCetak.tanggal_surat ? new Date(keluarCetak.tanggal_surat).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' }) : ''}</p>
               <p className="text-sm mb-2">Kepada Yth,</p>
               <p className="text-sm font-semibold mb-8">{keluarCetak.tujuan}</p>
-              {keluarCetak.template_content && (
-                <div className="text-sm whitespace-pre-wrap mb-8">{keluarCetak.template_content}</div>
+              {keluarCetak.rendered_content && (
+                <div className="text-sm whitespace-pre-wrap mb-8">{keluarCetak.rendered_content}</div>
               )}
               <div className="text-right mt-16">
                 <p className="text-sm mb-1">{keluarCetak.pengirim || 'Pejabat Berwenang'}</p>
@@ -650,6 +669,11 @@ export default function SuratPage() {
           <div>
             <label className="text-xs font-semibold text-slate-500 dark:text-zinc-400 block mb-1">Tujuan</label>
             <input value={pengajuanForm.tujuan} onChange={e => setPengajuanForm({ ...pengajuanForm, tujuan: e.target.value })} className="input-field text-sm" placeholder="Tujuan surat (opsional)" />
+          </div>
+          <div>
+            <label className="text-xs font-semibold text-slate-500 dark:text-zinc-400 block mb-1">Upload Berkas Pendukung</label>
+            <FileUpload value={pengajuanForm.file_url} onChange={(url: string) => setPengajuanForm({ ...pengajuanForm, file_url: url })} />
+            {pengajuanForm.file_url && <p className="text-xs text-emerald-500 mt-1">File terupload: {pengajuanForm.file_url.split('/').pop()}</p>}
           </div>
           <div className="flex justify-end gap-2 pt-2">
             <button type="button" onClick={() => setPengajuanModal(false)} className="btn-secondary text-xs">Batal</button>

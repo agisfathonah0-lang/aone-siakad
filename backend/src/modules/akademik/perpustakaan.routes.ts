@@ -20,7 +20,7 @@ function schema(req: Request): string {
 router.get(
   '/buku',
   authenticate,
-  requireRole(Role.ADMIN, Role.AKADEMIK, Role.DOSEN, Role.MAHASISWA),
+  requireRole(Role.ADMIN, Role.AKADEMIK, Role.PUSTAKAWAN, Role.DOSEN, Role.MAHASISWA),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const page = parseInt(req.query.page as string) || 1;
@@ -65,7 +65,7 @@ router.get(
 router.get(
   '/buku/:id',
   authenticate,
-  requireRole(Role.ADMIN, Role.AKADEMIK, Role.DOSEN, Role.MAHASISWA),
+  requireRole(Role.ADMIN, Role.AKADEMIK, Role.PUSTAKAWAN, Role.DOSEN, Role.MAHASISWA),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const s = schema(req);
@@ -81,7 +81,7 @@ router.get(
 router.post(
   '/buku',
   authenticate,
-  requireRole(Role.ADMIN, Role.AKADEMIK),
+  requireRole(Role.ADMIN, Role.AKADEMIK, Role.PUSTAKAWAN),
   body('judul').notEmpty().withMessage('Judul wajib diisi'),
   validate,
   async (req: Request, res: Response, next: NextFunction) => {
@@ -106,7 +106,7 @@ router.post(
 router.put(
   '/buku/:id',
   authenticate,
-  requireRole(Role.ADMIN, Role.AKADEMIK),
+  requireRole(Role.ADMIN, Role.AKADEMIK, Role.PUSTAKAWAN),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const s = schema(req);
@@ -151,7 +151,7 @@ router.put(
 router.delete(
   '/buku/:id',
   authenticate,
-  requireRole(Role.ADMIN, Role.AKADEMIK),
+  requireRole(Role.ADMIN, Role.AKADEMIK, Role.PUSTAKAWAN),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const s = schema(req);
@@ -169,7 +169,7 @@ router.delete(
 router.get(
   '/anggota',
   authenticate,
-  requireRole(Role.ADMIN, Role.AKADEMIK),
+  requireRole(Role.ADMIN, Role.AKADEMIK, Role.PUSTAKAWAN),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const page = parseInt(req.query.page as string) || 1;
@@ -216,7 +216,7 @@ router.get(
 router.post(
   '/anggota',
   authenticate,
-  requireRole(Role.ADMIN, Role.AKADEMIK),
+  requireRole(Role.ADMIN, Role.AKADEMIK, Role.PUSTAKAWAN),
   body('mahasiswa_id').isUUID().withMessage('Mahasiswa tidak valid'),
   validate,
   async (req: Request, res: Response, next: NextFunction) => {
@@ -252,7 +252,7 @@ router.post(
 router.put(
   '/anggota/:id',
   authenticate,
-  requireRole(Role.ADMIN, Role.AKADEMIK),
+  requireRole(Role.ADMIN, Role.AKADEMIK, Role.PUSTAKAWAN),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const s = schema(req);
@@ -274,7 +274,7 @@ router.put(
 router.delete(
   '/anggota/:id',
   authenticate,
-  requireRole(Role.ADMIN),
+  requireRole(Role.ADMIN, Role.PUSTAKAWAN),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const s = schema(req);
@@ -292,7 +292,7 @@ router.delete(
 router.get(
   '/peminjaman',
   authenticate,
-  requireRole(Role.ADMIN, Role.AKADEMIK, Role.DOSEN, Role.MAHASISWA),
+  requireRole(Role.ADMIN, Role.AKADEMIK, Role.PUSTAKAWAN, Role.DOSEN, Role.MAHASISWA),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const page = parseInt(req.query.page as string) || 1;
@@ -350,7 +350,7 @@ router.get(
 router.post(
   '/peminjaman',
   authenticate,
-  requireRole(Role.ADMIN, Role.AKADEMIK),
+  requireRole(Role.ADMIN, Role.AKADEMIK, Role.PUSTAKAWAN),
   body('buku_id').isUUID().withMessage('Buku tidak valid'),
   body('anggota_id').isUUID().withMessage('Anggota tidak valid'),
   body('tanggal_jatuh_tempo').notEmpty().withMessage('Tanggal jatuh tempo wajib diisi'),
@@ -470,7 +470,7 @@ router.post(
 router.put(
   '/peminjaman/:id/kembali',
   authenticate,
-  requireRole(Role.ADMIN, Role.AKADEMIK, Role.MAHASISWA),
+  requireRole(Role.ADMIN, Role.AKADEMIK, Role.PUSTAKAWAN, Role.MAHASISWA),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const s = schema(req);
@@ -517,7 +517,7 @@ router.put(
 router.get(
   '/denda/:peminjaman_id',
   authenticate,
-  requireRole(Role.ADMIN, Role.AKADEMIK),
+  requireRole(Role.ADMIN, Role.AKADEMIK, Role.PUSTAKAWAN),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const s = schema(req);
@@ -539,7 +539,7 @@ router.get(
 router.post(
   '/denda/:peminjaman_id',
   authenticate,
-  requireRole(Role.ADMIN, Role.AKADEMIK),
+  requireRole(Role.ADMIN, Role.AKADEMIK, Role.PUSTAKAWAN),
   body('nominal').isFloat({ min: 0 }).withMessage('Nominal harus angka positif'),
   validate,
   async (req: Request, res: Response, next: NextFunction) => {
@@ -585,7 +585,7 @@ router.post(
 router.get(
   '/ebook',
   authenticate,
-  requireRole(Role.ADMIN, Role.AKADEMIK, Role.DOSEN, Role.MAHASISWA),
+  requireRole(Role.ADMIN, Role.AKADEMIK, Role.PUSTAKAWAN, Role.DOSEN, Role.MAHASISWA),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const page = parseInt(req.query.page as string) || 1;
@@ -628,7 +628,7 @@ router.get(
 router.get(
   '/ebook/:id',
   authenticate,
-  requireRole(Role.ADMIN, Role.AKADEMIK, Role.DOSEN, Role.MAHASISWA),
+  requireRole(Role.ADMIN, Role.AKADEMIK, Role.PUSTAKAWAN, Role.DOSEN, Role.MAHASISWA),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const s = schema(req);
@@ -642,7 +642,7 @@ router.get(
 router.post(
   '/ebook',
   authenticate,
-  requireRole(Role.ADMIN, Role.AKADEMIK),
+  requireRole(Role.ADMIN, Role.AKADEMIK, Role.PUSTAKAWAN),
   body('judul').notEmpty().withMessage('Judul wajib diisi'),
   validate,
   async (req: Request, res: Response, next: NextFunction) => {
@@ -662,7 +662,7 @@ router.post(
 router.post(
   '/ebook/:id/download',
   authenticate,
-  requireRole(Role.ADMIN, Role.AKADEMIK, Role.DOSEN, Role.MAHASISWA),
+  requireRole(Role.ADMIN, Role.AKADEMIK, Role.PUSTAKAWAN, Role.DOSEN, Role.MAHASISWA),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const s = schema(req);
@@ -679,7 +679,7 @@ router.post(
 router.put(
   '/ebook/:id',
   authenticate,
-  requireRole(Role.ADMIN, Role.AKADEMIK),
+  requireRole(Role.ADMIN, Role.AKADEMIK, Role.PUSTAKAWAN),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const s = schema(req);
@@ -715,7 +715,7 @@ router.put(
 router.delete(
   '/ebook/:id',
   authenticate,
-  requireRole(Role.ADMIN, Role.AKADEMIK),
+  requireRole(Role.ADMIN, Role.AKADEMIK, Role.PUSTAKAWAN),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const s = schema(req);
@@ -731,7 +731,7 @@ router.delete(
 router.get(
   '/repositori',
   authenticate,
-  requireRole(Role.ADMIN, Role.AKADEMIK, Role.DOSEN, Role.MAHASISWA),
+  requireRole(Role.ADMIN, Role.AKADEMIK, Role.PUSTAKAWAN, Role.DOSEN, Role.MAHASISWA),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const page = parseInt(req.query.page as string) || 1;
@@ -781,7 +781,7 @@ router.get(
 router.get(
   '/repositori/:id',
   authenticate,
-  requireRole(Role.ADMIN, Role.AKADEMIK, Role.DOSEN, Role.MAHASISWA),
+  requireRole(Role.ADMIN, Role.AKADEMIK, Role.PUSTAKAWAN, Role.DOSEN, Role.MAHASISWA),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const s = schema(req);
@@ -800,7 +800,7 @@ router.get(
 router.post(
   '/repositori',
   authenticate,
-  requireRole(Role.ADMIN, Role.AKADEMIK),
+  requireRole(Role.ADMIN, Role.AKADEMIK, Role.PUSTAKAWAN),
   body('judul').notEmpty().withMessage('Judul wajib diisi'),
   body('penulis').notEmpty().withMessage('Penulis wajib diisi'),
   body('jenis').notEmpty().withMessage('Jenis wajib diisi'),
@@ -822,7 +822,7 @@ router.post(
 router.put(
   '/repositori/:id',
   authenticate,
-  requireRole(Role.ADMIN, Role.AKADEMIK),
+  requireRole(Role.ADMIN, Role.AKADEMIK, Role.PUSTAKAWAN),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const s = schema(req);
@@ -860,7 +860,7 @@ router.put(
 router.delete(
   '/repositori/:id',
   authenticate,
-  requireRole(Role.ADMIN, Role.AKADEMIK),
+  requireRole(Role.ADMIN, Role.AKADEMIK, Role.PUSTAKAWAN),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const s = schema(req);

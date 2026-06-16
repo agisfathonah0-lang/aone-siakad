@@ -15,20 +15,38 @@ function schema(req: Request): string {
   return `"${req.tenant.schemaName}"`;
 }
 
-async function generateNomorSurat(req: Request, kode: string): Promise<string> {
+async function generateNomorSurat(req: Request, kode: string, table: string = 'surat_keluar'): Promise<string> {
   const s = schema(req);
   const now = new Date();
   const mm = String(now.getMonth() + 1).padStart(2, '0');
   const yyyy = now.getFullYear();
 
+  const { rows: tRows } = await query(
+    'SELECT singkatan, nama_pt FROM public.tenants WHERE id = $1',
+    [req.tenant!.id]
+  );
+  const prefix = (tRows[0]?.singkatan || tRows[0]?.nama_pt || 'UNIV').replace(/\s+/g, '-').toUpperCase();
+
   const { rows } = await query(
-    `SELECT COUNT(*)::int as count FROM ${s}.surat_masuk
+    `SELECT COUNT(*)::int as count FROM ${s}.${table}
      WHERE EXTRACT(YEAR FROM created_at) = $1`,
     [yyyy]
   );
-  const nextNum = (rows[0].count + 1).toString().padStart(3, '0');
-  return `${nextNum}/UNIV-AONE/${kode}/${mm}/${yyyy}`;
+  const nextNum = (rows[0].count + 1).toString().padStart(4, '0');
+  return `${nextNum}/${prefix}/${kode}/${mm}/${yyyy}`;
 }
+
+function renderTemplate(template: string, vars: Record<string, string>): string {
+  let result = template;
+  for (const [key, val] of Object.entries(vars)) {
+    result = result.replace(new RegExp(`\\{\\{${key}\\}\\}`, 'g'), val || '');
+  }
+  return result;
+}
+
+const months = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+
+const days = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
 
 router.get(
   '/kategori',
@@ -325,6 +343,110 @@ router.get(
   }
 );
 
+router.get(
+  '/keluar/:id/cetak',
+  authenticate,
+  requireRole(Role.ADMIN, Role.AKADEMIK),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const s = schema(req);
+      const { rows } = await query(
+        `SELECT skl.*, sk.nama as kategori_nama, sk.kode as kategori_kode, sk.template
+         FROM ${s}.surat_keluar skl
+         LEFT JOIN ${s}.surat_kategori sk ON sk.id = skl.kategori_id
+         WHERE skl.id = $1`,
+        [req.params.id]
+      );
+      if (rows.length === 0) throw new AppError(404, 'Surat keluar tidak ditemukan');
+
+      const { rows: tRows } = await query(
+        'SELECT nama_pt, alamat, telepon, email, website, logo_url FROM public.tenants WHERE id = $1',
+        [req.tenant!.id]
+      );
+      const t = tRows[0] || {};
+
+      const d = rows[0].tanggal_surat ? new Date(rows[0].tanggal_surat) : new Date();
+      const vars: Record<string, string> = {
+        nomor_surat: rows[0].nomor_surat || '',
+        tanggal: d.toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' }),
+        hari: days[d.getDay()],
+        bulan: months[d.getMonth()],
+        tahun: String(d.getFullYear()),
+        perihal: rows[0].perihal || '',
+        tujuan: rows[0].tujuan || '',
+        lampiran: rows[0].lampiran || '-',
+        pengirim: rows[0].pengirim || '',
+        penandatangan: rows[0].penandatangan || '',
+        nama_pt: t.nama_pt || '',
+        alamat: t.alamat || '',
+        telepon: t.telepon || '',
+        email: t.email || '',
+        website: t.website || '',
+        logo_url: t.logo_url || '',
+      };
+
+      const rendered = rows[0].template ? renderTemplate(rows[0].template, vars) : '';
+
+      sendSuccess(res, { ...rows[0], rendered_content: rendered, tenant: t });
+    } catch (err) { next(err); }
+  }
+);
+
+router.get(
+  '/pengajuan/:id/cetak',
+  authenticate,
+  requireRole(Role.ADMIN, Role.AKADEMIK, Role.MAHASISWA),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const s = schema(req);
+      const { rows } = await query(
+        `SELECT sp.*, sk.nama as kategori_nama, sk.kode as kategori_kode, sk.template,
+                m.nim, m.nama as mahasiswa_nama, p.nama as prodi_nama, p.jenjang
+         FROM ${s}.surat_pengajuan sp
+         LEFT JOIN ${s}.surat_kategori sk ON sk.id = sp.kategori_id
+         LEFT JOIN ${s}.mahasiswa m ON m.id = sp.mahasiswa_id
+         LEFT JOIN ${s}.program_studi p ON p.id = m.program_studi_id
+         WHERE sp.id = $1`,
+        [req.params.id]
+      );
+      if (rows.length === 0) throw new AppError(404, 'Pengajuan surat tidak ditemukan');
+
+      const { rows: tRows } = await query(
+        'SELECT nama_pt, alamat, telepon, email, website, logo_url FROM public.tenants WHERE id = $1',
+        [req.tenant!.id]
+      );
+      const t = tRows[0] || {};
+
+      const d = new Date();
+      const vars: Record<string, string> = {
+        nomor_surat: rows[0].nomor_surat || '',
+        tanggal: d.toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' }),
+        hari: days[d.getDay()],
+        bulan: months[d.getMonth()],
+        tahun: String(d.getFullYear()),
+        nama_mahasiswa: rows[0].mahasiswa_nama || '',
+        nim: rows[0].nim || '',
+        prodi: rows[0].prodi_nama || '',
+        jenjang: rows[0].jenjang || '',
+        semester: req.query.semester as string || '',
+        tahun_akademik: req.query.tahun_akademik as string || '',
+        keperluan: rows[0].keperluan || '',
+        tujuan: rows[0].tujuan || '',
+        nama_pt: t.nama_pt || '',
+        alamat: t.alamat || '',
+        telepon: t.telepon || '',
+        email: t.email || '',
+        website: t.website || '',
+        logo_url: t.logo_url || '',
+      };
+
+      const rendered = rows[0].template ? renderTemplate(rows[0].template, vars) : '';
+
+      sendSuccess(res, { ...rows[0], rendered_content: rendered, tenant: t });
+    } catch (err) { next(err); }
+  }
+);
+
 router.post(
   '/keluar',
   authenticate,
@@ -393,6 +515,7 @@ router.delete(
 router.get(
   '/masuk/:surat_masuk_id/disposisi',
   authenticate,
+  requireRole(Role.ADMIN, Role.AKADEMIK),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const s = schema(req);
@@ -629,7 +752,7 @@ router.put(
           [pengajuan[0].kategori_id]
         );
         const kode = kategori.length > 0 ? kategori[0].kode : 'LAIN';
-        const nomor_surat = await generateNomorSurat(req, kode);
+        const nomor_surat = await generateNomorSurat(req, kode, 'surat_pengajuan');
 
         const { rows } = await query(
           `UPDATE ${s}.surat_pengajuan SET status = $1, nomor_surat = $2, updated_at = NOW() WHERE id = $3 RETURNING *`,

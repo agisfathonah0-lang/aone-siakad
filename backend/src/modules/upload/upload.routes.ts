@@ -4,8 +4,10 @@ import path from 'path';
 import { v4 as uuid } from 'uuid';
 import { uploadFile } from '../../config/storage.js';
 import { authenticate } from '../../middleware/auth.js';
+import { requireRole } from '../../middleware/role.js';
 import { AppError } from '../../middleware/errorHandler.js';
 import { sendSuccess } from '../../middleware/response.js';
+import { Role } from '../../types/enums.js';
 
 const ALLOWED_TYPES = [
   'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml',
@@ -38,6 +40,7 @@ const router = Router();
 router.post(
   '/',
   authenticate,
+  requireRole(Role.ADMIN, Role.AKADEMIK, Role.KEUANGAN, Role.DOSEN, Role.MAHASISWA, Role.ALUMNI, Role.PUSTAKAWAN),
   upload.single('file'),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -63,6 +66,7 @@ router.post(
 router.post(
   '/multiple',
   authenticate,
+  requireRole(Role.ADMIN, Role.AKADEMIK, Role.KEUANGAN, Role.DOSEN, Role.MAHASISWA, Role.ALUMNI, Role.PUSTAKAWAN),
   upload.array('files', 10),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
@@ -93,6 +97,7 @@ router.post(
 router.post(
   '/image',
   authenticate,
+  requireRole(Role.ADMIN, Role.AKADEMIK, Role.KEUANGAN, Role.DOSEN, Role.MAHASISWA, Role.ALUMNI, Role.PUSTAKAWAN),
   upload.single('image'),
   async (req: Request, res: Response, next: NextFunction) => {
     try {

@@ -66,7 +66,7 @@ router.get('/usage', authenticate, requireRole(Role.SUPER_ADMIN, Role.ADMIN, Rol
   } catch (err) { next(err); }
 });
 
-router.get('/config', authenticate, async (req, res, next) => {
+router.get('/config', authenticate, requireRole(Role.SUPER_ADMIN, Role.ADMIN), async (req, res, next) => {
   try {
     const { query } = await import('../../config/database.js');
     const { rows } = await query(
