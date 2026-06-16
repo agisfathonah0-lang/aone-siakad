@@ -22,19 +22,21 @@ router.get('/config', async (req: Request, res: Response, next: NextFunction) =>
   } catch (err) { next(err); }
 });
 
-router.post('/notification', async (req: Request, res: Response, next: NextFunction) => {
+export async function midtransNotificationHandler(req: Request, res: Response): Promise<void> {
   try {
     const notificationJson = JSON.stringify(req.body);
     console.log('[Midtrans] Notification received:', notificationJson.substring(0, 200));
 
-    const { order_id, transaction_status, transaction_id, status_code, gross_amount } = req.body;
+    const { order_id, transaction_status, transaction_id, status_code } = req.body;
 
     if (!order_id) {
-      return sendSuccess(res, null, 'No order_id');
+      sendSuccess(res, null, 'No order_id');
+      return;
     }
 
     if (status_code === '407') {
-      return sendSuccess(res, null, 'Fraud status ignored');
+      sendSuccess(res, null, 'Fraud status ignored');
+      return;
     }
 
     const { rows: tenants } = await query('SELECT schema_name FROM public.tenants WHERE is_active = true');
@@ -87,7 +89,9 @@ router.post('/notification', async (req: Request, res: Response, next: NextFunct
     console.error('[Midtrans] Webhook error:', err);
     sendSuccess(res, null, 'OK');
   }
-});
+}
+
+router.post('/notification', midtransNotificationHandler);
 
 router.get('/status/:order_id', async (req: Request, res: Response, next: NextFunction) => {
   try {

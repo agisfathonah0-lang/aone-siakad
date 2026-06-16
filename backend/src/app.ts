@@ -42,7 +42,7 @@ import bapRoutes from './modules/akademik/bap.routes.js';
 import absensiDosenRoutes from './modules/akademik/absensi-dosen.routes.js';
 import tagihanRoutes from './modules/keuangan/tagihan.routes.js';
 import pembayaranRoutes from './modules/keuangan/pembayaran.routes.js';
-import midtransRoutes from './modules/keuangan/midtrans.routes.js';
+import midtransRoutes, { midtransNotificationHandler } from './modules/keuangan/midtrans.routes.js';
 import cmsRoutes from './modules/cms/sections.routes.js';
 import ppdbRoutes from './modules/ppdb/pendaftaran.routes.js';
 import ppdbConfigRoutes from './modules/akademik/ppdb-config.routes.js';
@@ -159,6 +159,8 @@ const featureRoutes: [string, any][] = [
   ['/akademik/seminar', seminarRoutes],
   ['/campus/cctv', campusCctvRoutes],
 ];
+
+app.post(`${config.apiPrefix}/keuangan/midtrans/notification`, express.json(), midtransNotificationHandler);
 
 featureRoutes.forEach(([path, router]) => {
   app.use(`${config.apiPrefix}${path}`, campusGuard, router);
