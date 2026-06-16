@@ -125,6 +125,13 @@ router.get(
 
       if (rows.length === 0) throw new AppError(404, 'Pembayaran tidak ditemukan');
 
+      const { rows: tenant } = await query(
+        'SELECT nama_pt, name, logo_url FROM public.tenants WHERE id = $1',
+        [req.tenant?.id]
+      );
+      const tenantName = tenant.length > 0 ? (tenant[0].nama_pt || tenant[0].name) : 'AONE SIAKAD';
+      const logoUrl = tenant.length > 0 ? tenant[0].logo_url : null;
+
       const r = rows[0];
       const created = r.created_at || r.paid_at || new Date();
       const d = new Date(created);
@@ -151,6 +158,8 @@ router.get(
         midtrans_order_id: r.midtrans_order_id,
         midtrans_transaction_id: r.midtrans_transaction_id,
         tagihan_status: r.tagihan_status,
+        tenant_name: tenantName,
+        logo_url: logoUrl,
       });
     } catch (err) {
       next(err);
@@ -259,6 +268,13 @@ router.post(
         const dt = new Date(created);
         const receiptNumber = `STR-${dt.getFullYear()}${String(dt.getMonth() + 1).padStart(2, '0')}${String(dt.getDate()).padStart(2, '0')}-${d.id.substring(0, 8).toUpperCase()}`;
 
+        const { rows: tenant } = await query(
+          'SELECT nama_pt, name, logo_url FROM public.tenants WHERE id = $1',
+          [req.tenant?.id]
+        );
+        const tenantName = tenant.length > 0 ? (tenant[0].nama_pt || tenant[0].name) : 'AONE SIAKAD';
+        const logoUrl = tenant.length > 0 ? tenant[0].logo_url : null;
+
         const emailHtml = paymentReceiptHtml({
           receipt_number: receiptNumber,
           mahasiswa_nama: d.mahasiswa_nama,
@@ -273,6 +289,8 @@ router.post(
           paid_at: d.paid_at,
           midtrans_order_id: d.midtrans_order_id,
           status: d.status,
+          tenant_name: tenantName,
+          logo_url: logoUrl,
         });
 
         Promise.all([

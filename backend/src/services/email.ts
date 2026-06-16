@@ -56,11 +56,14 @@ export function paymentReceiptHtml(data: {
   paid_at: string;
   midtrans_order_id?: string;
   status: string;
+  tenant_name?: string;
+  logo_url?: string | null;
 }): string {
   const rupiah = (n: number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(n);
   const tgl = data.paid_at
     ? new Date(data.paid_at).toLocaleDateString('id-ID', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' })
     : '-';
+  const logo = data.logo_url || 'https://aone-siakad.my.id/logo.png';
 
   return `<!DOCTYPE html>
 <html>
@@ -69,6 +72,8 @@ export function paymentReceiptHtml(data: {
   <table align="center" width="100%" style="max-width: 520px; background: white; border-radius: 12px; overflow: hidden;">
     <tr>
       <td style="padding: 32px 24px 16px; text-align: center; background: #22c55e;">
+        <img src="${logo}" alt="${data.tenant_name || ''}" style="height: 48px; width: auto; margin-bottom: 8px; border-radius: 8px; background: white; padding: 4px;" onerror="this.style.display='none'" />
+        ${data.tenant_name ? `<p style="color: rgba(255,255,255,0.9); font-size: 13px; margin: 0 0 8px;">${data.tenant_name}</p>` : ''}
         <h1 style="color: white; margin: 0; font-size: 20px;">STRUK PEMBAYARAN</h1>
         <p style="color: rgba(255,255,255,0.85); font-size: 12px; margin: 4px 0 0;">${data.receipt_number}</p>
       </td>

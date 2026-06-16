@@ -188,6 +188,8 @@ export interface StrukPembayaran {
   midtrans_order_id?: string;
   midtrans_transaction_id?: string;
   tagihan_status: string;
+  tenant_name?: string;
+  logo_url?: string | null;
 }
 
 export interface CmsSection {

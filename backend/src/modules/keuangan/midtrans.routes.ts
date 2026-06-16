@@ -96,6 +96,13 @@ export async function midtransNotificationHandler(req: Request, res: Response): 
               const dt = new Date(created);
               const receiptNumber = `STR-${dt.getFullYear()}${String(dt.getMonth() + 1).padStart(2, '0')}${String(dt.getDate()).padStart(2, '0')}-${d.id.substring(0, 8).toUpperCase()}`;
 
+              const { rows: ti } = await query(
+                'SELECT nama_pt, name, logo_url FROM public.tenants WHERE slug = $1',
+                [tenant.slug]
+              );
+              const tenantName = ti.length > 0 ? (ti[0].nama_pt || ti[0].name) : 'AONE SIAKAD';
+              const logoUrl = ti.length > 0 ? ti[0].logo_url : null;
+
               const emailHtml = paymentReceiptHtml({
                 receipt_number: receiptNumber,
                 mahasiswa_nama: d.mahasiswa_nama,
@@ -110,6 +117,8 @@ export async function midtransNotificationHandler(req: Request, res: Response): 
                 paid_at: d.paid_at,
                 midtrans_order_id: d.midtrans_order_id,
                 status: d.status,
+                tenant_name: tenantName,
+                logo_url: logoUrl,
               });
 
               await Promise.all([

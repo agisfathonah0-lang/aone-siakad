@@ -1,4 +1,4 @@
-import { Printer, X, CheckCircle, Clock, AlertCircle } from 'lucide-react';
+import { Printer, X, CheckCircle, Clock, AlertCircle, Download } from 'lucide-react';
 import type { StrukPembayaran } from '../../types';
 
 interface Props {
@@ -16,6 +16,9 @@ export default function StrukPembayaran({ struk, onClose }: Props) {
   const rupiah = (n: number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(n);
 
   const handlePrint = () => window.print();
+  const handleDownload = () => {
+    window.print();
+  };
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={onClose}>
@@ -25,7 +28,10 @@ export default function StrukPembayaran({ struk, onClose }: Props) {
           <div className="flex items-center justify-between px-5 py-3.5 border-b border-slate-200/50 dark:border-zinc-700/30 print:hidden">
             <h2 className="font-semibold text-sm text-slate-800 dark:text-zinc-100">Struk Pembayaran</h2>
             <div className="flex items-center gap-2">
-              <button onClick={handlePrint} className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition-all">
+              <button onClick={handleDownload} className="flex items-center gap-1.5 px-3 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold rounded-xl transition-all">
+                <Download size={14} /> Download PDF
+              </button>
+              <button onClick={handlePrint} className="flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl transition-all">
                 <Printer size={14} /> Cetak
               </button>
               <button onClick={onClose} className="text-slate-400 hover:text-slate-600 dark:hover:text-zinc-300 transition-colors"><X size={16} /></button>
@@ -34,7 +40,16 @@ export default function StrukPembayaran({ struk, onClose }: Props) {
 
           <div className="p-6 space-y-5">
             <div className="text-center border-b border-dashed border-slate-200 dark:border-zinc-700 pb-4">
-              <h1 className="text-lg font-bold font-display tracking-tight text-emerald-600 dark:text-emerald-400">STRUK PEMBAYARAN</h1>
+              <div className="flex justify-center mb-3">
+                <img
+                  src={struk.logo_url || '/logo.png'}
+                  alt={struk.tenant_name || 'AONE SIAKAD'}
+                  className="h-12 w-auto object-contain"
+                  onError={(e) => { (e.target as HTMLImageElement).src = '/logo.png'; }}
+                />
+              </div>
+              <h2 className="text-sm font-bold text-slate-700 dark:text-zinc-300">{struk.tenant_name || 'AONE SIAKAD'}</h2>
+              <h1 className="text-lg font-bold font-display tracking-tight text-emerald-600 dark:text-emerald-400 mt-2">STRUK PEMBAYARAN</h1>
               <p className="text-xs text-slate-400 mt-0.5 font-mono">{struk.receipt_number}</p>
             </div>
 
