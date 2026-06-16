@@ -6,6 +6,7 @@ import { getRedis, closeRedis } from './config/redis.js';
 import { runPublicMigrations } from './database/migrate-public.js';
 import { ensureBucket } from './config/storage.js';
 import { initWebSocket } from './services/websocket.js';
+import { startKeepAlive } from './services/keep-alive.js';
 import bcrypt from 'bcryptjs';
 import { v4 as uuid } from 'uuid';
 
@@ -64,6 +65,7 @@ async function bootstrap(): Promise<void> {
     server.listen(config.port, () => {
       console.log(`[Server] AONE SIAKAD API v2 running on port ${config.port}`);
       console.log(`[Server] Environment: ${config.env}`);
+      startKeepAlive();
     });
   } catch (err) {
     console.error('[Bootstrap] Failed:', err);
