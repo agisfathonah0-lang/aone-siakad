@@ -1,7 +1,6 @@
-import http from 'http';
 import { config } from '../config/index.js';
 
-const PING_INTERVAL = 10 * 60 * 1000; // every 10 minutes
+const PING_INTERVAL = 10 * 60 * 1000;
 
 export function startKeepAlive(): void {
   if (config.env !== 'production') {
@@ -10,14 +9,15 @@ export function startKeepAlive(): void {
   }
 
   const baseUrl = process.env.RENDER_EXTERNAL_URL || `http://localhost:${config.port}`;
+  const url = `${baseUrl}${config.apiPrefix}/health`;
 
-  function ping() {
-    const url = `${baseUrl}${config.apiPrefix}/health`;
-    http.get(url, (res) => {
-      console.log(`[KeepAlive] Pinged ${url} → ${res.statusCode}`);
-    }).on('error', (err) => {
+  async function ping() {
+    try {
+      const res = await fetch(url);
+      console.log(`[KeepAlive] Pinged → ${res.status}`);
+    } catch (err: any) {
       console.warn(`[KeepAlive] Ping failed: ${err.message}`);
-    });
+    }
   }
 
   ping();
