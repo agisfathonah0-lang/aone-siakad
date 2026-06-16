@@ -1,11 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import { get, getPaginated, post, put, del as apiDel } from '../../api/client';
+import { useAuth } from '../../context/AuthContext';
 import type { Buku, AnggotaPerpustakaan, PeminjamanBuku, Mahasiswa } from '../../types';
 import DataTable from '../../components/ui/DataTable';
 import Modal from '../../components/ui/Modal';
 import FileUpload from '../../components/ui/FileUpload';
 import Badge from '../../components/ui/Badge';
-import { Plus, Pencil, Trash2, Book, Search, UserCheck, UserX, BookOpen, BookMarked, Clock, DollarSign, RefreshCw, Download, FileText, ExternalLink } from 'lucide-react';
+import { Plus, Pencil, Trash2, Book, Search, UserCheck, UserX, BookOpen, BookMarked, Clock, DollarSign, RefreshCw, Download, FileText, ExternalLink, ArrowLeft, Library } from 'lucide-react';
 
 const kategoriList = ['Referensi', 'Fiksi', 'Pendidikan', 'Jurnal', 'Skripsi', 'Lainnya'];
 
@@ -16,7 +17,41 @@ const statusVariant: Record<string, 'success' | 'warning' | 'danger' | 'info'> =
 };
 
 export default function PerpustakaanPage() {
-  const [tab, setTab] = useState<'buku' | 'anggota' | 'peminjaman' | 'ebook' | 'repositori'>('buku');
+  const { user } = useAuth();
+  const isMahasiswa = user?.role === 'mahasiswa';
+
+  const [tab, setTab] = useState<'buku' | 'anggota' | 'peminjaman' | 'ebook' | 'repositori' | 'mahasiswa-buku' | 'mahasiswa-pinjamanku'>('buku');
+
+  if (isMahasiswa) {
+    const mTabs = [
+      { key: 'mahasiswa-buku' as const, label: 'Cari Buku', icon: Search },
+      { key: 'mahasiswa-pinjamanku' as const, label: 'Pinjamanku', icon: BookMarked },
+      { key: 'ebook' as const, label: 'E-Book', icon: Download },
+    ];
+    return (
+      <div className="space-y-5">
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-xl font-bold font-display tracking-tight dark:text-white">Perpustakaan Digital</h1>
+            <p className="text-xs text-slate-500 dark:text-zinc-500">Katalog online dan peminjaman mandiri</p>
+          </div>
+        </div>
+        <div className="flex gap-1 border-b border-slate-200 dark:border-zinc-700/30 overflow-x-auto no-scrollbar">
+          {mTabs.map((t) => (
+            <button key={t.key} onClick={() => setTab(t.key)}
+              className={`flex items-center gap-2 px-4 py-2.5 text-sm font-medium transition-colors border-b-2 -mb-[1px] whitespace-nowrap ${
+                tab === t.key ? 'border-indigo-600 text-indigo-600 dark:border-indigo-400 dark:text-indigo-400' : 'border-transparent text-slate-500 hover:text-slate-700 dark:text-zinc-400 dark:hover:text-zinc-200'
+              }`}>
+              <t.icon size={15} /> {t.label}
+            </button>
+          ))}
+        </div>
+        {tab === 'mahasiswa-buku' && <MahasiswaBukuSection />}
+        {tab === 'mahasiswa-pinjamanku' && <MahasiswaPinjamankuSection />}
+        {tab === 'ebook' && <EbookSection />}
+      </div>
+    );
+  }
 
   const tabs = [
     { key: 'buku' as const, label: 'Buku', icon: Book },
@@ -51,6 +86,160 @@ export default function PerpustakaanPage() {
       {tab === 'peminjaman' && <PeminjamanSection />}
       {tab === 'ebook' && <EbookSection />}
       {tab === 'repositori' && <RepositoriSection />}
+    </div>
+  );
+}
+
+function MahasiswaBukuSection() {
+  const [data, setData] = useState<Buku[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [page, setPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterKategori, setFilterKategori] = useState('');
+  const [borrowing, setBorrowing] = useState<string | null>(null);
+
+  const fetchData = useCallback(async () => {
+    setLoading(true); setError('');
+    try {
+      const params = new URLSearchParams({ page: String(page) });
+      if (searchTerm) params.set('search', searchTerm);
+      if (filterKategori) params.set('kategori', filterKategori);
+      const res = await getPaginated<Buku>(`/akademik/perpustakaan/buku?${params}`);
+      setData(res.rows); setTotalPages(res.pagination.totalPages);
+    } catch (err: any) { setError(err.message); }
+    finally { setLoading(false); }
+  }, [page, searchTerm, filterKategori]);
+
+  useEffect(() => { fetchData(); }, [fetchData]);
+
+  const pinjamBuku = async (buku_id: string) => {
+    setBorrowing(buku_id);
+    try {
+      await post('/akademik/perpustakaan/pinjam', { buku_id });
+      alert('Buku berhasil dipinjam!');
+      fetchData();
+    } catch (err: any) { alert(err.response?.data?.message || err.message); }
+    finally { setBorrowing(null); }
+  };
+
+  return (
+    <div className="space-y-4">
+      <div className="flex items-center gap-3 flex-wrap">
+        <div className="relative flex-1 max-w-xs">
+          <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+          <input value={searchTerm} onChange={e => { setSearchTerm(e.target.value); setPage(1); }} placeholder="Cari judul/penulis/ISBN..." className="input-field pl-8" />
+        </div>
+        <select value={filterKategori} onChange={e => { setFilterKategori(e.target.value); setPage(1); }} className="input-field max-w-[150px]">
+          <option value="">Semua Kategori</option>
+          {kategoriList.map(k => <option key={k} value={k}>{k}</option>)}
+        </select>
+        <button onClick={fetchData} className="p-2 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"><RefreshCw size={16} /></button>
+      </div>
+
+      {loading ? (
+        <div className="text-center py-12 text-slate-400">Memuat...</div>
+      ) : error ? (
+        <div className="text-center py-12 text-red-500">{error}</div>
+      ) : data.length === 0 ? (
+        <div className="text-center py-12 text-slate-400">Tidak ada buku ditemukan</div>
+      ) : (
+        <>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+            {data.map(buku => (
+              <div key={buku.id} className="bg-white dark:bg-zinc-900/50 rounded-xl p-4 ring-1 ring-slate-200/50 dark:ring-zinc-800/30">
+                <p className="font-bold text-sm dark:text-white truncate">{buku.judul}</p>
+                <p className="text-xs text-slate-400 dark:text-zinc-500 truncate">{buku.penulis || '-'}</p>
+                <div className="flex items-center gap-2 mt-2">
+                  {buku.kategori && <Badge variant="info">{buku.kategori}</Badge>}
+                  <span className="text-[10px] text-slate-400 ml-auto">Tersedia: {buku.jumlah_tersedia}/{buku.jumlah_total}</span>
+                </div>
+                <button
+                  onClick={() => pinjamBuku(buku.id)}
+                  disabled={borrowing === buku.id || (buku.jumlah_tersedia ?? 0) <= 0}
+                  className="w-full mt-3 py-2 rounded-xl text-xs font-bold transition-all flex items-center justify-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed bg-indigo-600 hover:bg-indigo-700 text-white shadow-lg shadow-indigo-500/20">
+                  <Library size={13} />
+                  {borrowing === buku.id ? 'Meminjam...' : (buku.jumlah_tersedia ?? 0) <= 0 ? 'Stok Habis' : 'Pinjam Buku'}
+                </button>
+              </div>
+            ))}
+          </div>
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-2 pt-2">
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map(p => (
+                <button key={p} onClick={() => setPage(p)} className={`w-8 h-8 rounded-lg text-xs font-bold transition-colors ${p === page ? 'bg-indigo-600 text-white' : 'text-slate-500 hover:bg-slate-100'}`}>{p}</button>
+              ))}
+            </div>
+          )}
+        </>
+      )}
+    </div>
+  );
+}
+
+function MahasiswaPinjamankuSection() {
+  const [data, setData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [returning, setReturning] = useState<string | null>(null);
+
+  const fetchData = useCallback(async () => {
+    setLoading(true); setError('');
+    try {
+      const res = await get<any[]>('/akademik/perpustakaan/peminjaman/me');
+      setData(Array.isArray(res) ? res : []);
+    } catch (err: any) { setError(err.message); }
+    finally { setLoading(false); }
+  }, []);
+
+  useEffect(() => { fetchData(); }, [fetchData]);
+
+  const kembalikanBuku = async (id: string) => {
+    setReturning(id);
+    try {
+      await put(`/akademik/perpustakaan/peminjaman/${id}/kembali`, {});
+      alert('Buku berhasil dikembalikan!');
+      fetchData();
+    } catch (err: any) { alert(err.response?.data?.message || err.message); }
+    finally { setReturning(null); }
+  };
+
+  if (loading) return <div className="text-center py-12 text-slate-400">Memuat...</div>;
+  if (error) return <div className="text-center py-12 text-red-500">{error}</div>;
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <p className="text-sm text-slate-500">{data.length} peminjaman</p>
+        <button onClick={fetchData} className="p-2 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"><RefreshCw size={16} /></button>
+      </div>
+      {data.length === 0 ? (
+        <div className="text-center py-12 text-slate-400">Belum ada peminjaman</div>
+      ) : (
+        data.map(p => (
+          <div key={p.id} className="bg-white dark:bg-zinc-900/50 rounded-xl p-4 ring-1 ring-slate-200/50 dark:ring-zinc-800/30 flex items-center justify-between gap-4">
+            <div className="min-w-0 flex-1">
+              <p className="font-bold text-sm dark:text-white truncate">{p.judul_buku}</p>
+              <p className="text-xs text-slate-400">{p.penulis || ''} {p.isbn ? `(${p.isbn})` : ''}</p>
+              <div className="flex items-center gap-3 mt-1.5 text-[10px] text-slate-400">
+                <span>Pinjam: {new Date(p.created_at).toLocaleDateString('id-ID')}</span>
+                <span>Jatuh tempo: {new Date(p.tanggal_jatuh_tempo).toLocaleDateString('id-ID')}</span>
+                <Badge variant={statusVariant[p.status] || 'default'}>{p.status}</Badge>
+              </div>
+              {p.denda > 0 && <p className="text-[10px] text-red-500 mt-1">Denda: Rp{p.denda.toLocaleString('id-ID')}</p>}
+            </div>
+            {p.status !== 'dikembalikan' && (
+              <button
+                onClick={() => kembalikanBuku(p.id)}
+                disabled={returning === p.id}
+                className="shrink-0 px-3 py-2 rounded-xl text-xs font-bold bg-emerald-600 hover:bg-emerald-700 text-white transition-all disabled:opacity-50">
+                {returning === p.id ? '...' : 'Kembalikan'}
+              </button>
+            )}
+          </div>
+        ))
+      )}
     </div>
   );
 }

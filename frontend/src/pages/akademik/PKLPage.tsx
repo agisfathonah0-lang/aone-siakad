@@ -27,6 +27,7 @@ export default function PKLPage() {
   const { user } = useAuth();
   const role = user?.role;
   const isAdmin = role === 'super_admin' || role === 'admin' || role === 'akademik' || role === 'kaprodi';
+  const isMahasiswa = role === 'mahasiswa';
 
   const [activeTab, setActiveTab] = useState(0);
   const [submitting, setSubmitting] = useState(false);
@@ -39,6 +40,7 @@ export default function PKLPage() {
   const [statusFilter, setStatusFilter] = useState('');
   const [semesterFilter, setSemesterFilter] = useState('');
   const [searchNama, setSearchNama] = useState('');
+  const [currentMhsId, setCurrentMhsId] = useState('');
 
   const [modal, setModal] = useState(false);
   const [editItem, setEditItem] = useState<PKL | null>(null);
@@ -57,37 +59,49 @@ export default function PKLPage() {
 
   const fetchRefs = useCallback(async () => {
     try {
-      const [mhsRes, dosenRes] = await Promise.all([
-        getPaginated<any>('/akademik/mahasiswa?page=1&limit=500'),
-        getPaginated<any>('/akademik/dosen?page=1&limit=500'),
-      ]);
-      setMahasiswaList(mhsRes.rows || []);
+      if (isMahasiswa) {
+        const res = await get<any>('/akademik/krs/me');
+        setCurrentMhsId(res.mahasiswa_id || '');
+      }
+      const dosenRes = await getPaginated<any>('/akademik/dosen?page=1&limit=500');
       setDosenList(dosenRes.rows || []);
+      if (!isMahasiswa) {
+        const mhsRes = await getPaginated<any>('/akademik/mahasiswa?page=1&limit=500');
+        setMahasiswaList(mhsRes.rows || []);
+      }
     } catch {}
-  }, []);
+  }, [isMahasiswa]);
 
   const fetchData = useCallback(async () => {
     setLoading(true); setError('');
     try {
-      let url = `/akademik/pkl?page=${page}&limit=20`;
-      if (statusFilter) url += `&status=${statusFilter}`;
-      if (semesterFilter) url += `&semester=${semesterFilter}`;
-      const res = await getPaginated<PKL>(url);
-      const rows = (res.rows || []).filter((r: PKL) =>
-        !searchNama || r.mahasiswa_nama?.toLowerCase().includes(searchNama.toLowerCase())
-      );
-      setData(rows);
-      setTotalPages(res.pagination?.totalPages || 1);
+      let url: string;
+      if (isMahasiswa) {
+        url = `/akademik/pkl/me`;
+        const res = await get<PKL[]>(url);
+        setData(Array.isArray(res) ? res : []);
+        setTotalPages(1);
+      } else {
+        url = `/akademik/pkl?page=${page}&limit=20`;
+        if (statusFilter) url += `&status=${statusFilter}`;
+        if (semesterFilter) url += `&semester=${semesterFilter}`;
+        const res = await getPaginated<PKL>(url);
+        const rows = (res.rows || []).filter((r: PKL) =>
+          !searchNama || r.mahasiswa_nama?.toLowerCase().includes(searchNama.toLowerCase())
+        );
+        setData(rows);
+        setTotalPages(res.pagination?.totalPages || 1);
+      }
     } catch (err: any) { setError(err.message); }
     finally { setLoading(false); }
-  }, [page, statusFilter, semesterFilter, searchNama]);
+  }, [page, statusFilter, semesterFilter, searchNama, isMahasiswa]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
   useEffect(() => { fetchRefs(); }, [fetchRefs]);
 
   function openCreate() {
     setEditItem(null);
-    setForm({ mahasiswa_id: '', perusahaan: '', alamat_perusahaan: '', bidang: '', dosen_pembimbing: '', tanggal_mulai: '', tanggal_selesai: '', semester: '', tahun_akademik: '', status: 'direncanakan' });
+    setForm({ mahasiswa_id: isMahasiswa ? currentMhsId : '', perusahaan: '', alamat_perusahaan: '', bidang: '', dosen_pembimbing: '', tanggal_mulai: '', tanggal_selesai: '', semester: '', tahun_akademik: '', status: 'direncanakan' });
     setModal(true);
   }
 
@@ -157,7 +171,7 @@ export default function PKLPage() {
     { key: 'id', label: 'Aksi', render: (r: PKL) => (
       <div className="flex gap-1">
         <button onClick={() => openEdit(r)} className="p-1.5 rounded-lg text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-colors"><Pencil size={14} /></button>
-        <button onClick={() => openNilai(r)} className="p-1.5 rounded-lg text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors"><Award size={14} /></button>
+        {!isMahasiswa && <button onClick={() => openNilai(r)} className="p-1.5 rounded-lg text-amber-500 hover:bg-amber-50 dark:hover:bg-amber-900/20 transition-colors"><Award size={14} /></button>}
         {(isAdmin) && <button onClick={() => deleteRow(r.id)} className="p-1.5 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"><Trash2 size={14} /></button>}
       </div>
     )},
@@ -266,14 +280,18 @@ export default function PKLPage() {
                 <option value="selesai">Selesai</option>
                 <option value="batal">Batal</option>
               </select>
-              <select value={semesterFilter} onChange={e => { setSemesterFilter(e.target.value); setPage(1); }} className="input-field text-xs max-w-[130px]">
-                <option value="">Semester</option>
-                {semesterList.map(s => <option key={s} value={s}>{s}</option>)}
-              </select>
-              <div className="relative max-w-[200px]">
-                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-                <input value={searchNama} onChange={e => { setSearchNama(e.target.value); setPage(1); }} placeholder="Cari mahasiswa..." className="input-field pl-8 text-xs" />
-              </div>
+              {!isMahasiswa && (
+                <>
+                  <select value={semesterFilter} onChange={e => { setSemesterFilter(e.target.value); setPage(1); }} className="input-field text-xs max-w-[130px]">
+                    <option value="">Semester</option>
+                    {semesterList.map(s => <option key={s} value={s}>{s}</option>)}
+                  </select>
+                  <div className="relative max-w-[200px]">
+                    <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                    <input value={searchNama} onChange={e => { setSearchNama(e.target.value); setPage(1); }} placeholder="Cari mahasiswa..." className="input-field pl-8 text-xs" />
+                  </div>
+                </>
+              )}
             </div>
             <button onClick={openCreate} className="btn-primary text-xs flex items-center gap-1.5"><Plus size={14} /> Tambah PKL</button>
           </div>
@@ -301,13 +319,15 @@ export default function PKLPage() {
       <Modal open={modal} onClose={() => setModal(false)} title={editItem ? 'Edit PKL' : 'Tambah PKL'} size="lg">
         <form onSubmit={save} className="space-y-3">
           <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="text-xs font-semibold text-slate-500 dark:text-zinc-400 block mb-1">Mahasiswa</label>
-              <select value={form.mahasiswa_id} onChange={e => setForm({ ...form, mahasiswa_id: e.target.value })} required className="input-field text-sm">
-                <option value="">Pilih Mahasiswa</option>
-                {mahasiswaList.map(m => <option key={m.id} value={m.id}>{m.nim} - {m.nama}</option>)}
-              </select>
-            </div>
+            {!isMahasiswa && (
+              <div>
+                <label className="text-xs font-semibold text-slate-500 dark:text-zinc-400 block mb-1">Mahasiswa</label>
+                <select value={form.mahasiswa_id} onChange={e => setForm({ ...form, mahasiswa_id: e.target.value })} required className="input-field text-sm">
+                  <option value="">Pilih Mahasiswa</option>
+                  {mahasiswaList.map(m => <option key={m.id} value={m.id}>{m.nim} - {m.nama}</option>)}
+                </select>
+              </div>
+            )}
             <div>
               <label className="text-xs font-semibold text-slate-500 dark:text-zinc-400 block mb-1">Dosen Pembimbing</label>
               <select value={form.dosen_pembimbing} onChange={e => setForm({ ...form, dosen_pembimbing: e.target.value })} className="input-field text-sm">

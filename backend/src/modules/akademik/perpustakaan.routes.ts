@@ -386,10 +386,91 @@ router.post(
   }
 );
 
+router.get(
+  '/peminjaman/me',
+  authenticate,
+  requireRole(Role.MAHASISWA),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const s = schema(req);
+      const { rows: mhs } = await query(
+        `SELECT id FROM ${s}.mahasiswa WHERE user_id = $1`, [req.user!.id]
+      );
+      if (mhs.length === 0) throw new AppError(404, 'Mahasiswa tidak ditemukan');
+
+      const { rows: anggota } = await query(
+        `SELECT * FROM ${s}.anggota_perpustakaan WHERE mahasiswa_id = $1`, [mhs[0].id]
+      );
+      if (anggota.length === 0) throw new AppError(404, 'Anda belum terdaftar sebagai anggota perpustakaan');
+      if (!anggota[0].is_active) throw new AppError(400, 'Keanggotaan perpustakaan tidak aktif');
+
+      const { rows } = await query(
+        `SELECT p.*, b.judul as judul_buku, b.penulis, b.isbn
+         FROM ${s}.peminjaman_buku p
+         JOIN ${s}.buku b ON b.id = p.buku_id
+         WHERE p.anggota_id = $1
+         ORDER BY p.created_at DESC`,
+        [anggota[0].id]
+      );
+
+      sendSuccess(res, rows);
+    } catch (err) { next(err); }
+  }
+);
+
+router.post(
+  '/pinjam',
+  authenticate,
+  requireRole(Role.MAHASISWA),
+  body('buku_id').isUUID().withMessage('Buku tidak valid'),
+  validate,
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const s = schema(req);
+      const { buku_id } = req.body;
+
+      const { rows: bukuRows } = await query(`SELECT * FROM ${s}.buku WHERE id = $1`, [buku_id]);
+      if (bukuRows.length === 0) throw new AppError(404, 'Buku tidak ditemukan');
+      if (bukuRows[0].jumlah_tersedia <= 0) throw new AppError(400, 'Stok buku tidak tersedia');
+
+      const { rows: mhs } = await query(
+        `SELECT id FROM ${s}.mahasiswa WHERE user_id = $1`, [req.user!.id]
+      );
+      if (mhs.length === 0) throw new AppError(404, 'Data mahasiswa tidak ditemukan');
+
+      const { rows: anggota } = await query(
+        `SELECT * FROM ${s}.anggota_perpustakaan WHERE mahasiswa_id = $1`, [mhs[0].id]
+      );
+      if (anggota.length === 0) throw new AppError(404, 'Anda belum terdaftar sebagai anggota perpustakaan');
+      if (!anggota[0].is_active) throw new AppError(400, 'Keanggotaan perpustakaan tidak aktif');
+
+      const { rows: aktif } = await query(
+        `SELECT id FROM ${s}.peminjaman_buku WHERE anggota_id = $1 AND status = 'dipinjam'`, [anggota[0].id]
+      );
+      if (aktif.length >= 3) throw new AppError(400, 'Maksimal 3 peminjaman aktif');
+
+      const tglJatuhTempo = new Date();
+      tglJatuhTempo.setDate(tglJatuhTempo.getDate() + 14);
+
+      const { rows } = await query(
+        `INSERT INTO ${s}.peminjaman_buku (buku_id, anggota_id, tanggal_jatuh_tempo) VALUES ($1,$2,$3) RETURNING *`,
+        [buku_id, anggota[0].id, tglJatuhTempo.toISOString().split('T')[0]]
+      );
+
+      await query(
+        `UPDATE ${s}.buku SET jumlah_tersedia = jumlah_tersedia - 1, updated_at = NOW() WHERE id = $1`,
+        [buku_id]
+      );
+
+      sendSuccess(res, rows[0], 'Buku berhasil dipinjam', 201);
+    } catch (err) { next(err); }
+  }
+);
+
 router.put(
   '/peminjaman/:id/kembali',
   authenticate,
-  requireRole(Role.ADMIN, Role.AKADEMIK),
+  requireRole(Role.ADMIN, Role.AKADEMIK, Role.MAHASISWA),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const s = schema(req);

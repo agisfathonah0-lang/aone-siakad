@@ -504,6 +504,7 @@ export interface SuratKeluar {
   catatan?: string;
   kategori_nama?: string;
   kategori_kode?: string;
+  template_content?: string;
 }
 
 export interface SuratDisposisi {

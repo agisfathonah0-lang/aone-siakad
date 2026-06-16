@@ -58,6 +58,31 @@ router.get(
 );
 
 router.get(
+  '/me',
+  authenticate,
+  requireRole(Role.MAHASISWA),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const s = schema(req);
+      const { rows: mhs } = await query(
+        `SELECT id FROM ${s}.mahasiswa WHERE user_id = $1`, [req.user!.id]
+      );
+      if (mhs.length === 0) throw new AppError(404, 'Data mahasiswa tidak ditemukan');
+
+      const { rows } = await query(
+        `SELECT p.*, m.nim, m.nama as mahasiswa_nama, d.nama as pembimbing_nama
+         FROM ${s}.pkl p
+         JOIN ${s}.mahasiswa m ON m.id = p.mahasiswa_id
+         LEFT JOIN ${s}.dosen d ON d.id = p.dosen_pembimbing
+         WHERE p.mahasiswa_id = $1
+         ORDER BY p.created_at DESC`, [mhs[0].id]
+      );
+      sendSuccess(res, rows);
+    } catch (err) { next(err); }
+  }
+);
+
+router.get(
   '/:id',
   authenticate,
   async (req: Request, res: Response, next: NextFunction) => {

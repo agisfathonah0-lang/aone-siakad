@@ -150,6 +150,7 @@ export default function SuratPage() {
   const [keluarForm, setKeluarForm] = useState({ nomor_surat: '', tanggal_surat: '', tujuan: '', perihal: '', lampiran: '', kategori_id: '', file_url: '', status: 'draft', pengirim: '', penandatangan: '', catatan: '' });
   const [keluarModal, setKeluarModal] = useState(false);
   const [keluarEdit, setKeluarEdit] = useState<SuratKeluar | null>(null);
+  const [keluarCetak, setKeluarCetak] = useState<SuratKeluar | null>(null);
 
   useEffect(() => { loadKeluar(); }, [keluarPage, keluarSearch, keluarStatusFilter]);
 
@@ -203,6 +204,7 @@ export default function SuratPage() {
     { key: 'status', label: 'Status', render: (r: SuratKeluar) => <Badge variant={keluarStatusBadge[r.status as keyof typeof keluarStatusBadge] || 'default'}>{keluarStatusLabel[r.status as keyof typeof keluarStatusLabel] || r.status}</Badge> },
     { key: 'id', label: 'Aksi', render: (r: SuratKeluar) => (
       <div className="flex gap-1">
+        <button onClick={() => { const k = kategoriList.find(kat => kat.id === r.kategori_id); setKeluarCetak({ ...r, template_content: k?.template || '' }); }} className="p-1.5 rounded-lg text-emerald-500 hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-colors" title="Cetak"><FileOutput size={14} /></button>
         <button onClick={() => openKeluarEdit(r)} className="p-1.5 rounded-lg text-indigo-500 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 transition-colors"><Pencil size={14} /></button>
         <button onClick={() => deleteKeluar(r.id)} className="p-1.5 rounded-lg text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"><Trash2 size={14} /></button>
       </div>
@@ -533,7 +535,10 @@ export default function SuratPage() {
             </div>
             <div>
               <label className="text-xs font-semibold text-slate-500 dark:text-zinc-400 block mb-1">Kategori</label>
-              <select value={keluarForm.kategori_id} onChange={e => setKeluarForm({ ...keluarForm, kategori_id: e.target.value })} className="input-field text-sm">
+              <select value={keluarForm.kategori_id} onChange={e => {
+                const kat = kategoriList.find(k => k.id === e.target.value);
+                setKeluarForm({ ...keluarForm, kategori_id: e.target.value, perihal: (kat?.template && !keluarEdit) ? kat.template : keluarForm.perihal });
+              }} className="input-field text-sm">
                 <option value="">Pilih Kategori</option>
                 {kategoriList.map(k => <option key={k.id} value={k.id}>{k.nama}</option>)}
               </select>
@@ -590,6 +595,43 @@ export default function SuratPage() {
             <button type="submit" disabled={submitting} className="btn-primary text-xs">{submitting ? 'Menyimpan...' : keluarEdit ? 'Simpan Perubahan' : 'Tambah Surat'}</button>
           </div>
         </form>
+      </Modal>
+
+      <Modal open={!!keluarCetak} onClose={() => setKeluarCetak(null)} title="Cetak Surat Keluar" size="lg">
+        {keluarCetak && (
+          <div className="space-y-4">
+            <style>{`@media print { body * { visibility: hidden; } .print-area, .print-area * { visibility: visible; } .print-area { position: absolute; left: 0; top: 0; width: 100%; padding: 2cm; } .no-print { display: none !important; } }`}</style>
+            <div className="print-area">
+              <div className="text-center mb-6">
+                <p className="font-bold text-lg">KOP SURAT</p>
+                <p className="text-sm">(Nama Instansi / Universitas)</p>
+                <p className="text-xs">Alamat lengkap</p>
+                <hr className="my-3 border-black" />
+              </div>
+              <table className="w-full text-sm mb-4">
+                <tbody>
+                  <tr><td className="w-32 align-top">Nomor</td><td>: {keluarCetak.nomor_surat}</td></tr>
+                  <tr><td className="align-top">Lampiran</td><td>: {keluarCetak.lampiran || '-'}</td></tr>
+                  <tr><td className="align-top">Perihal</td><td>: {keluarCetak.perihal}</td></tr>
+                </tbody>
+              </table>
+              <p className="text-right text-sm mb-8">{keluarCetak.tanggal_surat ? new Date(keluarCetak.tanggal_surat).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' }) : ''}</p>
+              <p className="text-sm mb-2">Kepada Yth,</p>
+              <p className="text-sm font-semibold mb-8">{keluarCetak.tujuan}</p>
+              {keluarCetak.template_content && (
+                <div className="text-sm whitespace-pre-wrap mb-8">{keluarCetak.template_content}</div>
+              )}
+              <div className="text-right mt-16">
+                <p className="text-sm mb-1">{keluarCetak.pengirim || 'Pejabat Berwenang'}</p>
+                <p className="text-sm font-semibold mt-10">{keluarCetak.penandatangan || '(________________)'}</p>
+              </div>
+            </div>
+            <div className="flex justify-end gap-2 pt-2 no-print border-t dark:border-zinc-700/30">
+              <button onClick={() => setKeluarCetak(null)} className="btn-secondary text-xs">Tutup</button>
+              <button onClick={() => window.print()} className="btn-primary text-xs flex items-center gap-1.5"><FileOutput size={14} /> Cetak</button>
+            </div>
+          </div>
+        )}
       </Modal>
 
       <Modal open={pengajuanModal} onClose={() => setPengajuanModal(false)} title="Ajukan Surat" size="md">
