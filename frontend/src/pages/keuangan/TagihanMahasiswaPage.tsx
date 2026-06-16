@@ -36,30 +36,29 @@ export default function TagihanMahasiswaPage() {
     setPayingId(tagihan.id);
     const safetyTimer = setTimeout(() => setPayingId(null), 120000);
     try {
-      const result = await post<{ snap_token: string; pembayaran_id: string }>('/keuangan/pembayaran/midtrans-snap', {
+      const result = await post<{ snap_token: string; pembayaran_id: string; order_id: string }>('/keuangan/pembayaran/midtrans-snap', {
         tagihan_id: tagihan.id,
         mahasiswa_id: tagihan.mahasiswa_id,
         nominal: tagihan.nominal,
       });
-      const pollAndShowReceipt = async (tagihanId: string, pembayaranId: string, attempts = 0) => {
-        if (attempts >= 15) { setPayingId(null); fetchData(); return; }
+      const confirmAndShowReceipt = async (pembayaranId: string, details: any) => {
         try {
-          const data = await get<Tagihan[]>('/keuangan/tagihan/me');
-          const updated = (data || []).find((t) => t.id === tagihanId);
-          if (updated && updated.status !== 'pending') {
-            setPayingId(null);
-            setTagihanList(data || []);
-            try {
-              const struk = await get<StrukPembayaran>(`/keuangan/pembayaran/${pembayaranId}/struk`);
-              setReceiptStruk(struk);
-            } catch {}
-            return;
-          }
+          await post('/keuangan/pembayaran/midtrans-snap-callback', {
+            pembayaran_id: pembayaranId,
+            order_id: result.order_id,
+            transaction_id: details?.transaction_id,
+            transaction_status: details?.transaction_status || 'settlement',
+          });
         } catch {}
-        setTimeout(() => pollAndShowReceipt(tagihanId, pembayaranId, attempts + 1), 2000);
+        setPayingId(null);
+        fetchData();
+        try {
+          const struk = await get<StrukPembayaran>(`/keuangan/pembayaran/${pembayaranId}/struk`);
+          setReceiptStruk(struk);
+        } catch {}
       };
       midtrans.pay(result.snap_token, {
-        onSuccess: () => { clearTimeout(safetyTimer); pollAndShowReceipt(tagihan.id, result.pembayaran_id); },
+        onSuccess: (details: any) => { clearTimeout(safetyTimer); confirmAndShowReceipt(result.pembayaran_id, details); },
         onPending: () => { clearTimeout(safetyTimer); setPayingId(null); fetchData(); },
         onError: () => { clearTimeout(safetyTimer); setPayingId(null); fetchData(); },
         onClose: () => { clearTimeout(safetyTimer); setPayingId(null); },

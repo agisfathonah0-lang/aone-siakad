@@ -214,6 +214,37 @@ router.post(
 );
 
 router.post(
+  '/midtrans-snap-callback',
+  authenticate,
+  requireRole(Role.MAHASISWA, Role.ADMIN, Role.KEUANGAN),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const schema = s(req);
+      const { pembayaran_id, transaction_id, transaction_status, order_id } = req.body;
+
+      const { rows } = await query(
+        `SELECT id, tagihan_id FROM ${schema}.ukt_pembayaran WHERE id = $1 AND midtrans_order_id = $2`,
+        [pembayaran_id, order_id]
+      );
+      if (rows.length === 0) throw new AppError(404, 'Pembayaran tidak ditemukan');
+
+      await query(
+        `UPDATE ${schema}.ukt_pembayaran
+         SET midtrans_transaction_id = $1, midtrans_status = $2, status = 'settlement', paid_at = NOW()
+         WHERE id = $3`,
+        [transaction_id || null, transaction_status || 'settlement', pembayaran_id]
+      );
+
+      await checkTagihanLunas(schema, rows[0].tagihan_id);
+
+      sendSuccess(res, null, 'Pembayaran berhasil dikonfirmasi');
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
+router.post(
   '/manual',
   authenticate,
   requireRole(Role.ADMIN, Role.KEUANGAN),

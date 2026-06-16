@@ -31,12 +31,12 @@ export function useMidtransSnap() {
       .catch((err) => setError(err.response?.data?.message || err.message || 'Gagal mengambil konfigurasi Midtrans'));
   }, []);
 
-  const pay = useCallback((snapToken: string, callbacks?: { onSuccess?: () => void; onPending?: () => void; onError?: () => void; onClose?: () => void }) => {
+  const pay = useCallback((snapToken: string, callbacks?: { onSuccess?: (result: any) => void; onPending?: (result: any) => void; onError?: (result: any) => void; onClose?: () => void }) => {
     if (!(window as any).snap) { setError('Midtrans Snap belum siap'); return; }
     (window as any).snap.pay(snapToken, {
-      onSuccess: () => callbacks?.onSuccess?.(),
-      onPending: () => callbacks?.onPending?.(),
-      onError: () => callbacks?.onError?.(),
+      onSuccess: (result: any) => callbacks?.onSuccess?.(result),
+      onPending: (result: any) => callbacks?.onPending?.(result),
+      onError: (result: any) => callbacks?.onError?.(result),
       onClose: () => callbacks?.onClose?.(),
     });
   }, []);
