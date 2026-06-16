@@ -139,6 +139,12 @@ export const SIDEBAR_MENUS: MenuItem[] = [
     icon: 'BarChart3',
     roles: ['super_admin', 'rektor', 'admin', 'dekan', 'akademik', 'kaprodi', 'keuangan'],
   },
+  {
+    label: 'Pengaturan',
+    path: 'pengaturan',
+    icon: 'Settings',
+    roles: ['super_admin', 'rektor', 'admin', 'dekan', 'akademik', 'kaprodi', 'keuangan'],
+  },
 ];
 
 export function filterMenusByRole(menus: MenuItem[], userRole: Role | undefined): MenuItem[] {
