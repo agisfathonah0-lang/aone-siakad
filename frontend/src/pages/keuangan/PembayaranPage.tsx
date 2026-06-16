@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { getPaginated, post, get } from '../../api/client';
+import { useMidtransSnap } from '../../hooks/useMidtransSnap';
 import type { Pembayaran, Tagihan, Mahasiswa } from '../../types';
 import DataTable from '../../components/ui/DataTable';
 import Modal from '../../components/ui/Modal';
@@ -20,15 +21,7 @@ export default function PembayaranPage() {
   const [tagihanList, setTagihanList] = useState<Tagihan[]>([]);
   const [filterSearch, setFilterSearch] = useState('');
   const [midtransLoading, setMidtransLoading] = useState(false);
-
-  useEffect(() => {
-    const script = document.createElement('script');
-    script.src = 'https://app.sandbox.midtrans.com/snap/snap.js';
-    script.setAttribute('data-client-key', 'SB-Mid-client-YOUR_KEY');
-    script.async = true;
-    document.body.appendChild(script);
-    return () => { document.body.removeChild(script); };
-  }, []);
+  const midtrans = useMidtransSnap();
 
   const fetchData = useCallback(async () => {
     setLoading(true); setError('');
@@ -60,17 +53,17 @@ export default function PembayaranPage() {
 
   const handleMidtrans = async () => {
     if (!form.tagihan_id || !form.mahasiswa_id) { alert('Pilih mahasiswa dan tagihan terlebih dahulu'); return; }
+    if (!midtrans.ready) { alert(midtrans.error || 'Midtrans belum siap'); return; }
     setMidtransLoading(true);
     try {
       const result = await post<{ snap_token: string }>('/keuangan/pembayaran/midtrans-snap', {
         tagihan_id: form.tagihan_id,
         mahasiswa_id: form.mahasiswa_id,
       });
-      (window as any).snap.pay(result.snap_token, {
+      midtrans.pay(result.snap_token, {
         onSuccess: () => { fetchData(); setModal(false); },
         onPending: () => { fetchData(); },
         onError: () => { fetchData(); },
-        onClose: () => {},
       });
     } catch (err: any) {
       alert(err.response?.data?.message || err.message);

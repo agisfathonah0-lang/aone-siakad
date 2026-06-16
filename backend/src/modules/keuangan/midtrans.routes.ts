@@ -1,9 +1,26 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { query } from '../../config/database.js';
 import { sendSuccess } from '../../middleware/response.js';
+import { AppError } from '../../middleware/errorHandler.js';
 import { checkTagihanLunas } from './pembayaran.routes.js';
 
 const router = Router();
+
+router.get('/config', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    if (!req.tenant) throw new AppError(400, 'Tenant tidak terdeteksi');
+    const { rows } = await query(
+      `SELECT key, value FROM public.tenant_settings WHERE tenant_id = $1 AND key IN ('midtrans_client_key', 'midtrans_is_production')`,
+      [req.tenant.id]
+    );
+    const config: Record<string, any> = { clientKey: '', isProduction: false };
+    for (const r of rows) {
+      if (r.key === 'midtrans_client_key') config.clientKey = r.value;
+      if (r.key === 'midtrans_is_production') config.isProduction = r.value === 'true';
+    }
+    sendSuccess(res, config);
+  } catch (err) { next(err); }
+});
 
 router.post('/notification', async (req: Request, res: Response, next: NextFunction) => {
   try {

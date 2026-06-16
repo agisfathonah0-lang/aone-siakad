@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { get, post } from '../../api/client';
+import { useMidtransSnap } from '../../hooks/useMidtransSnap';
 import type { Tagihan } from '../../types';
 import Badge from '../../components/ui/Badge';
 import { CreditCard, Loader2, AlertCircle, CheckCircle, Clock } from 'lucide-react';
@@ -13,15 +14,7 @@ export default function TagihanMahasiswaPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [payingId, setPayingId] = useState<string | null>(null);
-
-  useEffect(() => {
-    const script = document.createElement('script');
-    script.src = 'https://app.sandbox.midtrans.com/snap/snap.js';
-    script.setAttribute('data-client-key', 'SB-Mid-client-YOUR_KEY');
-    script.async = true;
-    document.body.appendChild(script);
-    return () => { document.body.removeChild(script); };
-  }, []);
+  const midtrans = useMidtransSnap();
 
   const fetchData = async () => {
     setLoading(true); setError('');
@@ -37,6 +30,7 @@ export default function TagihanMahasiswaPage() {
   const rupiah = (n: number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(n);
 
   const handleBayar = async (tagihan: Tagihan) => {
+    if (!midtrans.ready) { alert(midtrans.error || 'Midtrans belum siap'); return; }
     setPayingId(tagihan.id);
     try {
       const result = await post<{ snap_token: string }>('/keuangan/pembayaran/midtrans-snap', {
@@ -44,7 +38,7 @@ export default function TagihanMahasiswaPage() {
         mahasiswa_id: tagihan.mahasiswa_id,
         nominal: tagihan.nominal,
       });
-      (window as any).snap.pay(result.snap_token, {
+      midtrans.pay(result.snap_token, {
         onSuccess: () => fetchData(),
         onPending: () => fetchData(),
         onError: () => fetchData(),
