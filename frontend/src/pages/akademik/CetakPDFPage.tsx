@@ -102,17 +102,41 @@ export default function CetakPDFPage() {
       </div>
 
       {tab === 'khs' && (
-        <div className="bg-white dark:bg-zinc-900/50 rounded-xl p-6 shadow-sm ring-1 ring-slate-200/50 dark:ring-zinc-800/30 max-w-lg">
+        <div className="bg-white dark:bg-zinc-900/50 rounded-xl p-6 shadow-sm ring-1 ring-slate-200/50 dark:ring-zinc-800/30 max-w-lg space-y-4">
           <h2 className="font-bold dark:text-white mb-2">Cetak Kartu Hasil Studi (KHS)</h2>
-          <p className="text-xs text-slate-400 dark:text-zinc-500 mb-4">Cetak laporan hasil studi per semester</p>
-          <button
-            onClick={() => handleCetak(`/akademik/cetak/khs/${selectedMahasiswa}`)}
-            disabled={!selectedMahasiswa || loadingCetak}
-            className="flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-300 text-white rounded-xl text-sm font-bold transition-all shadow-lg shadow-indigo-500/20"
-          >
-            {loadingCetak ? <Loader2 size={18} className="animate-spin" /> : <Printer size={18} />}
-            {loadingCetak ? 'Mencetak...' : 'Cetak KHS'}
-          </button>
+          <p className="text-xs text-slate-400 dark:text-zinc-500">Cetak laporan hasil studi per semester</p>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="text-xs font-semibold text-slate-500 dark:text-zinc-400 block mb-1.5">Semester (opsional)</label>
+              <select value={semester} onChange={e => setSemester(e.target.value)} className="input-field text-sm">
+                {semesterList.map(s => <option key={s} value={s}>{s}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-slate-500 dark:text-zinc-400 block mb-1.5">Tahun Akademik (opsional)</label>
+              <select value={tahunAkademik} onChange={e => setTahunAkademik(e.target.value)} className="input-field text-sm">
+                {tahunAkademikList.map(t => <option key={t} value={t}>{t}</option>)}
+              </select>
+            </div>
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={() => handleCetak(`/akademik/cetak/khs/${selectedMahasiswa}`)}
+              disabled={!selectedMahasiswa || loadingCetak}
+              className="flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-300 text-white rounded-xl text-sm font-bold transition-all shadow-lg shadow-indigo-500/20"
+            >
+              {loadingCetak ? <Loader2 size={18} className="animate-spin" /> : <Printer size={18} />}
+              {loadingCetak ? 'Mencetak...' : 'Cetak Semua'}
+            </button>
+            <button
+              onClick={() => handleCetak(`/akademik/cetak/khs/${selectedMahasiswa}?semester=${semester}&tahun_akademik=${tahunAkademik}`)}
+              disabled={!selectedMahasiswa || loadingCetak}
+              className="flex items-center gap-2 px-4 py-3 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-300 text-white rounded-xl text-sm font-bold transition-all shadow-lg shadow-emerald-500/20"
+            >
+              {loadingCetak ? <Loader2 size={18} className="animate-spin" /> : <Printer size={18} />}
+              {loadingCetak ? 'Mencetak...' : 'Cetak Per Semester'}
+            </button>
+          </div>
         </div>
       )}
 

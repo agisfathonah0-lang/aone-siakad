@@ -15,6 +15,12 @@ function formatJam(jam: string): string {
   return jam.substring(0, 5);
 }
 
+function label(doc: PDFKit.PDFDocument, label: string, value: string) {
+  doc.font('Helvetica').fontSize(11);
+  doc.text(label, { continued: true });
+  doc.text(`: ${value}`);
+}
+
 function drawTable(
   doc: PDFKit.PDFDocument,
   headers: string[],
@@ -68,7 +74,12 @@ function drawTable(
   return y;
 }
 
-export async function generateKHS(schemaName: string, mahasiswaId: string): Promise<Buffer> {
+export async function generateKHS(
+  schemaName: string,
+  mahasiswaId: string,
+  semester?: string,
+  tahunAkademik?: string
+): Promise<Buffer> {
   return new Promise<Buffer>(async (resolve, reject) => {
     try {
       const doc = new PDFDocument({ margin: 50, size: 'A4' });
@@ -87,35 +98,35 @@ export async function generateKHS(schemaName: string, mahasiswaId: string): Prom
       if (mhs.length === 0) throw new Error('Mahasiswa tidak ditemukan');
       const mahasiswa = mhs[0];
 
-      const { rows: courses } = await query(
-        `SELECT mk.kode, mk.nama as mk_nama, mk.sks,
-                n.nilai_tugas, n.nilai_uts, n.nilai_uas, n.nilai_akhir, n.nilai_huruf
-         FROM ${s(schemaName)}.krs k
-         JOIN ${s(schemaName)}.jadwal_kuliah j ON j.id = k.jadwal_id
-         JOIN ${s(schemaName)}.mata_kuliah mk ON mk.id = j.mata_kuliah_id
-         LEFT JOIN ${s(schemaName)}.nilai n ON n.krs_id = k.id
-         WHERE k.mahasiswa_id = $1 AND k.status = 'disetujui'
-         ORDER BY mk.kode`,
-        [mahasiswaId]
-      );
+      let sql = `SELECT mk.kode, mk.nama as mk_nama, mk.sks,
+                        n.nilai_tugas, n.nilai_uts, n.nilai_uas, n.nilai_akhir, n.nilai_huruf,
+                        k.semester, k.tahun_akademik
+                 FROM ${s(schemaName)}.krs k
+                 JOIN ${s(schemaName)}.jadwal_kuliah j ON j.id = k.jadwal_id
+                 JOIN ${s(schemaName)}.mata_kuliah mk ON mk.id = j.mata_kuliah_id
+                 LEFT JOIN ${s(schemaName)}.nilai n ON n.krs_id = k.id
+                 WHERE k.mahasiswa_id = $1 AND k.status = 'disetujui'`;
+      const params: unknown[] = [mahasiswaId];
 
-      let totalSks = 0;
-      let totalBobot = 0;
-      for (const c of courses) {
-        if (c.nilai_huruf && NILAI_BOBOT[c.nilai_huruf] !== undefined) {
-          totalSks += c.sks;
-          totalBobot += NILAI_BOBOT[c.nilai_huruf] * c.sks;
-        }
+      if (semester && tahunAkademik) {
+        params.push(semester, tahunAkademik);
+        sql += ` AND k.semester = $2 AND k.tahun_akademik = $3`;
       }
-      const ipk = totalSks > 0 ? +(totalBobot / totalSks).toFixed(2) : 0;
 
+      sql += ` ORDER BY k.tahun_akademik, k.semester, mk.kode`;
+
+      const { rows: courses } = await query(sql, params);
+
+      const oldSemester = semester && tahunAkademik ? `${semester} - ${tahunAkademik}` : '';
       doc.fontSize(18).font('Helvetica-Bold').text('KARTU HASIL STUDI (KHS)', { align: 'center' });
-      doc.moveDown(1.5);
+      if (oldSemester) {
+        doc.fontSize(12).font('Helvetica').text(`Semester ${oldSemester}`, { align: 'center' });
+      }
+      doc.moveDown(1);
 
-      doc.fontSize(11).font('Helvetica');
-      doc.text(`NIM\t\t: ${mahasiswa.nim}`);
-      doc.text(`Nama\t\t: ${mahasiswa.nama}`);
-      doc.text(`Program Studi\t: ${mahasiswa.prodi_nama}`);
+      label(doc, 'NIM', mahasiswa.nim);
+      label(doc, 'Nama', mahasiswa.nama);
+      label(doc, 'Program Studi', mahasiswa.prodi_nama);
       doc.moveDown(1);
 
       const headers = ['No', 'Kode MK', 'Mata Kuliah', 'SKS', 'Tugas', 'UTS', 'UAS', 'NA', 'Nilai'];
@@ -136,10 +147,20 @@ export async function generateKHS(schemaName: string, mahasiswaId: string): Prom
 
       const tableY = drawTable(doc, headers, widths, aligns, tableRows, doc.y);
 
+      let totalSks = 0;
+      let totalBobot = 0;
+      for (const c of courses) {
+        if (c.nilai_huruf && NILAI_BOBOT[c.nilai_huruf] !== undefined) {
+          totalSks += c.sks;
+          totalBobot += NILAI_BOBOT[c.nilai_huruf] * c.sks;
+        }
+      }
+      const ipk = totalSks > 0 ? +(totalBobot / totalSks).toFixed(2) : 0;
+
       doc.moveDown(0.5);
       doc.fontSize(11).font('Helvetica-Bold');
       doc.text(`Total SKS: ${totalSks}`, 50, tableY + 10, { continued: true });
-      doc.text(`\t\tIPK: ${ipk}`, { align: 'right' });
+      doc.text(`     IPK: ${ipk}`, { align: 'right' });
 
       doc.end();
     } catch (err) {
@@ -186,14 +207,13 @@ export async function generateKRS(
       );
 
       doc.fontSize(18).font('Helvetica-Bold').text('KARTU RENCANA STUDI (KRS)', { align: 'center' });
-      doc.moveDown(1.5);
+      doc.moveDown(1);
 
-      doc.fontSize(11).font('Helvetica');
-      doc.text(`NIM\t\t: ${mahasiswa.nim}`);
-      doc.text(`Nama\t\t: ${mahasiswa.nama}`);
-      doc.text(`Program Studi\t: ${mahasiswa.prodi_nama}`);
-      doc.text(`Semester\t: ${semester}`);
-      doc.text(`Tahun Akademik\t: ${tahunAkademik}`);
+      label(doc, 'NIM', mahasiswa.nim);
+      label(doc, 'Nama', mahasiswa.nama);
+      label(doc, 'Program Studi', mahasiswa.prodi_nama);
+      label(doc, 'Semester', semester);
+      label(doc, 'Tahun Akademik', tahunAkademik);
       doc.moveDown(1);
 
       const headers = ['No', 'Hari', 'Jam', 'Kode', 'Mata Kuliah', 'SKS', 'Dosen', 'Ruangan'];
@@ -242,13 +262,13 @@ export async function generateTranskrip(schemaName: string, mahasiswaId: string)
       const { rows: courses } = await query(
         `SELECT mk.kode, mk.nama as mk_nama, mk.sks,
                 n.nilai_tugas, n.nilai_uts, n.nilai_uas, n.nilai_akhir, n.nilai_huruf,
-                j.semester, j.tahun_akademik
+                k.semester, k.tahun_akademik
          FROM ${s(schemaName)}.krs k
          JOIN ${s(schemaName)}.jadwal_kuliah j ON j.id = k.jadwal_id
          JOIN ${s(schemaName)}.mata_kuliah mk ON mk.id = j.mata_kuliah_id
          LEFT JOIN ${s(schemaName)}.nilai n ON n.krs_id = k.id
          WHERE k.mahasiswa_id = $1 AND k.status = 'disetujui'
-         ORDER BY j.tahun_akademik, j.semester`,
+         ORDER BY k.tahun_akademik, k.semester`,
         [mahasiswaId]
       );
 
@@ -265,12 +285,11 @@ export async function generateTranskrip(schemaName: string, mahasiswaId: string)
       }
 
       doc.fontSize(18).font('Helvetica-Bold').text('TRANSKRIP NILAI', { align: 'center' });
-      doc.moveDown(1.5);
+      doc.moveDown(1);
 
-      doc.fontSize(11).font('Helvetica');
-      doc.text(`NIM\t\t: ${mahasiswa.nim}`);
-      doc.text(`Nama\t\t: ${mahasiswa.nama}`);
-      doc.text(`Program Studi\t: ${mahasiswa.prodi_nama}`);
+      label(doc, 'NIM', mahasiswa.nim);
+      label(doc, 'Nama', mahasiswa.nama);
+      label(doc, 'Program Studi', mahasiswa.prodi_nama);
       doc.moveDown(1);
 
       const headers = ['No', 'Kode MK', 'Mata Kuliah', 'SKS', 'Tugas', 'UTS', 'UAS', 'NA', 'Nilai'];
@@ -325,7 +344,7 @@ export async function generateTranskrip(schemaName: string, mahasiswaId: string)
 
         doc.moveDown(0.3);
         doc.fontSize(10).font('Helvetica');
-        doc.text(`Jumlah SKS: ${semesterSks}\t\tIP Semester: ${semesterIp}\t\tIP Kumulatif: ${cumulativeIpk}`, 50, tableEndY + 10);
+        doc.text(`Jumlah SKS: ${semesterSks}     IP Semester: ${semesterIp}     IP Kumulatif: ${cumulativeIpk}`, 50, tableEndY + 10);
         doc.moveDown(1);
       }
 
@@ -333,7 +352,115 @@ export async function generateTranskrip(schemaName: string, mahasiswaId: string)
 
       doc.moveDown(0.5);
       doc.fontSize(12).font('Helvetica-Bold');
-      doc.text(`Total SKS: ${totalSksAll}\t\tIPK: ${finalIpk}`, { align: 'center' });
+      doc.text(`Total SKS: ${totalSksAll}     IPK: ${finalIpk}`, { align: 'center' });
+
+      doc.end();
+    } catch (err) {
+      reject(err);
+    }
+  });
+}
+
+export async function generateSuratKeluar(
+  schemaName: string,
+  suratId: string
+): Promise<Buffer> {
+  return new Promise<Buffer>(async (resolve, reject) => {
+    try {
+      const { rows: surat } = await query(
+        `SELECT skl.*, sk.nama as kategori_nama, sk.kode as kategori_kode, sk.template
+         FROM ${s(schemaName)}.surat_keluar skl
+         LEFT JOIN ${s(schemaName)}.surat_kategori sk ON sk.id = skl.kategori_id
+         WHERE skl.id = $1`,
+        [suratId]
+      );
+      if (surat.length === 0) throw new Error('Surat tidak ditemukan');
+
+      const { rows: tRows } = await query(
+        'SELECT nama_pt, alamat, telepon, email, website, logo_url FROM public.tenants WHERE id = (SELECT tenant_id FROM public.tenants WHERE schema_name = $1)',
+        [schemaName]
+      );
+      const t = tRows[0] || {};
+
+      const d = surat[0].tanggal_surat ? new Date(surat[0].tanggal_surat) : new Date();
+      const months = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+      const days = ['Minggu','Senin','Selasa','Rabu','Kamis','Jumat','Sabtu'];
+
+      const vars: Record<string, string> = {
+        nomor_surat: surat[0].nomor_surat || '',
+        tanggal: d.toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' }),
+        hari: days[d.getDay()],
+        bulan: months[d.getMonth()],
+        tahun: String(d.getFullYear()),
+        perihal: surat[0].perihal || '',
+        tujuan: surat[0].tujuan || '',
+        lampiran: surat[0].lampiran || '-',
+        pengirim: surat[0].pengirim || '',
+        penandatangan: surat[0].penandatangan || '',
+        nama_pt: t.nama_pt || '',
+        alamat: t.alamat || '',
+        telepon: t.telepon || '',
+        email: t.email || '',
+        website: t.website || '',
+      };
+
+      let templateContent = surat[0].template || '';
+      for (const [key, val] of Object.entries(vars)) {
+        templateContent = templateContent.replace(new RegExp(`\\{\\{${key}\\}\\}`, 'g'), val || '');
+      }
+
+      const doc = new PDFDocument({ margin: 60, size: 'A4' });
+      const buffers: Buffer[] = [];
+      doc.on('data', (chunk: Buffer) => buffers.push(chunk));
+      doc.on('end', () => resolve(Buffer.concat(buffers)));
+      doc.on('error', reject);
+
+      const pageWidth = doc.page.width - 120;
+
+      doc.fontSize(11);
+
+      if (t.logo_url) {
+        try {
+          doc.image(t.logo_url, doc.page.margins.left, doc.y, { height: 50, align: 'center' });
+          doc.moveDown(0.5);
+        } catch {}
+      }
+
+      doc.font('Helvetica-Bold').fontSize(14);
+      doc.text(t.nama_pt || 'KOP SURAT', { align: 'center' });
+      doc.font('Helvetica').fontSize(9);
+      if (t.alamat) doc.text(t.alamat, { align: 'center' });
+      const kontak = [t.telepon ? `Telp: ${t.telepon}` : '', t.email ? `Email: ${t.email}` : '', t.website ? `Web: ${t.website}` : ''].filter(Boolean).join(' | ');
+      if (kontak) doc.text(kontak, { align: 'center' });
+
+      doc.moveDown(0.5);
+      doc.moveTo(doc.page.margins.left, doc.y).lineTo(doc.page.width - doc.page.margins.right, doc.y).lineWidth(2).stroke('#000000');
+      doc.moveDown(1);
+
+      doc.font('Helvetica').fontSize(10);
+      doc.text(`Nomor      : ${surat[0].nomor_surat}`);
+      doc.text(`Lampiran   : ${surat[0].lampiran || '-'}`);
+      doc.text(`Perihal    : ${surat[0].perihal}`);
+      doc.moveDown(1);
+
+      doc.text(d.toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' }), { align: 'right' });
+      doc.moveDown(1);
+      doc.text(`Kepada Yth,`);
+      doc.font('Helvetica-Bold').text(surat[0].tujuan);
+      doc.moveDown(1);
+      doc.font('Helvetica');
+
+      if (templateContent) {
+        const bodyLines = templateContent.split('\n');
+        for (const line of bodyLines) {
+          doc.text(line);
+        }
+      }
+
+      doc.moveDown(3);
+      doc.text(`${surat[0].pengirim || 'Pejabat Berwenang'}`, { align: 'right' });
+      doc.moveDown(3);
+      doc.font('Helvetica-Bold').text(surat[0].penandatangan || '(________________)', { align: 'right' });
 
       doc.end();
     } catch (err) {
