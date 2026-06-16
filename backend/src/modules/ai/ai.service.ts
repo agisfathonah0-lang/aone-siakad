@@ -87,7 +87,6 @@ async function callOpenAI(apiKey: string, model: string, messages: { role: strin
 }
 
 async function callGemini(apiKey: string, model: string, messages: { role: string; content: string }[], maxTokens: number) {
-  const geminiModel = model.replace(/^gemini-/, 'gemini-');
   const contents = messages
     .filter(m => m.role !== 'system')
     .map(m => ({
