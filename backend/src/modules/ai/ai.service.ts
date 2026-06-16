@@ -10,7 +10,7 @@ const MODEL_INFO: Record<string, { provider: string; inputCost: number; outputCo
 };
 
 function schema(req: any): string {
-  return req.tenantSchema || 'public';
+  return req.tenant?.schemaName || 'public';
 }
 
 async function getAIConfig(): Promise<{
