@@ -10,7 +10,7 @@ import { requireRole } from '../../middleware/role.js';
 import { sendSuccess, sendPaginated } from '../../middleware/response.js';
 import { AppError } from '../../middleware/errorHandler.js';
 import { Role, StatusPendaftaran, StatusPembayaran } from '../../types/enums.js';
-import { snap } from '../../config/midtrans.js';
+import { getSnap } from '../../services/midtrans.js';
 
 const router = Router();
 
@@ -215,7 +215,8 @@ router.post(
       const nominal = biaya_pendaftaran || 300000;
       const orderId = `PPDB-${pendaftar[0].nomor_daftar}-${Date.now()}`;
 
-      const transaction = await snap.createTransaction({
+      const midtransSnap = await getSnap(req.tenant!.id);
+      const transaction = await midtransSnap.createTransaction({
         transaction_details: {
           order_id: orderId,
           gross_amount: nominal,

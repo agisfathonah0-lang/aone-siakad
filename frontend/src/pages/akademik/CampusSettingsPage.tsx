@@ -1,11 +1,12 @@
 import { useState, useEffect } from 'react';
 import { get, put } from '../../api/client';
-import { Loader2, Save, CheckCircle2 } from 'lucide-react';
+import { Loader2, Save, CheckCircle2, CreditCard, Eye, EyeOff } from 'lucide-react';
 
 export default function CampusSettingsPage() {
   const [settings, setSettings] = useState<Record<string, any>>({});
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState<string | null>(null);
+  const [showMidtransKey, setShowMidtransKey] = useState(false);
 
   useEffect(() => { load(); }, []);
 
@@ -48,6 +49,40 @@ export default function CampusSettingsPage() {
       <div>
         <h1 className="text-xl font-bold font-display tracking-tight dark:text-white">Pengaturan Kampus</h1>
         <p className="text-xs text-slate-500 dark:text-zinc-500">Konfigurasi sistem akademik</p>
+      </div>
+
+      <div className="bg-white dark:bg-zinc-900/50 rounded-xl p-5 shadow-sm ring-1 ring-slate-200/50 dark:ring-zinc-800/30 space-y-4 max-w-2xl">
+        <div className="flex items-center gap-2 pb-2 border-b border-slate-100 dark:border-zinc-800">
+          <CreditCard size={16} className="text-emerald-500" />
+          <h2 className="text-sm font-bold font-display dark:text-white">Midtrans Payment Gateway</h2>
+        </div>
+        <p className="text-xs text-slate-400">Daftar di <a href="https://dashboard.midtrans.com" target="_blank" rel="noopener noreferrer" className="text-emerald-500 hover:text-emerald-400">dashboard.midtrans.com</a> (gratis), lalu masukkan API Key-nya di sini.</p>
+        <div className="space-y-3">
+          <div>
+            <label className="text-xs font-semibold text-slate-500 dark:text-zinc-400 block mb-1">Server Key</label>
+            <div className="flex gap-2">
+              <input type={showMidtransKey ? 'text' : 'password'} value={settings['midtrans_server_key'] || ''}
+                onChange={e => save('midtrans_server_key', e.target.value)} placeholder="Midtrans server key..."
+                className="input-field flex-1 font-mono text-xs" />
+              <button type="button" onClick={() => setShowMidtransKey(!showMidtransKey)}
+                className="px-3 py-2 rounded-xl bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 text-slate-400 hover:text-slate-600">
+                {showMidtransKey ? <EyeOff size={16} /> : <Eye size={16} />}
+              </button>
+            </div>
+          </div>
+          <div>
+            <label className="text-xs font-semibold text-slate-500 dark:text-zinc-400 block mb-1">Client Key</label>
+            <input type={showMidtransKey ? 'text' : 'password'} value={settings['midtrans_client_key'] || ''}
+              onChange={e => save('midtrans_client_key', e.target.value)} placeholder="Midtrans client key..."
+              className="input-field w-full font-mono text-xs" />
+          </div>
+          <div className="flex items-center gap-2">
+            <label className="text-xs font-semibold text-slate-500 dark:text-zinc-400">Production?</label>
+            <input type="checkbox" checked={settings['midtrans_is_production'] === 'true'}
+              onChange={e => save('midtrans_is_production', e.target.checked ? 'true' : 'false')}
+              className="rounded border-slate-300 text-emerald-500 focus:ring-emerald-500/30" />
+          </div>
+        </div>
       </div>
 
       <div className="bg-white dark:bg-zinc-900/50 rounded-xl shadow-sm ring-1 ring-slate-200/50 dark:ring-zinc-800/30 max-w-2xl overflow-hidden">
