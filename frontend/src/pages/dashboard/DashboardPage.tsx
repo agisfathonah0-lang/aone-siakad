@@ -159,7 +159,8 @@ export default function DashboardPage() {
   }, [isMahasiswa]);
 
   if (loading) return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="space-y-6 animate-fade-in relative">
+      <div className="fixed inset-0 pointer-events-none opacity-[0.03] dark:opacity-[0.04]" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, rgb(0,0,0) 1px, transparent 0)', backgroundSize: '24px 24px' }} />
       <Skeleton className="h-32 rounded-2xl" />
       {isMahasiswa ? (
         <>
@@ -204,12 +205,18 @@ export default function DashboardPage() {
   }));
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 relative">
+      {/* Subtle background pattern */}
+      <div className="fixed inset-0 pointer-events-none opacity-[0.03] dark:opacity-[0.04]" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, rgb(0,0,0) 1px, transparent 0)', backgroundSize: '24px 24px' }} />
+
       <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-600 via-emerald-500 to-teal-500 p-6 text-white shadow-lg shadow-emerald-500/20">
         <div className="absolute -top-6 -right-6 w-32 h-32 bg-white/10 rounded-full blur-2xl" />
         <div className="absolute -bottom-8 -left-8 w-40 h-40 bg-emerald-400/20 rounded-full blur-3xl" />
         <div className="absolute top-4 right-20 w-2 h-2 bg-white/30 rounded-full" />
         <div className="absolute bottom-6 right-12 w-3 h-3 bg-white/20 rounded-full" />
+        <div className="absolute -top-20 -left-20 w-64 h-64 bg-emerald-400/10 rounded-full blur-[80px]" />
+        <div className="absolute -bottom-16 right-1/4 w-48 h-48 bg-teal-400/10 rounded-full blur-[60px]" />
+        <div className="absolute inset-0 opacity-[0.04]" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)', backgroundSize: '32px 32px' }} />
         <div className="relative flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div>
             <div className="flex items-center gap-2.5 mb-1">
@@ -267,7 +274,8 @@ export default function DashboardPage() {
               ].map((card, idx) => (
                 <div key={card.label} className={`relative glass-card rounded-2xl p-4 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 overflow-hidden group animate-stagger-${idx + 1}`}>
                   <div className={`absolute top-0 left-0 w-full h-0.5 ${card.bar} opacity-60`} />
-                  <div className={`w-10 h-10 rounded-xl ${card.bg} flex items-center justify-center ${card.color} mb-3 ring-4 ring-white dark:ring-zinc-900 shadow-sm`}>
+                  <div className="absolute -bottom-2 -right-2 w-16 h-16 rounded-full bg-gradient-to-br from-transparent to-current opacity-[0.03] dark:opacity-[0.06]" />
+                  <div className={`w-10 h-10 rounded-xl ${card.bg} flex items-center justify-center ${card.color} mb-3 ring-4 ring-white dark:ring-zinc-900 shadow-sm transition-transform duration-300 group-hover:scale-110`}>
                     <card.icon size={18} />
                   </div>
                   <p className="text-2xl font-extrabold dark:text-white tabular-nums">{card.value}</p>
@@ -306,9 +314,12 @@ export default function DashboardPage() {
                 <h2 className="text-sm font-bold font-display dark:text-white">Tagihan Terkini</h2>
               </div>
               {tagihanMe.length === 0 ? (
-                <div className="flex flex-col items-center py-6 text-slate-400">
-                  <CheckCircle size={28} className="text-emerald-400 mb-2" />
-                  <p className="text-xs font-medium">Tidak ada tagihan</p>
+                <div className="flex flex-col items-center py-8 text-slate-400">
+                  <div className="w-14 h-14 rounded-2xl bg-slate-100 dark:bg-zinc-800/50 flex items-center justify-center mb-3">
+                    <CheckCircle size={24} className="text-emerald-400" />
+                  </div>
+                  <p className="text-sm font-semibold text-slate-500 dark:text-zinc-400">Tidak Ada Tagihan</p>
+                  <p className="text-[11px] text-slate-400 dark:text-zinc-500 mt-1">Semua tagihan telah dibayar</p>
                 </div>
               ) : (
                 <div className="space-y-2">
@@ -343,9 +354,12 @@ export default function DashboardPage() {
                 <h2 className="text-sm font-bold font-display dark:text-white">Ringkasan Akademik</h2>
               </div>
               {!khsData?.semesters?.length ? (
-                <div className="flex flex-col items-center py-6 text-slate-400">
-                  <GraduationCap size={28} className="text-slate-300 mb-2" />
-                  <p className="text-xs font-medium">Belum ada data KHS</p>
+                <div className="flex flex-col items-center py-8 text-slate-400">
+                  <div className="w-14 h-14 rounded-2xl bg-slate-100 dark:bg-zinc-800/50 flex items-center justify-center mb-3">
+                    <GraduationCap size={24} className="text-slate-300 dark:text-zinc-600" />
+                  </div>
+                  <p className="text-sm font-semibold text-slate-500 dark:text-zinc-400">Belum Ada Data KHS</p>
+                  <p className="text-[11px] text-slate-400 dark:text-zinc-500 mt-1">Data akademik akan muncul setelah KHS diterbitkan</p>
                 </div>
               ) : (
                 <>
@@ -390,8 +404,9 @@ export default function DashboardPage() {
               <div key={card.label} className={`relative group glass-card rounded-2xl p-4 hover:shadow-lg hover:-translate-y-1 transition-all duration-200 cursor-pointer overflow-hidden animate-stagger-${idx + 1}`} onClick={() => navigate(card.label.toLowerCase().replace(/\s+/g, '-'))}>
                 <div className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${adminGradientMap[card.label] || 'from-slate-500/5'} opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
                 <div className={`absolute top-0 left-0 w-full h-0.5 ${card.bar} opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
+                <div className="absolute -bottom-3 -right-3 w-20 h-20 rounded-full bg-gradient-to-br from-transparent to-current opacity-[0.02] dark:opacity-[0.04] group-hover:opacity-[0.06] transition-opacity" />
                 <div className="relative">
-                  <div className={`w-10 h-10 rounded-xl ${card.bg} flex items-center justify-center ${card.color} mb-3 ring-4 ring-white dark:ring-zinc-900 shadow-sm`}>
+                  <div className={`w-10 h-10 rounded-xl ${card.bg} flex items-center justify-center ${card.color} mb-3 ring-4 ring-white dark:ring-zinc-900 shadow-sm transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3`}>
                     <card.icon size={18} />
                   </div>
                   <p className="text-2xl font-extrabold dark:text-white tabular-nums">{card.value.toLocaleString()}</p>
@@ -428,9 +443,12 @@ export default function DashboardPage() {
               <h2 className="text-sm font-bold font-display dark:text-white">Aktivitas Terkini</h2>
             </div>
             {aktivitas.length === 0 ? (
-              <div className="flex flex-col items-center py-6 text-slate-400">
-                <BellRing size={24} className="text-slate-300 mb-2" />
-                <p className="text-xs font-medium">Belum ada aktivitas</p>
+              <div className="flex flex-col items-center py-8 text-slate-400">
+                <div className="w-14 h-14 rounded-2xl bg-slate-100 dark:bg-zinc-800/50 flex items-center justify-center mb-3">
+                  <BellRing size={24} className="text-slate-300 dark:text-zinc-600" />
+                </div>
+                <p className="text-sm font-semibold text-slate-500 dark:text-zinc-400">Belum Ada Aktivitas</p>
+                <p className="text-[11px] text-slate-400 dark:text-zinc-500 mt-1">Aktivitas terbaru akan muncul di sini</p>
               </div>
             ) : (
               <div className="space-y-1">
@@ -453,6 +471,7 @@ export default function DashboardPage() {
                 <TrendingUp size={15} className="text-emerald-500" />
                 <h2 className="text-sm font-bold font-display dark:text-white">Ringkasan Akademik</h2>
               </div>
+              <div className="absolute -top-4 -right-4 w-24 h-24 bg-gradient-to-br from-emerald-500/5 to-transparent rounded-full blur-2xl pointer-events-none" />
               <div className="space-y-3">
                 {[
                   { label: 'Mahasiswa Aktif', value: stats?.mahasiswa ?? 0, total: (stats?.mahasiswa + (stats?.alumni || 0)) || 1, color: 'bg-indigo-500' },
@@ -474,7 +493,8 @@ export default function DashboardPage() {
               </button>
             </div>
 
-            <div className="glass-card rounded-2xl p-5">
+            <div className="glass-card rounded-2xl p-5 relative">
+              <div className="absolute -bottom-4 -left-4 w-24 h-24 bg-gradient-to-tr from-indigo-500/5 to-transparent rounded-full blur-2xl pointer-events-none" />
               <div className="flex items-center gap-2 mb-4">
                 <Library size={15} className="text-emerald-500" />
                 <h2 className="text-sm font-bold font-display dark:text-white">Modul Terintegrasi</h2>
