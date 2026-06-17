@@ -30,7 +30,7 @@ export default function FileUpload({ value, onChange, accept = 'image/*,.pdf,.do
     try {
       const fd = new FormData();
       fd.append('file', file);
-      const { data } = await api.post('/api/v1/upload', fd, {
+      const { data } = await api.post('/upload', fd, {
         headers: { 'Content-Type': 'multipart/form-data' },
         onUploadProgress: (e) => {
           if (e.total) setProgress(Math.round((e.loaded * 100) / e.total));
