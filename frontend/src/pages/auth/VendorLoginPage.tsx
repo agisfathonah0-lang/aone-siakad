@@ -43,8 +43,10 @@ export default function VendorLoginPage() {
         </button>
 
         <div className="text-center mb-8">
-          <img src="/logo.png" alt="AONE SIAKAD" className="h-12 w-auto mx-auto mb-4" />
+          <img src="/logo.jpg" alt="AONE" className="h-10 w-auto mx-auto mb-3" />
           <h1 className={`text-2xl font-display font-extrabold tracking-tight ${isDark ? 'text-white' : 'text-slate-800'}`}>
+            AONE <span className="text-emerald-500">SIAKAD</span>
+            <span className="text-slate-400 mx-1">/</span>
             Vendor<span className="text-emerald-500">Panel</span>
           </h1>
           <p className={`text-sm mt-1.5 font-medium ${isDark ? 'text-zinc-400' : 'text-slate-500'}`}>Manajemen platform SaaS AONE SIAKAD</p>

@@ -129,7 +129,7 @@ export default function LandingPage() {
 
   return (
     <>
-      {showSplash && <SplashScreen duration={2000} onDone={() => setShowSplash(false)} />}
+      {showSplash && <SplashScreen duration={1500} onDone={() => setShowSplash(false)} />}
       <div className="min-h-screen font-sans bg-white text-slate-900 overflow-x-hidden" style={{ display: showSplash ? 'none' : undefined }}>
       <div className="relative bg-gradient-to-r from-emerald-600 via-emerald-500 to-indigo-600 overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4 relative z-10 flex flex-col sm:flex-row items-center justify-between gap-3">
