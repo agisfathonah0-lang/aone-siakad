@@ -154,7 +154,7 @@ export default function DashboardPage() {
 
   useEffect(() => {
     if (!isMahasiswa) {
-      get<any[]>('/akademik/notifikasi?limit=5').then(setAktivitas).catch(() => {});
+      get<{ rows: any[] }>('/akademik/notifikasi?limit=5').then(d => setAktivitas(d.rows || [])).catch(() => {});
     }
   }, [isMahasiswa]);
 
