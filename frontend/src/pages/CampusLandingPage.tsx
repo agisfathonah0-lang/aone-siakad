@@ -103,7 +103,27 @@ function CampusLandingPage({ slug }: { slug: string }) {
   const c = landingPage.primaryColor || '#006d36';
   const rgb = hexToRgb(c);
   const heroImages = landingPage.heroImages?.filter(Boolean) || [];
-  const { popUp, promosi, prestasi, strukturOrganisasi, sambutan } = landingPage;
+  const { popUp } = landingPage;
+  const sambutan = landingPage.sambutan?.active ? landingPage.sambutan : {
+    active: true, title: 'Sambutan', content: `${tenant.nama_pt} berkomitmen menciptakan lingkungan akademik yang inovatif, inklusif, dan berdaya saing global.`, nama: `Rektor ${tenant.nama_pt}`, jabatan: 'Rektor', image: ''
+  };
+  const prestasi = landingPage.prestasi?.length > 0 ? landingPage.prestasi : [
+    { icon: 'Award', title: 'Akreditasi Unggul', desc: 'Terakreditasi BAN-PT dengan peringkat UNGGUL di seluruh program studi.' },
+    { icon: 'Users', title: 'Dosen Profesional', desc: 'Tenaga pengajar tersertifikasi dan berpengalaman di bidangnya.' },
+    { icon: 'BookOpen', title: 'Kurikulum OBE', desc: 'Kurikulum berbasis Outcome-Based Education yang relevan dengan industri.' },
+    { icon: 'GraduationCap', title: 'Alumni Berprestasi', desc: 'Alumni tersebar di perusahaan ternama dan institusi pemerintah.' },
+  ];
+  const promosi = landingPage.promosi?.length > 0 ? landingPage.promosi : [
+    { title: 'Beasiswa Prestasi', description: 'Dapatkan beasiswa penuh untuk mahasiswa berprestasi akademik dan non-akademik.', image: '', link: '#' },
+    { title: 'Pertukaran Mahasiswa', description: 'Program pertukaran mahasiswa ke universitas mitra di luar negeri.', image: '', link: '#' },
+    { title: 'Kampus Mengajar', description: 'Ikuti program kampus mengajar dan dapatkan pengalaman berharga.', image: '', link: '#' },
+  ];
+  const strukturOrganisasi = landingPage.strukturOrganisasi?.length > 0 ? landingPage.strukturOrganisasi : [
+    { id: '1', jabatan: 'Rektor', nama: `Rektor ${tenant.nama_pt}`, image: '' },
+    { id: '2', jabatan: 'Wakil Rektor I', nama: 'Wakil Rektor Bidang Akademik', image: '' },
+    { id: '3', jabatan: 'Wakil Rektor II', nama: 'Wakil Rektor Bidang Keuangan', image: '' },
+    { id: '4', jabatan: 'Wakil Rektor III', nama: 'Wakil Rektor Bidang Kemahasiswaan', image: '' },
+  ];
 
   return (
     <div className="min-h-screen bg-[#f8f9ff] text-[#121c2a] font-sans antialiased overflow-x-hidden">
