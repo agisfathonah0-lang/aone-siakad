@@ -3,7 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { get } from '../api/client';
 import useSEO from '../hooks/useSEO';
 import SplashScreen from '../components/ui/SplashScreen';
-import { Building2, GraduationCap, Users, BookOpen, ArrowRight, ExternalLink, Award, UserCheck, ChevronUp, X, Mail, Phone, MapPin, Calendar, Quote, Sparkles, Play, CheckCircle, Star, Globe, FlaskConical, UsersRound, Library, Monitor, HeartHandshake, MapPinHouse, ChevronRight, QuoteIcon, Flower2, Menu } from 'lucide-react';
+import { Building2, GraduationCap, Users, BookOpen, ArrowRight, ExternalLink, Award, UserCheck, ChevronUp, X, Mail, Phone, MapPin, Calendar, Quote, Sparkles, Play, CheckCircle, Star, Globe, FlaskConical, UsersRound, Library, Monitor, HeartHandshake, MapPinHouse, ChevronRight, QuoteIcon, Flower2, Menu, Camera, Trophy, Zap, Target, Shield, Lightbulb, BrainCircuit } from 'lucide-react';
 
 interface CampusData {
   tenant: {
@@ -29,39 +29,35 @@ interface CampusData {
   stats: { totalDosen: number; totalMahasiswa: number; totalProdi: number; totalPendaftar: number };
 }
 
-const iconMap: Record<string, any> = { Award, Users, BookOpen, GraduationCap, Target: Star, Eye: Globe, Trophy: Award, School: Building2 };
-
 function hexToRgb(hex: string) {
   const c = hex.replace('#', '');
   return { r: parseInt(c.substring(0, 2), 16), g: parseInt(c.substring(2, 4), 16), b: parseInt(c.substring(4, 6), 16) };
 }
 
-function SectionDivider({ bg = '#ffffff' }: { bg?: string }) {
-  return (
-    <div className="relative h-16 md:h-24 -mb-1" style={{ backgroundColor: bg }}>
-      <svg className="absolute bottom-0 w-full h-full" viewBox="0 0 1440 96" preserveAspectRatio="none" fill="#faf7f2">
-        <path d="M0 48c240 64 480-64 720 0s480-64 720 0v48H0V48z" opacity="0.4" />
-        <path d="M0 64c240-48 480 48 720 0s480 48 720 0v32H0V64z" />
-      </svg>
-    </div>
-  );
-}
-
-function RevealSection({ children, className = '' }: { children: React.ReactNode; className?: string }) {
+function useReveal(threshold = 0.08) {
   const ref = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(false);
   useEffect(() => {
     const el = ref.current;
     if (!el) return;
-    const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) { setVisible(true); obs.disconnect(); } }, { threshold: 0.08 });
+    const obs = new IntersectionObserver(([e]) => { if (e.isIntersecting) { setVisible(true); obs.disconnect(); } }, { threshold });
     obs.observe(el);
     return () => obs.disconnect();
-  }, []);
-  return (
-    <div ref={ref} className={`transition-all duration-700 ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'} ${className}`}>
-      {children}
-    </div>
-  );
+  }, [threshold]);
+  return { ref, visible };
+}
+
+function FadeIn({ children, className = '' }: { children: React.ReactNode; className?: string }) {
+  const { ref, visible } = useReveal();
+  return <div ref={ref} className={`transition-all duration-700 ${visible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'} ${className}`}>{children}</div>;
+}
+
+function Blob({ color = '#10b981', className = '' }: { color?: string; className?: string }) {
+  return <div className={`absolute rounded-full blur-[120px] opacity-20 ${className}`} style={{ backgroundColor: color }} />;
+}
+
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return <span className="text-emerald-500 text-[10px] font-black font-mono tracking-[0.3em] uppercase">{children}</span>;
 }
 
 export default function CampusLandingPageWrapper() {
@@ -76,14 +72,10 @@ function CampusLandingPage({ slug }: { slug: string }) {
   const [heroIdx, setHeroIdx] = useState(0);
   const [showPopup, setShowPopup] = useState(false);
   const [splashDone, setSplashDone] = useState(false);
-  const [mobileNav, setMobileNav] = useState(false);
-  const [showBackTop, setShowBackTop] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+  const [showTop, setShowTop] = useState(false);
 
-  useSEO(
-    data?.landingPage.seoTitle || data?.tenant.name || 'Kampus',
-    data?.landingPage.seoDescription || `${data?.tenant.nama_pt || 'Kampus'} - Sistem Informasi Akademik terintegrasi.`,
-    data?.tenant.logo_url || '/logo.jpg'
-  );
+  useSEO(data?.landingPage.seoTitle || data?.tenant.name || 'Kampus', data?.landingPage.seoDescription || '', data?.tenant.logo_url || '/logo.jpg');
 
   useEffect(() => {
     setLoading(true);
@@ -97,19 +89,18 @@ function CampusLandingPage({ slug }: { slug: string }) {
     if (!data || !data.landingPage.showPopUp || !data.landingPage.popUp.active) return;
     const seen = localStorage.getItem(`popup_${slug}_seen`);
     if (seen === 'true') return;
-    const timer = setTimeout(() => setShowPopup(true), 1000);
-    return () => clearTimeout(timer);
+    const t = setTimeout(() => setShowPopup(true), 1000);
+    return () => clearTimeout(t);
   }, [data, slug]);
 
   useEffect(() => {
-    const onScroll = () => setShowBackTop(window.scrollY > 600);
+    const onScroll = () => setShowTop(window.scrollY > 600);
     window.addEventListener('scroll', onScroll, { passive: true });
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
   const nextHero = useCallback(() => {
-    if (!data) return;
-    const imgs = data.landingPage.heroImages?.filter(Boolean) || [];
+    const imgs = data?.landingPage.heroImages?.filter(Boolean) || [];
     if (imgs.length < 2) return;
     setHeroIdx(p => (p + 1) % imgs.length);
   }, [data]);
@@ -120,6 +111,11 @@ function CampusLandingPage({ slug }: { slug: string }) {
     const id = setInterval(nextHero, 5000);
     return () => clearInterval(id);
   }, [data, nextHero]);
+
+  const scrollTo = (id: string) => {
+    setMobileOpen(false);
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth' });
+  };
 
   if (loading || !splashDone) return (
     <SplashScreen logo={data?.tenant.logo_url || '/logo.jpg'} nama={data?.tenant.nama_pt || 'Memuat...'} duration={3000} onDone={() => setSplashDone(true)} />
@@ -136,8 +132,7 @@ function CampusLandingPage({ slug }: { slug: string }) {
 
   const { tenant, landingPage, berita, programStudi, stats } = data;
   const c = landingPage.primaryColor || '#006d36';
-  const rgb = hexToRgb(c);
-  const heroImages = landingPage.heroImages?.filter(Boolean) || [];
+  const heroImgs = landingPage.heroImages?.filter(Boolean) || [];
   const { popUp } = landingPage;
 
   const sambutan = landingPage.sambutan?.active ? landingPage.sambutan : {
@@ -159,7 +154,7 @@ function CampusLandingPage({ slug }: { slug: string }) {
     { title: 'Kampus Mengajar', description: 'Ikuti program kampus mengajar dan dapatkan pengalaman berharga.', image: '', link: '#' },
   ];
 
-  const strukturOrganisasi = landingPage.strukturOrganisasi?.length > 0 ? landingPage.strukturOrganisasi : [
+  const struktur = landingPage.strukturOrganisasi?.length > 0 ? landingPage.strukturOrganisasi : [
     { id: '1', jabatan: 'Rektor', nama: `Rektor ${tenant.nama_pt}`, image: '' },
     { id: '2', jabatan: 'Wakil Rektor I', nama: 'Wakil Rektor Bidang Akademik', image: '' },
     { id: '3', jabatan: 'Wakil Rektor II', nama: 'Wakil Rektor Bidang Keuangan', image: '' },
@@ -167,9 +162,9 @@ function CampusLandingPage({ slug }: { slug: string }) {
   ];
 
   const testimoni = [
-    { nama: 'Ahmad Fauzi', program: 'S1 Teknik Informatika', tahun: '2021', quote: `Kuliah di ${tenant.singkatan || tenant.nama_pt} memberikan pengalaman luar biasa. Dosen-dosennya sangat kompeten dan fasilitasnya mendukung penuh proses belajar.` },
-    { nama: 'Siti Nurhaliza', program: 'S1 Manajemen', tahun: '2022', quote: 'Alhamdulillah, saya mendapatkan beasiswa penuh dan lulus dengan predikat cumlaude. Kampus ini benar-benar peduli dengan prestasi mahasiswa.' },
-    { nama: 'Rudi Hermawan', program: 'S1 Hukum', tahun: '2020', quote: 'Jaringan alumni yang kuat membantu saya mendapatkan pekerjaan di firma hukum terkemuka segera setelah lulus. Terima kasih kampusku.' },
+    { nama: 'Ahmad Fauzi', prodi: 'Teknik Informatika', tahun: '2021', quote: `Kuliah di ${tenant.singkatan || tenant.nama_pt} memberikan pengalaman luar biasa. Dosen-dosennya sangat kompeten dan fasilitasnya mendukung penuh proses belajar.` },
+    { nama: 'Siti Nurhaliza', prodi: 'Manajemen', tahun: '2022', quote: 'Alhamdulillah, saya mendapatkan beasiswa penuh dan lulus dengan predikat cumlaude. Kampus ini benar-benar peduli dengan prestasi mahasiswa.' },
+    { nama: 'Rudi Hermawan', prodi: 'Hukum', tahun: '2020', quote: 'Jaringan alumni yang kuat membantu saya mendapatkan pekerjaan di firma hukum terkemuka segera setelah lulus. Terima kasih kampusku.' },
   ];
 
   const fasilitas = [
@@ -181,567 +176,555 @@ function CampusLandingPage({ slug }: { slug: string }) {
     { icon: MapPinHouse, title: 'Kampus Hijau', desc: 'Lingkungan kampus yang asri, hijau, dan nyaman untuk kegiatan akademik.' },
   ];
 
-  const navLinks = [
-    { href: '#tentang', label: 'Tentang' },
-    { href: '#programs', label: 'Program' },
-    { href: '#fasilitas', label: 'Fasilitas' },
-    { href: '#berita', label: 'Berita' },
-    ...(landingPage.showPPDB ? [{ href: '#ppdb', label: 'PPDB' }] : []),
+  const keunggulan = [
+    { icon: BookOpen, title: 'Kurikulum Terkini', desc: 'Kurikulum berbasis KKNI dan OBE yang disusun bersama praktisi industri untuk menjamin relevansi dengan dunia kerja.' },
+    { icon: Users, title: 'Pengajar Berkualitas', desc: 'Dosen tersertifikasi dengan latar belakang pendidikan terbaik dan pengalaman di bidangnya masing-masing.' },
+    { icon: Globe, title: 'Jaringan Luas', desc: 'Kerjasama dengan berbagai universitas dan industri di dalam maupun luar negeri untuk magang dan riset.' },
+    { icon: HeartHandshake, title: 'Beasiswa', desc: 'Berbagai program beasiswa prestasi dan kebutuhan bagi mahasiswa berprestasi dan kurang mampu.' },
   ];
 
-  const scrollTo = (id: string) => {
-    setMobileNav(false);
-    document.querySelector(id)?.scrollIntoView({ behavior: 'smooth' });
-  };
+  const nav = [
+    { id: 'visi-misi', label: 'Visi Misi' },
+    { id: 'program-studi', label: 'Program' },
+    { id: 'fasilitas', label: 'Fasilitas' },
+    { id: 'berita', label: 'Berita' },
+    ...(landingPage.showPPDB ? [{ id: 'ppdb', label: 'PPDB' }] : []),
+  ];
 
-  const jenjangWarna: Record<string, string> = { S1: '#059669', D3: '#2563eb', D4: '#7c3aed', S2: '#d97706', Profesi: '#dc2626' };
+  const iconNames: Record<string, any> = { Award, Users, BookOpen, GraduationCap, Star, Globe, Trophy, Shield, Target };
 
   return (
     <div className="min-h-screen bg-[#faf7f2] text-[#1e293b] font-sans antialiased overflow-x-hidden">
       {/* Back to top */}
       <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-        className={`fixed bottom-6 right-6 z-50 w-11 h-11 rounded-full shadow-lg flex items-center justify-center text-white transition-all duration-300 hover:scale-110 ${showBackTop ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'}`}
+        className={`fixed bottom-6 right-6 z-50 w-12 h-12 rounded-2xl shadow-2xl flex items-center justify-center text-white transition-all duration-300 hover:scale-110 active:scale-95 ${showTop ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'}`}
         style={{ backgroundColor: c }}>
         <ChevronUp size={20} />
       </button>
 
       {/* Header */}
-      <header className="w-full top-0 sticky z-50 bg-[#faf7f2]/85 backdrop-blur-lg border-b border-[#e2e8f0]">
-        <div className="max-w-6xl mx-auto px-4 md:px-8 flex items-center justify-between h-16 md:h-20">
-          <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 md:w-9 md:h-9 rounded-xl overflow-hidden ring-1 ring-[#e2e8f0] flex items-center justify-center bg-white" style={{ borderColor: `${c}40` }}>
-              {tenant.logo_url ? <img src={tenant.logo_url} alt="" className="w-full h-full object-cover" /> : <Building2 size={18} style={{ color: c }} />}
+      <header className="w-full top-0 sticky z-50 bg-white/80 backdrop-blur-xl border-b border-slate-200/50">
+        <div className="max-w-7xl mx-auto px-6 flex items-center justify-between h-20">
+          <div className="flex items-center gap-4">
+            <div className="w-11 h-11 rounded-2xl flex items-center justify-center font-black text-white text-xl shadow-lg overflow-hidden" style={{ backgroundColor: c }}>
+              {tenant.logo_url ? <img src={tenant.logo_url} alt="" className="w-full h-full object-cover" /> : tenant.singkatan?.charAt(0) || 'K'}
             </div>
-            <span className="font-bold text-sm md:text-base" style={{ color: c }}>{tenant.singkatan || tenant.nama_pt}</span>
+            <div className="hidden sm:block">
+              <span className="font-black tracking-tight text-lg leading-none">{tenant.singkatan || tenant.nama_pt}</span>
+              <div className="flex items-center gap-2 mt-0.5">
+                <span className="text-[10px] text-slate-400 font-bold tracking-[0.2em] uppercase">{tenant.nama_pt}</span>
+                <span className="w-1 h-1 rounded-full animate-pulse" style={{ backgroundColor: c }} />
+              </div>
+            </div>
           </div>
-          <nav className="hidden md:flex items-center gap-8">
-            {navLinks.map(l => (
-              <a key={l.href} href={l.href} onClick={e => { e.preventDefault(); scrollTo(l.href); }}
-                className="text-sm font-medium text-[#64748b] hover:text-[#1e293b] transition-colors">{l.label}</a>
+
+          <nav className="hidden lg:flex items-center gap-8">
+            {nav.map(n => (
+              <a key={n.id} href={`#${n.id}`} onClick={e => { e.preventDefault(); scrollTo(n.id); }}
+                className="text-xs font-black uppercase tracking-widest text-slate-400 hover:text-emerald-500 transition-colors">{n.label}</a>
             ))}
           </nav>
-          <div className="flex items-center gap-3">
+
+          <div className="flex items-center gap-4">
             <a href={`/login?tenant=${slug}`}
-              className="hidden md:inline text-sm font-medium text-[#64748b] hover:text-[#1e293b] transition-colors">Login</a>
-            {landingPage.showPPDB && (
-              <Link to={`/kampus/${slug}/ppdb`}
-                className="text-sm font-bold text-white px-5 py-2 rounded-lg transition-all hover:scale-105 active:scale-95 shadow-md" style={{ backgroundColor: c }}>
-                Daftar
-              </Link>
-            )}
-            <button onClick={() => setMobileNav(!mobileNav)} className="md:hidden p-2 rounded-lg hover:bg-[#e2e8f0] transition-colors">
-              <Menu size={20} className="text-[#64748b]" />
+              className="hidden sm:flex px-5 py-2.5 rounded-2xl text-xs font-black uppercase tracking-wider shadow-lg transition-all active:scale-95 items-center gap-2 text-white" style={{ backgroundColor: c, boxShadow: `0 4px 16px ${c}40` }}>
+              <UserCheck className="w-4 h-4" /> Portal
+            </a>
+            <button onClick={() => setMobileOpen(!mobileOpen)} className="lg:hidden p-3 rounded-2xl border border-slate-200 text-slate-400">
+              <Menu size={20} />
             </button>
           </div>
         </div>
-        {/* Mobile nav */}
-        <div className={`md:hidden overflow-hidden transition-all duration-300 ${mobileNav ? 'max-h-80' : 'max-h-0'}`}>
-          <div className="px-4 pb-4 flex flex-col gap-2 border-t border-[#e2e8f0] pt-3 bg-[#faf7f2]">
-            {navLinks.map(l => (
-              <a key={l.href} href={l.href} onClick={e => { e.preventDefault(); scrollTo(l.href); }}
-                className="text-sm font-medium text-[#64748b] py-2 px-3 rounded-lg hover:bg-[#e2e8f0] transition-colors">{l.label}</a>
+
+        <div className={`lg:hidden overflow-hidden transition-all duration-300 ${mobileOpen ? 'max-h-96' : 'max-h-0'}`}>
+          <div className="px-6 pb-6 flex flex-col gap-4 border-t border-slate-100 pt-4">
+            {nav.map(n => (
+              <a key={n.id} href={`#${n.id}`} onClick={e => { e.preventDefault(); scrollTo(n.id); }}
+                className="text-xs font-black uppercase tracking-widest text-slate-400 py-2">{n.label}</a>
             ))}
             <a href={`/login?tenant=${slug}`}
-              className="text-sm font-medium text-[#64748b] py-2 px-3 rounded-lg hover:bg-[#e2e8f0] transition-colors">Login</a>
+              className="w-full py-3 rounded-2xl text-xs font-black uppercase tracking-wider text-white text-center shadow-lg" style={{ backgroundColor: c }}>
+              Portal Akademik
+            </a>
           </div>
         </div>
       </header>
 
       <main>
-        {/* ── HERO ── */}
-        <section className="relative min-h-[85vh] flex items-center overflow-hidden bg-[#f1f5e9]">
-          <div className="absolute inset-0 z-0">
-            {heroImages.length > 0 ? (
-              heroImages.map((img, i) => (
-                <div key={i} className={`absolute inset-0 transition-opacity duration-1000 ${i === heroIdx ? 'opacity-100' : 'opacity-0'}`}>
-                  <img src={img} alt="" className="w-full h-full object-cover" />
+        {/* ═══ HERO ═══ */}
+        <section className="relative min-h-[100vh] flex items-center justify-center overflow-hidden bg-slate-950">
+          <div className="absolute inset-0 z-10 bg-gradient-to-b from-slate-950/40 via-slate-950/60 to-slate-950" />
+          <Blob color="#10b981" className="top-1/4 -left-20 w-96 h-96 animate-pulse" />
+          <Blob color="#6366f1" className="bottom-1/4 -right-20 w-96 h-96 animate-pulse" />
+
+          {heroImgs.length > 0 ? (
+            heroImgs.map((img, i) => (
+              <div key={i} className={`absolute inset-0 transition-all duration-1000 ${i === heroIdx ? 'opacity-100 scale-100' : 'opacity-0 scale-110'}`}>
+                <img src={img} alt="" className="w-full h-full object-cover brightness-[35%] grayscale-[20%]" />
+              </div>
+            ))
+          ) : (
+            <div className={`absolute inset-0 opacity-20`} style={{ backgroundColor: c }} />
+          )}
+
+          <div className="relative z-30 max-w-7xl mx-auto px-6 pt-32 lg:pt-40 pb-48 lg:pb-64 w-full">
+            <FadeIn>
+              <div className="max-w-4xl">
+                <div className="inline-flex items-center gap-3 px-5 py-2.5 rounded-full bg-white/5 border border-white/10 backdrop-blur-xl shadow-2xl mb-8">
+                  <Sparkles className="w-4 h-4 text-emerald-400" />
+                  <span className="text-[11px] font-black uppercase tracking-[0.25em] text-emerald-400">Penerimaan Mahasiswa Baru {landingPage.tahunAkademik}</span>
                 </div>
-              ))
-            ) : (
-              <div className="w-full h-full bg-gradient-to-br from-emerald-50/60 to-emerald-100/40" />
-            )}
-            <div className="absolute inset-0 bg-gradient-to-r from-[#faf7f2] via-[#faf7f2]/80 to-transparent" />
-            {heroImages.length > 1 && (
-              <div className="absolute bottom-6 left-1/2 -translate-x-1/2 z-20 flex gap-2">
-                {heroImages.map((_, i) => (
-                  <button key={i} onClick={() => setHeroIdx(i)}
-                    className="h-2 rounded-full transition-all cursor-pointer" style={{ width: i === heroIdx ? 24 : 8, backgroundColor: i === heroIdx ? c : 'rgba(0,0,0,0.12)' }} />
+
+                <h1 className="text-6xl md:text-8xl lg:text-9xl font-black tracking-tighter text-white leading-[0.9] drop-shadow-2xl">
+                  {(() => {
+                    const words = (landingPage.heroTitle || tenant.nama_pt).split(' ');
+                    const mid = Math.max(1, words.length - 1);
+                    return (<>{words.slice(0, mid).join(' ')} <br className="hidden sm:block" /><span className="bg-clip-text text-transparent bg-gradient-to-r from-emerald-400 via-teal-300 to-indigo-400">{words.slice(mid).join(' ')}</span></>);
+                  })()}
+                </h1>
+
+                <p className="text-lg md:text-2xl text-slate-300/90 max-w-2xl font-medium leading-relaxed tracking-tight mt-6">
+                  {landingPage.heroSubtitle || `Membangun intelejensia dan karakter masa depan dengan kurikulum islami modern dan ekosistem digital.`}
+                </p>
+
+                <div className="flex flex-col sm:flex-row items-start gap-5 pt-12">
+                  {landingPage.showPPDB && (
+                    <Link to={`/kampus/${slug}/ppdb`}
+                      className="group px-10 py-5 rounded-full font-black uppercase tracking-[0.15em] text-xs text-white shadow-xl flex items-center gap-3 transition-all hover:scale-105 active:scale-95" style={{ backgroundColor: c, boxShadow: `0 20px 50px ${c}40` }}>
+                      Daftar Sekarang <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                    </Link>
+                  )}
+                  <a href="#visi-misi" onClick={e => { e.preventDefault(); scrollTo('visi-misi'); }}
+                    className="px-10 py-5 bg-white/5 hover:bg-white/10 backdrop-blur-2xl border border-white/20 text-white rounded-full font-black uppercase tracking-[0.15em] text-xs transition-all flex items-center gap-3 shadow-2xl">
+                    <Play className="w-5 h-5 text-emerald-400" /> Jelajahi
+                  </a>
+                </div>
+              </div>
+            </FadeIn>
+          </div>
+
+          {/* Stats strip */}
+          <div className="absolute bottom-0 left-0 w-full z-30">
+            <div className="max-w-7xl mx-auto px-6">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-8 py-10 border-t border-white/10 backdrop-blur-xl bg-slate-950/20">
+                {[
+                  { label: 'Mahasiswa Aktif', val: stats.totalMahasiswa + '+' },
+                  { label: 'Program Studi', val: stats.totalProdi },
+                  { label: 'Tenaga Pendidik', val: stats.totalDosen },
+                  { label: 'Pendaftar PPDB', val: stats.totalPendaftar },
+                ].map((s, i) => (
+                  <div key={i} className="text-center md:text-left">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">{s.label}</p>
+                    <p className="text-2xl md:text-3xl font-black text-white">{s.val}</p>
+                  </div>
                 ))}
               </div>
-            )}
-          </div>
-          <div className="max-w-6xl mx-auto px-4 md:px-8 w-full relative z-10 py-20 md:py-0" style={{ display: 'grid', gridTemplateColumns: '1.2fr 0.9fr', gap: 48, alignItems: 'center' }}>
-            <div>
-              <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full mb-6 text-xs font-bold uppercase tracking-wider" style={{ backgroundColor: `${c}10`, color: c }}>
-                <Sparkles size={14} />
-                Pendaftaran {landingPage.tahunAkademik}
-              </div>
-              <h1 className="text-4xl md:text-6xl lg:text-7xl font-bold leading-[1.1] mb-6 tracking-tight text-[#1e293b]">
-                {(() => {
-                  const words = (landingPage.heroTitle || `Selamat Datang di ${tenant.nama_pt}`).split(' ');
-                  const mid = words.length > 1 ? words.length - 1 : 0;
-                  return (<>{words.slice(0, mid).join(' ')}<br /><span className="italic" style={{ color: c }}>{words.slice(mid).join(' ')}</span></>);
-                })()}
-              </h1>
-              <p className="text-base md:text-lg text-[#64748b] max-w-lg mb-8 leading-relaxed">
-                {landingPage.heroSubtitle || `Bergabunglah dengan ${tenant.nama_pt} dan wujudkan masa depanmu bersama ribuan mahasiswa lainnya.`}
-              </p>
-              <div className="flex flex-wrap gap-3">
-                {landingPage.showPPDB && (
-                  <Link to={`/kampus/${slug}/ppdb`} className="group px-8 py-3.5 rounded-lg text-sm font-bold text-white transition-all hover:scale-105 active:scale-95 shadow-xl flex items-center gap-2" style={{ backgroundColor: c, boxShadow: `0 8px 28px ${c}35` }}>
-                    Mulai Pendaftaran <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
-                  </Link>
-                )}
-                <a href="#programs" onClick={e => { e.preventDefault(); scrollTo('#programs'); }}
-                  className="px-6 py-3.5 rounded-lg text-sm font-bold border-2 transition-all flex items-center gap-2" style={{ borderColor: `${c}30`, color: c }}>
-                  <Play size={16} /> Jelajahi
-                </a>
-              </div>
-            </div>
-            <div className="hidden lg:grid grid-cols-2 gap-4 relative" style={{ height: 500 }}>
-              {heroImages.length > 0 ? (
-                <>
-                  <div className="pt-10 transform hover:-translate-y-2 transition-transform duration-500">
-                    <img src={heroImages[0]} alt="" className="w-full aspect-[3/4] object-cover rounded-xl shadow-2xl" style={{ border: '4px solid rgba(255,255,255,0.5)' }} />
-                  </div>
-                  <div className="pb-10 transform hover:translate-y-2 transition-transform duration-500">
-                    <img src={heroImages[heroImages.length > 1 ? 1 : 0]} alt="" className="w-full aspect-[3/4] object-cover rounded-xl shadow-2xl" style={{ border: '4px solid rgba(255,255,255,0.5)' }} />
-                  </div>
-                </>
-              ) : (
-                <div className="col-span-2 flex items-center justify-center rounded-xl bg-emerald-50/60">
-                  <Building2 size={48} className="opacity-20 text-emerald-700" />
-                </div>
-              )}
             </div>
           </div>
         </section>
 
-        {/* ── STATS ── */}
-        <section className="py-16 md:py-20 max-w-6xl mx-auto px-4 md:px-8 -mt-10 relative z-20">
-          <RevealSection>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
-              {[
-                { icon: GraduationCap, label: 'Program Studi', value: stats.totalProdi },
-                { icon: Users, label: 'Tenaga Pendidik', value: stats.totalDosen },
-                { icon: UserCheck, label: 'Mahasiswa Aktif', value: stats.totalMahasiswa + '+' },
-                { icon: Award, label: 'Pendaftar PPDB', value: stats.totalPendaftar },
-              ].map((s, i) => (
-                <div key={i} className="bg-white p-5 md:p-6 rounded-xl shadow-sm border border-[#e2e8f0] text-center hover:-translate-y-1 transition-all hover:shadow-md">
-                  <div className="w-10 h-10 rounded-xl flex items-center justify-center mx-auto mb-3" style={{ backgroundColor: `${c}10` }}>
-                    <s.icon size={18} style={{ color: c }} />
+        {/* ═══ VISI MISI ═══ */}
+        <section id="visi-misi" className="py-32 md:py-40 relative overflow-hidden bg-white">
+          <Blob color="#10b981" className="top-1/2 left-0 w-[500px] h-[500px] -translate-x-1/2" />
+          <div className="max-w-7xl mx-auto px-6">
+            <div className="grid lg:grid-cols-2 gap-16 items-center">
+              <div className="relative">
+                <FadeIn>
+                  <div className="relative z-10">
+                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[120%] h-[120%] rounded-full blur-[100px]" style={{ backgroundColor: `${c}15` }} />
+                    <div className="aspect-[4/3] rounded-[3rem] overflow-hidden shadow-2xl relative">
+                      <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/20 to-teal-500/20" />
+                      {heroImgs[0] ? <img src={heroImgs[0]} alt="" className="w-full h-full object-cover" /> : (
+                        <div className="w-full h-full flex items-center justify-center" style={{ backgroundColor: `${c}10` }}>
+                          <Building2 size={64} className="opacity-30" style={{ color: c }} />
+                        </div>
+                      )}
+                    </div>
                   </div>
-                  <p className="text-2xl md:text-3xl font-bold tracking-tight" style={{ color: c }}>{s.value}</p>
-                  <p className="text-xs text-[#64748b] font-medium mt-1">{s.label}</p>
-                </div>
-              ))}
-            </div>
-          </RevealSection>
-        </section>
-
-        <SectionDivider bg="#ffffff" />
-
-        {/* ── TENTANG + PRESTASI ── */}
-        {(sambutan.active || landingPage.showPrestasi) && (
-          <section id="tentang" className="py-16 md:py-24 bg-white overflow-hidden">
-            <div className="max-w-6xl mx-auto px-4 md:px-8">
-              <RevealSection>
-                <div className="text-center mb-12">
-                  <span className="text-xs font-bold uppercase tracking-[0.2em] text-[#64748b]">Tentang Kami</span>
-                  <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-[#1e293b] mt-3">{tenant.singkatan || tenant.nama_pt}</h2>
-                  <p className="text-[#64748b] mt-3 max-w-lg mx-auto">Komitmen kami terhadap pendidikan berkualitas</p>
-                </div>
-              </RevealSection>
-              <div className="flex gap-6 overflow-x-auto pb-4 no-scrollbar snap-x snap-mandatory">
-                {sambutan.active && (
-                  <RevealSection className="snap-start shrink-0">
-                    <div className="w-[340px] md:w-[420px] bg-[#faf7f2] p-8 rounded-2xl border border-[#e2e8f0] flex flex-col gap-6 hover:-translate-y-2 transition-transform duration-300">
-                      <div className="w-14 h-14 rounded-2xl flex items-center justify-center" style={{ backgroundColor: `${c}12` }}>
-                        <Quote size={22} style={{ color: c }} />
+                  <div className="absolute -bottom-8 -right-4 z-20 p-5 rounded-2xl bg-white shadow-2xl border border-slate-100 backdrop-blur-xl">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ backgroundColor: `${c}12`, color: c }}>
+                        <Trophy size={20} />
                       </div>
-                      <p className="text-base leading-relaxed text-[#64748b] italic">{sambutan.content}</p>
-                      <div className="mt-auto pt-6 border-t border-[#e2e8f0] flex items-center gap-3">
-                        <div className="w-11 h-11 rounded-full overflow-hidden bg-zinc-200 ring-2 ring-[#e2e8f0]">
-                          {(sambutan.image || tenant.logo_url) && <img src={sambutan.image || tenant.logo_url} alt="" className="w-full h-full object-cover" />}
-                        </div>
-                        <div>
-                          <p className="text-sm font-bold text-[#1e293b]">{sambutan.nama || tenant.nama_pt}</p>
-                          <p className="text-xs text-[#64748b]">{sambutan.jabatan}</p>
-                        </div>
+                      <div>
+                        <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Prestasi</p>
+                        <p className="text-sm font-black">Akreditasi Unggul</p>
                       </div>
                     </div>
-                  </RevealSection>
-                )}
-                {prestasi.map((p, i) => {
-                  const Icon = iconMap[p.icon] || Award;
-                  return (
-                    <RevealSection key={i} className="snap-start shrink-0">
-                      <div className="w-[280px] bg-[#faf7f2] p-8 rounded-2xl border border-[#e2e8f0] flex flex-col gap-4 hover:-translate-y-2 transition-transform duration-300 h-full">
-                        <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ backgroundColor: `${c}10` }}>
-                          <Icon size={22} style={{ color: c }} />
-                        </div>
-                        <p className="text-base font-bold text-[#1e293b]">{p.title}</p>
-                        <p className="text-sm text-[#64748b] leading-relaxed">{p.desc}</p>
-                      </div>
-                    </RevealSection>
-                  );
-                })}
-              </div>
-            </div>
-          </section>
-        )}
-
-        <SectionDivider />
-
-        {/* ── WHY CHOOSE US ── */}
-        <section className="py-16 md:py-24 bg-[#faf7f2]">
-          <div className="max-w-6xl mx-auto px-4 md:px-8">
-            <RevealSection>
-              <div className="text-center mb-12">
-                <span className="text-xs font-bold uppercase tracking-[0.2em] text-[#64748b]">Mengapa Memilih Kami</span>
-                <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-[#1e293b] mt-3">Keunggulan {tenant.singkatan || tenant.nama_pt}</h2>
-              </div>
-            </RevealSection>
-            <div className="grid md:grid-cols-3 gap-6">
-              {[
-                { icon: BookOpen, title: 'Kurikulum Terkini', desc: 'Kurikulum berbasis KKNI dan OBE yang disusun bersama praktisi industri untuk menjamin relevansi dengan dunia kerja.' },
-                { icon: Users, title: 'Pengajar Berkualitas', desc: 'Dosen tersertifikasi dengan latar belakang pendidikan terbaik dan pengalaman di bidangnya masing-masing.' },
-                { icon: Globe, title: 'Jaringan Luas', desc: 'Kerjasama dengan berbagai universitas dan industri di dalam maupun luar negeri untuk magang dan riset.' },
-                { icon: Award, title: 'Akreditasi Unggul', desc: 'Seluruh program studi telah terakreditasi BAN-PT dengan peringkat minimal B.' },
-                { icon: HeartHandshake, title: 'Beasiswa', desc: 'Berbagai program beasiswa prestasi dan kebutuhan bagi mahasiswa berprestasi dan kurang mampu.' },
-                { icon: Star, title: 'Alumni Sukses', desc: 'Ribuan alumni telah berkarir di perusahaan multinasional, pemerintah, dan wirausaha sukses.' },
-              ].map((item, i) => (
-                <RevealSection key={i}>
-                  <div className="bg-white p-6 md:p-8 rounded-2xl border border-[#e2e8f0] hover:-translate-y-1 transition-all hover:shadow-md h-full">
-                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center mb-4" style={{ backgroundColor: `${c}10` }}>
-                      <item.icon size={22} style={{ color: c }} />
-                    </div>
-                    <p className="font-bold text-[#1e293b] mb-2">{item.title}</p>
-                    <p className="text-sm text-[#64748b] leading-relaxed">{item.desc}</p>
                   </div>
-                </RevealSection>
-              ))}
-            </div>
-          </div>
-        </section>
+                </FadeIn>
+              </div>
 
-        <SectionDivider bg="#ffffff" />
-
-        {/* ── PROGRAM STUDI ── */}
-        {landingPage.showProdi && programStudi.length > 0 && (
-          <section id="programs" className="py-16 md:py-24 bg-white">
-            <div className="max-w-6xl mx-auto px-4 md:px-8">
-              <RevealSection>
-                <div className="text-center max-w-2xl mx-auto mb-12">
-                  <span className="text-xs font-bold uppercase tracking-[0.2em] text-[#64748b]">Akademik</span>
-                  <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-[#1e293b] mt-3">Program Studi</h2>
-                  <p className="text-[#64748b] mt-3">Pilihan program studi berkualitas yang siap mengantarkanmu menuju kesuksesan</p>
-                </div>
-              </RevealSection>
-              <RevealSection>
-                <div className="grid md:grid-cols-12 gap-4 md:gap-6">
-                  {programStudi.length > 0 && (
-                    <div className="md:col-span-7 h-72 md:h-96 relative rounded-2xl overflow-hidden group">
-                      <div className="absolute inset-0 bg-gradient-to-br from-emerald-100 to-emerald-50" />
-                      <div className="absolute inset-0 bg-gradient-to-t from-[#0f172a]/90 via-[#0f172a]/40 to-transparent p-6 md:p-10 flex flex-col justify-end">
-                        <span className="text-xs font-bold uppercase tracking-widest mb-2" style={{ color: `${c}` }}>{programStudi[0].jenjang}</span>
-                        <h3 className="text-white text-xl md:text-2xl font-bold mb-3">{programStudi[0].nama}</h3>
-                        <div className="flex items-center gap-3">
-                          {programStudi[0].akreditasi && <span className="flex items-center gap-1 text-xs text-white bg-emerald-600/60 px-2 py-0.5 rounded-full"><CheckCircle size={12} /> {programStudi[0].akreditasi}</span>}
-                          {programStudi[0].fakultas && <span className="text-xs text-white/60">{programStudi[0].fakultas}</span>}
+              <FadeIn>
+                <div className="space-y-10">
+                  <div className="space-y-5">
+                    <SectionLabel>Visi & Misi</SectionLabel>
+                    <h2 className="text-5xl md:text-7xl font-black tracking-tighter leading-[0.85]">
+                      Unggul Islami <br />
+                      <span className="text-slate-300">& Modern.</span>
+                    </h2>
+                    <p className="text-lg text-slate-500 font-medium leading-relaxed max-w-xl">
+                      {tenant.nama_pt} berkomitmen mencetak lulusan yang berakhlakul karimah, mandiri, dan kompetitif secara nasional.
+                    </p>
+                  </div>
+                  <div className="p-8 rounded-[2.5rem] border" style={{ backgroundColor: `${c}06`, borderColor: `${c}15` }}>
+                    <p className="text-xs font-black uppercase tracking-widest mb-4" style={{ color: c }}>Visi Institusi</p>
+                    <p className="text-lg md:text-xl font-medium italic leading-relaxed text-slate-600">
+                      "Terwujudnya Program Pendidikan Tinggi yang Unggul, Islami, dan Modern di Provinsi Jambi pada tahun 2030."
+                    </p>
+                  </div>
+                  <div className="space-y-3">
+                    {[
+                      "Menyelenggarakan pendidikan tinggi yang berkualitas dan berdaya saing.",
+                      "Melaksanakan penelitian berbasis pemberdayaan masyarakat.",
+                      "Mengembangkan tata kelola institusi yang transparan dan akuntabel.",
+                      "Mengintegrasikan nilai-nilai keislaman dalam setiap disiplin ilmu."
+                    ].map((m, i) => (
+                      <div key={i} className="flex items-center gap-3 group">
+                        <div className="w-7 h-7 rounded-full flex items-center justify-center transition-colors" style={{ backgroundColor: `${c}10` }}>
+                          <CheckCircle size={14} style={{ color: c }} />
                         </div>
-                      </div>
-                    </div>
-                  )}
-                  <div className="md:col-span-5 grid grid-cols-1 gap-4 md:gap-6">
-                    {programStudi.slice(1, 3).map(p => (
-                      <div key={p.id} className="h-36 md:h-[184px] relative rounded-2xl overflow-hidden group">
-                        <div className="absolute inset-0 bg-gradient-to-br from-zinc-100 to-zinc-50" />
-                        <div className="absolute inset-0 bg-gradient-to-t from-[#0f172a]/90 via-[#0f172a]/30 to-transparent p-5 flex flex-col justify-end">
-                          <span className="text-[10px] font-bold uppercase tracking-widest mb-1" style={{ color: `${c}` }}>{p.jenjang}</span>
-                          <h3 className="text-white text-sm md:text-base font-bold">{p.nama}</h3>
-                          {p.akreditasi && <span className="flex items-center gap-1 text-[11px] text-white/70 mt-1"><CheckCircle size={10} /> {p.akreditasi}</span>}
-                        </div>
+                        <p className="text-sm font-semibold text-slate-500">{m}</p>
                       </div>
                     ))}
                   </div>
-                  {programStudi.slice(3).map(p => (
-                    <div key={p.id} className="md:col-span-3 bg-white p-5 rounded-2xl shadow-sm border border-[#e2e8f0] hover:-translate-y-1 transition-all hover:shadow-md">
-                      <span className="text-[11px] font-bold px-2.5 py-1 rounded inline-block mb-2" style={{ backgroundColor: `${c}10`, color: c }}>{p.jenjang}</span>
-                      <p className="text-sm font-bold text-[#1e293b] mb-1">{p.nama}</p>
-                      {p.fakultas && <p className="text-xs text-[#64748b]">{p.fakultas}</p>}
-                      <div className="flex items-center gap-2 mt-3">
-                        {p.akreditasi && <span className="text-[10px] flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700"><CheckCircle size={9} /> {p.akreditasi}</span>}
-                      </div>
-                    </div>
-                  ))}
                 </div>
-              </RevealSection>
+              </FadeIn>
+            </div>
+          </div>
+        </section>
+
+        {/* ═══ WHY CHOOSE US ═══ */}
+        <section className="py-32 relative overflow-hidden bg-slate-50">
+          <Blob color="#10b981" className="top-1/2 right-0 w-[400px] h-[400px] translate-x-1/2" />
+          <div className="max-w-7xl mx-auto px-6">
+            <FadeIn className="text-center max-w-3xl mx-auto mb-20">
+              <SectionLabel>Keunggulan</SectionLabel>
+              <h2 className="text-5xl md:text-6xl font-black tracking-tighter leading-none mt-4">Mengapa Memilih Kami?</h2>
+              <p className="text-lg text-slate-500 font-medium mt-4">Kami berkomitmen memberikan yang terbaik untuk setiap mahasiswa</p>
+            </FadeIn>
+            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+              {keunggulan.map((item, i) => {
+                const Icon = item.icon;
+                return (
+                  <FadeIn key={i}>
+                    <div className="group p-8 rounded-[2.5rem] border border-slate-100 bg-white shadow-sm hover:shadow-xl transition-all duration-500 hover:-translate-y-1">
+                      <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-6 transition-colors" style={{ backgroundColor: `${c}10`, color: c }}>
+                        <Icon size={24} />
+                      </div>
+                      <h3 className="font-black text-lg tracking-tight mb-3">{item.title}</h3>
+                      <p className="text-sm text-slate-500 font-medium leading-relaxed">{item.desc}</p>
+                    </div>
+                  </FadeIn>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+
+        {/* ═══ PROGRAM STUDI ═══ */}
+        {landingPage.showProdi && programStudi.length > 0 && (
+          <section id="program-studi" className="py-32 max-w-7xl mx-auto px-6">
+            <FadeIn className="text-center max-w-3xl mx-auto mb-20">
+              <SectionLabel>Program Akademik</SectionLabel>
+              <h2 className="text-5xl md:text-6xl font-black tracking-tighter leading-none mt-4">Menembus Batas <br />Inovasi Pendidikan</h2>
+              <p className="text-lg text-slate-500 font-medium mt-4">Kurikulum kami dirancang untuk membekali Anda dengan kompetensi global yang dicari di era digital.</p>
+            </FadeIn>
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {programStudi.map((p, i) => (
+                <FadeIn key={p.id}>
+                  <div className="group p-8 rounded-[3rem] border border-slate-100 bg-white shadow-sm hover:shadow-xl transition-all duration-500 hover:-translate-y-1">
+                    <div className="flex justify-between items-start mb-6">
+                      <div className="w-12 h-12 rounded-2xl flex items-center justify-center" style={{ backgroundColor: `${c}10`, color: c }}>
+                        <BookOpen size={22} />
+                      </div>
+                      <span className={`px-3 py-1.5 rounded-full text-[10px] font-black tracking-widest uppercase ${p.akreditasi === 'Unggul' || p.akreditasi === 'A' ? 'text-white' : 'bg-slate-100 text-slate-500'} shadow-lg`} style={p.akreditasi === 'Unggul' || p.akreditasi === 'A' ? { backgroundColor: c } : {}}>
+                        {p.akreditasi || 'AKREDITASI'}
+                      </span>
+                    </div>
+                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1">{p.jenjang}</p>
+                    <h3 className="font-black text-xl tracking-tight mb-2">{p.nama}</h3>
+                    {p.fakultas && <p className="text-xs text-slate-400 font-medium">{p.fakultas}</p>}
+                    <div className="pt-6 mt-6 border-t border-slate-100">
+                      <span className="inline-flex items-center gap-1 text-xs font-black uppercase tracking-widest" style={{ color: c }}>
+                        Detail Program <ChevronRight size={14} />
+                      </span>
+                    </div>
+                  </div>
+                </FadeIn>
+              ))}
             </div>
           </section>
         )}
 
-        <SectionDivider />
-
-        {/* ── FASILITAS ── */}
-        <section id="fasilitas" className="py-16 md:py-24 bg-[#faf7f2]">
-          <div className="max-w-6xl mx-auto px-4 md:px-8">
-            <RevealSection>
-              <div className="text-center mb-12">
-                <span className="text-xs font-bold uppercase tracking-[0.2em] text-[#64748b]">Fasilitas</span>
-                <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-[#1e293b] mt-3">Sarana & Prasarana</h2>
-                <p className="text-[#64748b] mt-3 max-w-lg mx-auto">Fasilitas modern yang mendukung proses belajar mengajar dan pengembangan diri mahasiswa</p>
+        {/* ═══ PRESTASI / ACHIEVEMENTS ═══ */}
+        <section className="py-24 bg-white relative overflow-hidden">
+          <Blob color="#10b981" className="top-0 right-0 w-[400px] h-[400px] translate-x-1/3 -translate-y-1/3" />
+          <div className="max-w-7xl mx-auto px-6">
+            <FadeIn className="flex flex-col md:flex-row items-end justify-between mb-16 gap-4">
+              <div className="max-w-2xl">
+                <SectionLabel>Rekor Prestasi</SectionLabel>
+                <h2 className="text-4xl md:text-6xl font-black tracking-tighter leading-none mt-4">Membangun Budaya <br />Keunggulan Global.</h2>
+                <p className="text-slate-500 text-lg font-medium mt-3">{tenant.singkatan || tenant.nama_pt} secara konsisten meraih penghargaan di berbagai bidang inovasi dan riset akademik.</p>
               </div>
-            </RevealSection>
-            <div className="grid md:grid-cols-3 gap-4 md:gap-6">
+            </FadeIn>
+            <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {prestasi.map((p, i) => {
+                const Icon = iconNames[p.icon] || Award;
+                return (
+                  <FadeIn key={i}>
+                    <div className="group p-8 rounded-[2.5rem] border border-slate-100 bg-white shadow-sm hover:shadow-xl transition-all duration-500 hover:-translate-y-2">
+                      <div className="w-12 h-12 rounded-2xl flex items-center justify-center mb-6" style={{ backgroundColor: `${c}10`, color: c }}>
+                        <Icon size={22} />
+                      </div>
+                      <h3 className="text-xl font-black tracking-tight leading-snug mb-3">{p.title}</h3>
+                      <p className="text-sm text-slate-500 font-medium leading-relaxed">{p.desc}</p>
+                    </div>
+                  </FadeIn>
+                );
+              })}
+            </div>
+          </div>
+        </section>
+
+        {/* ═══ FASILITAS ═══ */}
+        <section id="fasilitas" className="py-32 bg-slate-50">
+          <div className="max-w-7xl mx-auto px-6">
+            <FadeIn className="text-center max-w-3xl mx-auto mb-20">
+              <SectionLabel>Fasilitas</SectionLabel>
+              <h2 className="text-5xl md:text-6xl font-black tracking-tighter leading-none mt-4">Sarana & Prasarana</h2>
+              <p className="text-lg text-slate-500 font-medium mt-4">Fasilitas modern yang mendukung proses belajar mengajar dan pengembangan diri mahasiswa</p>
+            </FadeIn>
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
               {fasilitas.map((f, i) => (
-                <RevealSection key={i}>
-                  <div className="bg-white p-6 md:p-8 rounded-2xl border border-[#e2e8f0] hover:-translate-y-1 transition-all hover:shadow-md flex gap-4 items-start">
-                    <div className="w-12 h-12 rounded-2xl flex items-center justify-center shrink-0" style={{ backgroundColor: `${c}10` }}>
-                      <f.icon size={22} style={{ color: c }} />
+                <FadeIn key={i}>
+                  <div className="group p-8 rounded-[2.5rem] border border-slate-100 bg-white shadow-sm hover:shadow-xl transition-all duration-500 hover:-translate-y-1 flex gap-5 items-start">
+                    <div className="w-14 h-14 rounded-2xl flex items-center justify-center shrink-0" style={{ backgroundColor: `${c}10`, color: c }}>
+                      <f.icon size={24} />
                     </div>
                     <div>
-                      <p className="font-bold text-[#1e293b] mb-1">{f.title}</p>
-                      <p className="text-sm text-[#64748b] leading-relaxed">{f.desc}</p>
+                      <h3 className="font-black text-base tracking-tight mb-2">{f.title}</h3>
+                      <p className="text-sm text-slate-500 font-medium leading-relaxed">{f.desc}</p>
                     </div>
                   </div>
-                </RevealSection>
+                </FadeIn>
               ))}
             </div>
           </div>
         </section>
 
-        <SectionDivider bg="#ffffff" />
-
-        {/* ── TESTIMONI ── */}
-        <section className="py-16 md:py-24 bg-white overflow-hidden">
-          <div className="max-w-6xl mx-auto px-4 md:px-8">
-            <RevealSection>
-              <div className="text-center mb-12">
-                <span className="text-xs font-bold uppercase tracking-[0.2em] text-[#64748b]">Testimoni</span>
-                <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-[#1e293b] mt-3">Apa Kata Alumni</h2>
-                <p className="text-[#64748b] mt-3">Cerita sukses dan pengalaman dari para alumni</p>
-              </div>
-            </RevealSection>
+        {/* ═══ TESTIMONI ═══ */}
+        <section className="py-32 bg-white overflow-hidden">
+          <div className="max-w-7xl mx-auto px-6">
+            <FadeIn className="text-center max-w-3xl mx-auto mb-20">
+              <SectionLabel>Testimoni</SectionLabel>
+              <h2 className="text-5xl md:text-6xl font-black tracking-tighter leading-none mt-4">Apa Kata Alumni</h2>
+              <p className="text-lg text-slate-500 font-medium mt-4">Cerita sukses dan pengalaman dari para alumni</p>
+            </FadeIn>
             <div className="grid md:grid-cols-3 gap-6">
               {testimoni.map((t, i) => (
-                <RevealSection key={i}>
-                  <div className="bg-[#faf7f2] p-6 md:p-8 rounded-2xl border border-[#e2e8f0] h-full flex flex-col hover:-translate-y-1 transition-all">
+                <FadeIn key={i}>
+                  <div className="group p-8 rounded-[2.5rem] border border-slate-100 bg-slate-50 hover:shadow-xl transition-all duration-500 hover:-translate-y-1 h-full flex flex-col">
                     <QuoteIcon size={24} className="mb-4 opacity-30" style={{ color: c }} />
-                    <p className="text-sm text-[#64748b] leading-relaxed italic flex-1">"{t.quote}"</p>
-                    <div className="mt-6 pt-5 border-t border-[#e2e8f0]">
-                      <p className="text-sm font-bold text-[#1e293b]">{t.nama}</p>
-                      <p className="text-xs text-[#64748b]">{t.program} · Lulus {t.tahun}</p>
+                    <p className="text-sm text-slate-600 font-medium leading-relaxed italic flex-1">"{t.quote}"</p>
+                    <div className="mt-6 pt-5 border-t border-slate-100">
+                      <p className="font-black text-sm">{t.nama}</p>
+                      <p className="text-xs text-slate-400 font-medium">{t.prodi} · Lulus {t.tahun}</p>
                     </div>
                   </div>
-                </RevealSection>
+                </FadeIn>
               ))}
             </div>
           </div>
         </section>
 
-        <SectionDivider />
+        {/* ═══ STRUKTUR ORGANISASI ═══ */}
+        {landingPage.showStruktur && struktur.length > 0 && (
+          <section className="py-32 bg-slate-50">
+            <div className="max-w-7xl mx-auto px-6">
+              <FadeIn className="text-center max-w-3xl mx-auto mb-20">
+                <SectionLabel>Kepemimpinan</SectionLabel>
+                <h2 className="text-5xl md:text-6xl font-black tracking-tighter leading-none mt-4">Struktur Organisasi</h2>
+                <p className="text-lg text-slate-500 font-medium mt-4">Dikelola oleh para pakar dan akademisi terkemuka di bidangnya.</p>
+              </FadeIn>
+              <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {struktur.map((s) => (
+                  <FadeIn key={s.id}>
+                    <div className="group p-8 rounded-[3rem] border border-slate-100 bg-white shadow-sm text-center hover:shadow-xl transition-all duration-500 hover:-translate-y-1">
+                      <div className="w-20 h-20 rounded-2xl mx-auto mb-6 flex items-center justify-center shadow-lg text-white" style={{ background: `linear-gradient(135deg, ${c}, #14b8a6)` }}>
+                        {s.image ? <img src={s.image} alt="" className="w-full h-full object-cover rounded-2xl" /> : <UserCheck size={32} />}
+                      </div>
+                      <p className="text-[10px] font-black uppercase tracking-widest mb-2" style={{ color: c }}>{s.jabatan}</p>
+                      <p className="font-black text-lg tracking-tight mb-1">{s.nama}</p>
+                    </div>
+                  </FadeIn>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
 
-        {/* ── PROMOSI ── */}
+        {/* ═══ PROMOSI ═══ */}
         {landingPage.showPromosi && promosi.length > 0 && (
-          <section className="py-16 md:py-24 bg-[#faf7f2]">
-            <div className="max-w-6xl mx-auto px-4 md:px-8">
-              <RevealSection>
-                <div className="text-center mb-12">
-                  <span className="text-xs font-bold uppercase tracking-[0.2em] text-[#64748b]">Program</span>
-                  <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-[#1e293b] mt-3">Informasi & Promosi</h2>
-                  <p className="text-[#64748b] mt-3">Kegiatan dan program terbaru</p>
-                </div>
-              </RevealSection>
-              <div className="grid md:grid-cols-3 gap-4 md:gap-6">
+          <section className="py-32 bg-white">
+            <div className="max-w-7xl mx-auto px-6">
+              <FadeIn className="text-center max-w-3xl mx-auto mb-20">
+                <SectionLabel>Program</SectionLabel>
+                <h2 className="text-5xl md:text-6xl font-black tracking-tighter leading-none mt-4">Informasi & Promosi</h2>
+                <p className="text-lg text-slate-500 font-medium mt-4">Kegiatan dan program terbaru</p>
+              </FadeIn>
+              <div className="grid md:grid-cols-3 gap-6">
                 {promosi.map((p, i) => (
-                  <RevealSection key={i}>
-                    <div className="group bg-white rounded-2xl overflow-hidden shadow-sm border border-[#e2e8f0] hover:-translate-y-1 transition-all hover:shadow-md">
+                  <FadeIn key={i}>
+                    <div className="group rounded-[2.5rem] overflow-hidden border border-slate-100 bg-white shadow-sm hover:shadow-xl transition-all duration-500 hover:-translate-y-1">
                       {p.image && (
-                        <div className="relative h-44 overflow-hidden">
-                          <img src={p.image} alt={p.title} className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                        <div className="h-48 overflow-hidden">
+                          <img src={p.image} alt={p.title} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />
                         </div>
                       )}
-                      <div className="p-5">
-                        <p className="text-sm font-bold text-[#1e293b]">{p.title}</p>
-                        {p.description && <p className="text-xs text-[#64748b] mt-1.5 leading-relaxed line-clamp-2">{p.description}</p>}
+                      <div className="p-6">
+                        <h3 className="font-black text-base tracking-tight mb-2">{p.title}</h3>
+                        {p.description && <p className="text-sm text-slate-500 font-medium leading-relaxed line-clamp-2">{p.description}</p>}
                         {p.link && (
-                          <a href={p.link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs font-bold mt-3 hover:underline" style={{ color: c }}>
-                            Selengkapnya <ExternalLink size={11} />
+                          <a href={p.link} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs font-black uppercase tracking-widest mt-4" style={{ color: c }}>
+                            Selengkapnya <ExternalLink size={12} />
                           </a>
                         )}
                       </div>
                     </div>
-                  </RevealSection>
+                  </FadeIn>
                 ))}
               </div>
             </div>
           </section>
         )}
 
-        <SectionDivider bg="#ffffff" />
-
-        {/* ── STRUKTUR ORGANISASI ── */}
-        {landingPage.showStruktur && strukturOrganisasi.length > 0 && (
-          <section className="py-16 md:py-24 bg-white">
-            <div className="max-w-6xl mx-auto px-4 md:px-8">
-              <RevealSection>
-                <div className="text-center mb-12">
-                  <span className="text-xs font-bold uppercase tracking-[0.2em] text-[#64748b]">Pimpinan</span>
-                  <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-[#1e293b] mt-3">Struktur Organisasi</h2>
-                  <p className="text-[#64748b] mt-3">Tim kepemimpinan kami</p>
-                </div>
-              </RevealSection>
-              <RevealSection>
-                <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
-                  {strukturOrganisasi.map((s) => (
-                    <div key={s.id} className="bg-[#faf7f2] rounded-2xl p-5 text-center border border-[#e2e8f0] hover:-translate-y-1 transition-all hover:shadow-md">
-                      <div className="w-16 h-16 rounded-full mx-auto mb-3 overflow-hidden ring-2 ring-[#e2e8f0] bg-white flex items-center justify-center">
-                        {s.image ? <img src={s.image} alt={s.nama} className="w-full h-full object-cover" /> : <Users size={22} className="text-[#94a3b8]" />}
-                      </div>
-                      <p className="text-xs font-bold text-[#1e293b]">{s.nama}</p>
-                      <p className="text-[10px] text-[#64748b] mt-1">{s.jabatan}</p>
-                    </div>
-                  ))}
-                </div>
-              </RevealSection>
-            </div>
-          </section>
-        )}
-
-        <SectionDivider />
-
-        {/* ── BERITA ── */}
+        {/* ═══ BERITA ═══ */}
         {landingPage.showBerita && berita.length > 0 && (
-          <section id="berita" className="py-16 md:py-24 bg-[#faf7f2]">
-            <div className="max-w-6xl mx-auto px-4 md:px-8">
-              <RevealSection>
-                <div className="text-center mb-12">
-                  <span className="text-xs font-bold uppercase tracking-[0.2em] text-[#64748b]">Berita</span>
-                  <h2 className="text-3xl md:text-4xl font-bold tracking-tight text-[#1e293b] mt-3">Berita Terkini</h2>
-                  <p className="text-[#64748b] mt-3">Informasi dan kegiatan terbaru</p>
+          <section id="berita" className="py-32 bg-slate-50">
+            <div className="max-w-7xl mx-auto px-6">
+              <FadeIn className="flex flex-col sm:flex-row items-end justify-between mb-16 gap-4">
+                <div className="max-w-2xl">
+                  <SectionLabel>Berita Terkini</SectionLabel>
+                  <h2 className="text-5xl font-black tracking-tighter leading-none mt-4">Berita & Artikel</h2>
                 </div>
-              </RevealSection>
+              </FadeIn>
               <div className="grid md:grid-cols-3 gap-6">
                 {berita.map(b => (
-                  <RevealSection key={b.id}>
-                    <div className="bg-white rounded-2xl overflow-hidden shadow-sm border border-[#e2e8f0] hover:-translate-y-1 transition-all hover:shadow-md">
-                      {b.gambar && (
-                        <div className="relative h-44 overflow-hidden">
-                          <img src={b.gambar} alt="" className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105" />
+                  <FadeIn key={b.id}>
+                    <div className="group cursor-pointer">
+                      <div className="h-56 rounded-[3rem] overflow-hidden mb-5 bg-slate-100 relative">
+                        <div className="absolute top-5 left-5 z-10 px-3 py-1 rounded-full bg-white/90 backdrop-blur-sm text-slate-900 text-[10px] font-black uppercase tracking-widest shadow-sm">
+                          {new Date(b.published_at).toLocaleDateString('id-ID', { month: 'short', day: 'numeric' })}
                         </div>
-                      )}
-                      <div className="p-5">
-                        <p className="font-bold text-sm text-[#1e293b] line-clamp-2">{b.judul}</p>
-                        {b.ringkasan && <p className="text-xs text-[#64748b] mt-1.5 line-clamp-2 leading-relaxed">{b.ringkasan}</p>}
-                        {b.published_at && (
-                          <div className="flex items-center gap-1.5 mt-3 text-[10px] text-[#64748b]">
-                            <Calendar size={10} />
-                            {new Date(b.published_at).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}
-                          </div>
-                        )}
+                        <div className="absolute inset-0 transition-opacity duration-500" style={{ background: `linear-gradient(135deg, ${c}20, #14b8a620)`, opacity: 0 }} />
+                        {b.gambar && <img src={b.gambar} alt="" className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-105" />}
                       </div>
+                      <h3 className="text-xl font-black tracking-tight leading-tight group-hover:text-emerald-500 transition-colors mb-3">{b.judul}</h3>
+                      {b.ringkasan && <p className="text-sm text-slate-500 font-medium leading-relaxed line-clamp-2">{b.ringkasan}</p>}
                     </div>
-                  </RevealSection>
+                  </FadeIn>
                 ))}
               </div>
             </div>
           </section>
         )}
 
-        <SectionDivider bg="#ffffff" />
-
-        {/* ── CTA PPDB ── */}
+        {/* ═══ CTA PPDB ═══ */}
         {landingPage.showPPDB && (
-          <section id="ppdb" className="py-16 md:py-24 relative overflow-hidden" style={{ backgroundColor: '#0f172a' }}>
-            <div className="absolute inset-0 opacity-[0.04]" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 0h60v60H0z' fill='none'/%3E%3Cpath d='M30 0v60M0 30h60' stroke='%23fff' stroke-width='0.5'/%3E%3C/svg%3E")` }} />
-            <div className="absolute top-0 left-0 w-64 h-64 rounded-full opacity-10" style={{ backgroundColor: c, filter: 'blur(80px)', transform: 'translate(-30%, -30%)' }} />
-            <div className="absolute bottom-0 right-0 w-64 h-64 rounded-full opacity-10" style={{ backgroundColor: c, filter: 'blur(80px)', transform: 'translate(30%, 30%)' }} />
-            <RevealSection>
-              <div className="max-w-6xl mx-auto px-4 md:px-8 relative z-10 text-center">
-                <h2 className="text-3xl md:text-5xl font-bold text-white mb-6">Your Journey Starts Today.</h2>
-                <p className="text-[#94a3b8] text-base md:text-lg max-w-xl mx-auto mb-10">Daftar sekarang dan mulai perjalanan akademikmu bersama {tenant.nama_pt}. Raih masa depan cerah bersama kami.</p>
-                <div className="flex flex-col md:flex-row justify-center items-center gap-4">
+          <section id="ppdb" className="py-32 relative overflow-hidden bg-slate-900">
+            <Blob color="#10b981" className="top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px]" />
+            <FadeIn>
+              <div className="max-w-4xl mx-auto px-6 text-center relative z-10">
+                <SectionLabel>Penerimaan Mahasiswa Baru</SectionLabel>
+                <h2 className="text-5xl md:text-7xl font-black tracking-tighter text-white leading-[0.9] mt-6">Your Journey <br />Starts Today.</h2>
+                <p className="text-lg md:text-xl text-slate-400 font-medium max-w-2xl mx-auto mt-6 mb-10">
+                  Daftar sekarang dan mulai perjalanan akademikmu bersama {tenant.nama_pt}. Raih masa depan cerah bersama kami.
+                </p>
+                <div className="flex flex-col sm:flex-row justify-center gap-4">
                   <Link to={`/kampus/${slug}/ppdb`}
-                    className="group px-10 py-4 rounded-xl text-sm font-bold text-white transition-all hover:scale-105 active:scale-95 shadow-lg flex items-center gap-2" style={{ backgroundColor: c }}>
-                    Daftar PPDB {landingPage.tahunAkademik} <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+                    className="group px-10 py-5 rounded-full font-black uppercase tracking-[0.15em] text-xs text-white shadow-xl flex items-center justify-center gap-3 transition-all hover:scale-105 active:scale-95" style={{ backgroundColor: c, boxShadow: `0 20px 50px ${c}40` }}>
+                    Daftar PPDB {landingPage.tahunAkademik} <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
                   </Link>
                   <a href={`/login?tenant=${slug}`}
-                    className="px-10 py-4 border-2 border-white/20 text-white/80 rounded-xl text-sm font-bold hover:bg-white hover:text-[#0f172a] transition-all">
+                    className="px-10 py-5 rounded-full border-2 border-white/20 text-white/80 font-black uppercase tracking-[0.15em] text-xs hover:bg-white hover:text-slate-900 transition-all">
                     Portal Akademik
                   </a>
                 </div>
               </div>
-            </RevealSection>
+            </FadeIn>
           </section>
         )}
       </main>
 
-      {/* ── FOOTER ── */}
-      <footer className="bg-white border-t border-[#e2e8f0]">
-        <div className="max-w-6xl mx-auto px-4 md:px-8 py-12">
-          <div className="flex flex-col md:flex-row justify-between gap-10">
-            <div className="max-w-xs">
-              <div className="flex items-center gap-2.5 mb-4">
-                <div className="w-9 h-9 rounded-xl overflow-hidden ring-1 ring-[#e2e8f0] flex items-center justify-center bg-white">
-                  {tenant.logo_url ? <img src={tenant.logo_url} alt="" className="w-full h-full object-cover" /> : <Building2 size={18} style={{ color: c }} />}
+      {/* ═══ FOOTER ═══ */}
+      <footer className="py-12 bg-white border-t border-slate-200">
+        <div className="max-w-7xl mx-auto px-6">
+          <div className="flex flex-col md:flex-row justify-between gap-10 pb-10 border-b border-slate-100">
+            <div className="max-w-sm">
+              <div className="flex items-center gap-3 mb-4">
+                <div className="w-10 h-10 rounded-2xl flex items-center justify-center font-black text-white shadow-lg" style={{ backgroundColor: c }}>
+                  {tenant.logo_url ? <img src={tenant.logo_url} alt="" className="w-full h-full object-cover rounded-2xl" /> : tenant.singkatan?.charAt(0) || 'K'}
                 </div>
-                <span className="font-bold text-base" style={{ color: c }}>{tenant.singkatan || tenant.nama_pt}</span>
+                <div>
+                  <span className="font-black tracking-tight">{tenant.singkatan || tenant.nama_pt}</span>
+                  <p className="text-[10px] text-slate-400 font-bold tracking-[0.2em] uppercase">{tenant.nama_pt}</p>
+                </div>
               </div>
-              <p className="text-sm text-[#64748b] leading-relaxed">{tenant.nama_pt} — perguruan tinggi yang berkomitmen mencetak generasi unggul, berkarakter, dan siap bersaing di era global.</p>
+              <p className="text-sm text-slate-500 font-medium leading-relaxed">Perguruan tinggi yang berkomitmen mencetak generasi unggul, berkarakter, dan siap bersaing di era global.</p>
             </div>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-8">
+            <div className="grid grid-cols-3 gap-10">
               <div>
-                <p className="text-xs font-bold uppercase tracking-wider text-[#94a3b8] mb-4">Kontak</p>
+                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4">Kontak</p>
                 <div className="space-y-3">
-                  {tenant.telepon && <p className="text-sm text-[#64748b] flex items-center gap-2"><Phone size={12} /> {tenant.telepon}</p>}
-                  {tenant.email && <p className="text-sm text-[#64748b] flex items-center gap-2"><Mail size={12} /> {tenant.email}</p>}
-                  {tenant.alamat && <p className="text-sm text-[#64748b] flex items-start gap-2"><MapPin size={12} className="mt-0.5 shrink-0" /> {tenant.alamat}</p>}
+                  {tenant.telepon && <p className="text-sm text-slate-500 flex items-center gap-2"><Phone size={12} /> {tenant.telepon}</p>}
+                  {tenant.email && <p className="text-sm text-slate-500 flex items-center gap-2"><Mail size={12} /> {tenant.email}</p>}
+                  {tenant.alamat && <p className="text-sm text-slate-500 flex items-start gap-2"><MapPin size={12} className="mt-0.5 shrink-0" /> {tenant.alamat}</p>}
                 </div>
               </div>
               <div>
-                <p className="text-xs font-bold uppercase tracking-wider text-[#94a3b8] mb-4">Akses</p>
+                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4">Akses</p>
                 <div className="space-y-2.5">
-                  <a href={`/login?tenant=${slug}`} className="block text-sm text-[#64748b] hover:text-[#1e293b] transition-colors">Portal Akademik</a>
-                  <Link to={`/kampus/${slug}/ppdb`} className="block text-sm text-[#64748b] hover:text-[#1e293b] transition-colors">PPDB Online</Link>
-                  <a href="#programs" onClick={e => { e.preventDefault(); scrollTo('#programs'); }} className="block text-sm text-[#64748b] hover:text-[#1e293b] transition-colors">Program Studi</a>
+                  <a href={`/login?tenant=${slug}`} className="block text-sm text-slate-500 hover:text-emerald-500 transition-colors font-medium">Portal Akademik</a>
+                  <Link to={`/kampus/${slug}/ppdb`} className="block text-sm text-slate-500 hover:text-emerald-500 transition-colors font-medium">PPDB Online</Link>
                 </div>
               </div>
               <div>
-                <p className="text-xs font-bold uppercase tracking-wider text-[#94a3b8] mb-4">Navigasi</p>
+                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mb-4">Navigasi</p>
                 <div className="space-y-2.5">
-                  <a href="#tentang" onClick={e => { e.preventDefault(); scrollTo('#tentang'); }} className="block text-sm text-[#64748b] hover:text-[#1e293b] transition-colors">Tentang</a>
-                  <a href="#fasilitas" onClick={e => { e.preventDefault(); scrollTo('#fasilitas'); }} className="block text-sm text-[#64748b] hover:text-[#1e293b] transition-colors">Fasilitas</a>
-                  <a href="#berita" onClick={e => { e.preventDefault(); scrollTo('#berita'); }} className="block text-sm text-[#64748b] hover:text-[#1e293b] transition-colors">Berita</a>
+                  {nav.map(n => (
+                    <a key={n.id} href={`#${n.id}`} onClick={e => { e.preventDefault(); scrollTo(n.id); }}
+                      className="block text-sm text-slate-500 hover:text-emerald-500 transition-colors font-medium">{n.label}</a>
+                  ))}
                 </div>
               </div>
             </div>
           </div>
-          <div className="border-t border-[#e2e8f0] mt-10 pt-6 flex flex-col md:flex-row items-center justify-between gap-4">
-            <p className="text-xs text-[#64748b]">© {new Date().getFullYear()} {tenant.nama_pt}. All rights reserved.</p>
-            <p className="text-xs text-[#64748b]">Powered by <span className="font-medium" style={{ color: c }}>AONE SIAKAD</span></p>
+          <div className="pt-6 flex flex-col md:flex-row items-center justify-between gap-4">
+            <p className="text-xs text-slate-400">© {new Date().getFullYear()} {tenant.nama_pt}. All rights reserved.</p>
+            <p className="text-xs text-slate-400">Powered by <span className="font-bold" style={{ color: c }}>AONE SIAKAD</span></p>
           </div>
         </div>
       </footer>
 
-      {/* ── POPUP ── */}
+      {/* Popup */}
       {showPopup && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={() => { setShowPopup(false); localStorage.setItem(`popup_${slug}_seen`, 'true'); }}>
-          <div className="max-w-md w-full rounded-2xl bg-white border border-[#e2e8f0] overflow-hidden shadow-2xl" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-slate-950/40 backdrop-blur-sm" onClick={() => { setShowPopup(false); localStorage.setItem(`popup_${slug}_seen`, 'true'); }}>
+          <div className="max-w-lg w-full rounded-[3.5rem] overflow-hidden shadow-2xl bg-white" onClick={e => e.stopPropagation()}>
             <button onClick={() => { setShowPopup(false); localStorage.setItem(`popup_${slug}_seen`, 'true'); }}
-              className="absolute top-3 right-3 p-1.5 rounded-full bg-black/10 hover:bg-black/20 transition-colors z-10">
-              <X size={14} />
+              className="absolute top-5 right-5 z-20 w-9 h-9 rounded-full bg-black/10 hover:bg-black/20 backdrop-blur-md flex items-center justify-center text-white transition-all">
+              <X size={16} />
             </button>
-            {popUp.image && <img src={popUp.image} alt="" className="w-full h-44 object-cover" />}
-            <div className="p-6">
-              {popUp.title && <h3 className="text-base font-bold text-[#1e293b] mb-2">{popUp.title}</h3>}
-              {popUp.content && <p className="text-sm text-[#64748b] leading-relaxed">{popUp.content}</p>}
-              <div className="flex items-center gap-2 mt-4">
+            {popUp.image && <div className="h-56 overflow-hidden"><img src={popUp.image} alt="" className="w-full h-full object-cover" /></div>}
+            <div className="p-8 space-y-4">
+              {popUp.title && <h3 className="text-2xl font-black tracking-tight">{popUp.title}</h3>}
+              {popUp.content && <p className="text-sm text-slate-500 font-medium leading-relaxed">{popUp.content}</p>}
+              <div className="flex items-center gap-3 pt-2">
                 <button onClick={() => { setShowPopup(false); localStorage.setItem(`popup_${slug}_seen`, 'true'); }}
-                  className="px-3 py-1.5 text-xs text-[#64748b] hover:text-[#1e293b] transition-colors">{popUp.buttonText || 'Tutup'}</button>
+                  className="px-5 py-2.5 text-xs font-black uppercase tracking-widest text-slate-400 hover:text-slate-700 transition-colors">{popUp.buttonText || 'Tutup'}</button>
                 {popUp.buttonLink && (
                   <a href={popUp.buttonLink} target="_blank" rel="noopener noreferrer"
-                    className="px-4 py-1.5 rounded-lg text-xs font-bold text-white transition-all" style={{ backgroundColor: c }}>Detail</a>
+                    className="px-6 py-2.5 rounded-2xl text-xs font-black uppercase tracking-widest text-white transition-all" style={{ backgroundColor: c }}>Detail</a>
                 )}
               </div>
             </div>
@@ -749,11 +732,7 @@ function CampusLandingPage({ slug }: { slug: string }) {
         </div>
       )}
 
-      <style>{`
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-        .no-scrollbar { scrollbar-width: none; }
-        html { scroll-behavior: smooth; }
-      `}</style>
+      <style>{`html{scroll-behavior:smooth}`}</style>
     </div>
   );
 }
