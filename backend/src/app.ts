@@ -84,8 +84,9 @@ if (config.env !== 'test') {
 
 app.use(rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 200,
-  message: { success: false, message: 'Terlalu banyak request, coba lagi nanti' },
+  max: 500,
+  skip: (req) => req.path === '/api/v1/health' || req.path.startsWith('/api/v1/public/') || req.path.match(/\.(js|css|png|jpg|jpeg|gif|ico|svg|webp|woff2?|ttf|eot)$/),
+  message: { success: false, message: 'Terlalu banyak request' },
 }));
 
 app.use(resolveTenant);
