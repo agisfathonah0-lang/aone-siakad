@@ -43,6 +43,7 @@ function CampusLandingPage({ slug }: { slug: string }) {
   const [heroIdx, setHeroIdx] = useState(0);
   const [promoIdx, setPromoIdx] = useState(0);
   const [showPopup, setShowPopup] = useState(false);
+  const [splashDone, setSplashDone] = useState(false);
 
   useSEO(
     data?.landingPage.seoTitle || data?.tenant.name || 'Kampus',
@@ -90,8 +91,8 @@ function CampusLandingPage({ slug }: { slug: string }) {
     return () => clearInterval(id);
   }, [data, nextHero]);
 
-  if (loading) return (
-    <SplashScreen logo={data?.tenant.logo_url || '/logo.jpg'} nama={data?.tenant.nama_pt || 'Memuat...'} duration={3000} onDone={() => {}} />
+  if (loading || !splashDone) return (
+    <SplashScreen logo={data?.tenant.logo_url || '/logo.jpg'} nama={data?.tenant.nama_pt || 'Memuat...'} duration={3000} onDone={() => setSplashDone(true)} />
   );
 
   if (error || !data) return (
