@@ -34,7 +34,7 @@ export default function CampusPPDBPage() {
     setTenantSlug(slug);
     Promise.all([
       get<CampusInfo>(`/public/kampus/${slug}`),
-      get<FormConfig>('/campus/ppdb-config'),
+      get<FormConfig>(`/public/kampus/${slug}/ppdb-config`),
     ])
       .then(([c, cfg]) => {
         setCampus(c);

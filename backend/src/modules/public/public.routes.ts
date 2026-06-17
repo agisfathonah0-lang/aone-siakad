@@ -234,4 +234,49 @@ router.get('/kampus/:slug', async (req: Request, res: Response, next: NextFuncti
   } catch (err) { next(err); }
 });
 
+const DEFAULT_PPDB_STEPS = [
+  {
+    title: 'Data Pribadi',
+    fields: [
+      { key: 'nama', label: 'Nama Lengkap', type: 'text', required: true, placeholder: 'Masukkan nama lengkap', order: 1 },
+      { key: 'email', label: 'Email', type: 'email', required: true, placeholder: 'contoh@email.com', order: 2 },
+      { key: 'no_hp', label: 'No. HP', type: 'tel', required: true, placeholder: '08xxxxxxxxxx', order: 3 },
+      { key: 'tempat_lahir', label: 'Tempat Lahir', type: 'text', required: false, placeholder: '', order: 4 },
+      { key: 'tanggal_lahir', label: 'Tanggal Lahir', type: 'date', required: false, placeholder: '', order: 5 },
+      { key: 'jenis_kelamin', label: 'Jenis Kelamin', type: 'select', required: false, options: [{ value: 'L', label: 'Laki-laki' }, { value: 'P', label: 'Perempuan' }], order: 6 },
+      { key: 'alamat', label: 'Alamat', type: 'textarea', required: false, placeholder: '', order: 7 },
+      { key: 'asal_sekolah', label: 'Asal Sekolah', type: 'text', required: false, placeholder: 'Nama SMA/SMK sederajat', order: 8 },
+    ],
+  },
+  {
+    title: 'Pilihan Program Studi',
+    fields: [
+      { key: 'program_studi_id', label: 'Program Studi', type: 'prodi', required: true, order: 1 },
+    ],
+  },
+];
+
+const DEFAULT_PPDB_APPEARANCE = { bannerImage: '', formColor: '#22c55e', accentColor: '#6366f1', showTimeline: true, customCSS: '' };
+
+router.get('/kampus/:slug/ppdb-config', async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { slug } = req.params;
+    const { rows: tenantRows } = await query(
+      'SELECT id FROM public.tenants WHERE slug = $1 AND is_active = true',
+      [slug]
+    );
+    if (tenantRows.length === 0) throw new AppError(404, 'Kampus tidak ditemukan');
+
+    const { rows } = await query(
+      'SELECT value FROM public.tenant_settings WHERE tenant_id = $1 AND key = $2',
+      [tenantRows[0].id, 'ppdb_form_config']
+    );
+
+    if (rows.length > 0) {
+      return sendSuccess(res, rows[0].value);
+    }
+    sendSuccess(res, { steps: DEFAULT_PPDB_STEPS, appearance: DEFAULT_PPDB_APPEARANCE });
+  } catch (err) { next(err); }
+});
+
 export default router;
