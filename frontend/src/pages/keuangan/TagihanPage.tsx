@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { getPaginated, post, put, del, get } from '../../api/client';
+import { toast } from '../../context/ToastContext';
 import type { Tagihan, Pembayaran, Mahasiswa } from '../../types';
 import DataTable from '../../components/ui/DataTable';
 import Modal from '../../components/ui/Modal';
@@ -42,19 +43,19 @@ export default function TagihanPage() {
   const save = async (e: React.FormEvent) => {
     e.preventDefault();
     try { await post('/keuangan/tagihan', form); setModal(false); fetchData(); }
-    catch (err: any) { alert(err.response?.data?.message || err.message); }
+    catch (err: any) { toast(err.response?.data?.message || err.message, 'error'); }
   };
 
   const handleEdit = async (e: React.FormEvent) => {
     e.preventDefault();
     try { await put(`/keuangan/tagihan/${editId}`, editForm); setEditModal(false); fetchData(); }
-    catch (err: any) { alert(err.response?.data?.message || err.message); }
+    catch (err: any) { toast(err.response?.data?.message || err.message, 'error'); }
   };
 
   const handleDelete = async (id: string) => {
     if (!confirm('Hapus tagihan ini?')) return;
     try { await del(`/keuangan/tagihan/${id}`); fetchData(); }
-    catch (err: any) { alert(err.response?.data?.message || err.message); }
+    catch (err: any) { toast(err.response?.data?.message || err.message, 'error'); }
   };
 
   const openEdit = (r: Tagihan) => {

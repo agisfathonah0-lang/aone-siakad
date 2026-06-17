@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { get, post, put, del as apiDel } from '../../api/client';
+import { toast } from '../../context/ToastContext';
 import { useAuth } from '../../context/AuthContext';
 import DataTable from '../../components/ui/DataTable';
 import Modal from '../../components/ui/Modal';
@@ -101,14 +102,14 @@ export default function SuratPage() {
       else { await post('/akademik/surat/masuk', masukForm); }
       setMasukModal(false);
       loadMasuk();
-    } catch (err: any) { alert(err.response?.data?.message || err.message); }
+    } catch (err: any) { toast(err.response?.data?.message || err.message, 'error'); }
     finally { setSubmitting(false); }
   }
 
   async function deleteMasuk(id: string) {
     if (!confirm('Hapus surat masuk ini?')) return;
     try { await apiDel(`/akademik/surat/masuk/${id}`); loadMasuk(); }
-    catch (err: any) { alert(err.response?.data?.message || err.message); }
+    catch (err: any) { toast(err.response?.data?.message || err.message, 'error'); }
   }
 
   async function addDisposisi() {
@@ -120,7 +121,7 @@ export default function SuratPage() {
       setDisposisiForm({ dari_jabatan: '', ke_jabatan: '', instruksi: '', catatan: '', batas_waktu: '' });
       const res = await get<SuratMasuk>(`/akademik/surat/masuk/${masukDetail.id}`);
       setMasukDetail(res);
-    } catch (err: any) { alert(err.response?.data?.message || err.message); }
+    } catch (err: any) { toast(err.response?.data?.message || err.message, 'error'); }
     finally { setSubmitting(false); }
   }
 
@@ -132,7 +133,7 @@ export default function SuratPage() {
         const res = await get<SuratMasuk>(`/akademik/surat/masuk/${masukDetail.id}`);
         setMasukDetail(res);
       }
-    } catch (err: any) { alert(err.response?.data?.message || err.message); }
+    } catch (err: any) { toast(err.response?.data?.message || err.message, 'error'); }
   }
 
   const masukCols = [
@@ -196,14 +197,14 @@ export default function SuratPage() {
       else { await post('/akademik/surat/keluar', keluarForm); }
       setKeluarModal(false);
       loadKeluar();
-    } catch (err: any) { alert(err.response?.data?.message || err.message); }
+    } catch (err: any) { toast(err.response?.data?.message || err.message, 'error'); }
     finally { setSubmitting(false); }
   }
 
   async function deleteKeluar(id: string) {
     if (!confirm('Hapus surat keluar ini?')) return;
     try { await apiDel(`/akademik/surat/keluar/${id}`); loadKeluar(); }
-    catch (err: any) { alert(err.response?.data?.message || err.message); }
+    catch (err: any) { toast(err.response?.data?.message || err.message, 'error'); }
   }
 
   const keluarCols = [
@@ -248,7 +249,7 @@ export default function SuratPage() {
       setPengajuanModal(false);
       setPengajuanForm({ kategori_id: '', keperluan: '', tujuan: '', file_url: '' });
       loadPengajuan();
-    } catch (err: any) { alert(err.response?.data?.message || err.message); }
+    } catch (err: any) { toast(err.response?.data?.message || err.message, 'error'); }
     finally { setSubmitting(false); }
   }
 
@@ -258,7 +259,7 @@ export default function SuratPage() {
       await put(`/akademik/surat/pengajuan/${id}/status`, { status, catatan_penolakan });
       setStatusModal(null);
       loadPengajuan();
-    } catch (err: any) { alert(err.response?.data?.message || err.message); }
+    } catch (err: any) { toast(err.response?.data?.message || err.message, 'error'); }
     finally { setSubmitting(false); }
   }
 
@@ -308,14 +309,14 @@ export default function SuratPage() {
       else { await post('/akademik/surat/kategori', kategoriForm); }
       setKategoriModal(false);
       loadKategori();
-    } catch (err: any) { alert(err.response?.data?.message || err.message); }
+    } catch (err: any) { toast(err.response?.data?.message || err.message, 'error'); }
     finally { setSubmitting(false); }
   }
 
   async function deleteKategori(id: string) {
     if (!confirm('Hapus kategori ini?')) return;
     try { await apiDel(`/akademik/surat/kategori/${id}`); loadKategori(); }
-    catch (err: any) { alert(err.response?.data?.message || err.message); }
+    catch (err: any) { toast(err.response?.data?.message || err.message, 'error'); }
   }
 
   const kategoriCols = [

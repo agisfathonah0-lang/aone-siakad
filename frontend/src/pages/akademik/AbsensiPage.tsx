@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { toast } from '../../context/ToastContext';
 import { getPaginated, get, post } from '../../api/client';
 import type { Absensi, Jadwal } from '../../types';
 import DataTable from '../../components/ui/DataTable';
@@ -103,7 +104,7 @@ export default function AbsensiPage() {
   const save = async (e: React.FormEvent) => {
     e.preventDefault();
     try { await post('/akademik/absensi', form); setModal(false); fetchData(); }
-    catch (err: any) { alert(err.response?.data?.message || err.message); }
+    catch (err: any) { toast(err.response?.data?.message || err.message, 'error'); }
   };
 
   const saveBatch = async () => {
@@ -113,7 +114,7 @@ export default function AbsensiPage() {
       const data = Object.entries(batchStatuses).map(([mahasiswa_id, status]) => ({ mahasiswa_id, status }));
       await post('/akademik/absensi/batch', { jadwal_id: jadwalFilter, pertemuan: batchPertemuan, tanggal: batchTanggal, data });
       fetchData();
-    } catch (err: any) { alert(err.response?.data?.message || err.message); }
+    } catch (err: any) { toast(err.response?.data?.message || err.message, 'error'); }
     finally { setBatchLoading(false); }
   };
 

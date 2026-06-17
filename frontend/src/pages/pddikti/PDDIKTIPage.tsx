@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { get, post, put } from '../../api/client';
+import { toast } from '../../context/ToastContext';
 import type { SyncRun, SyncStats } from '../../types';
 import DataTable from '../../components/ui/DataTable';
 import Modal from '../../components/ui/Modal';
@@ -60,9 +61,9 @@ export default function PDDIKTIPage() {
     setSyncing(type);
     try {
       const res = await post<any>('/pddikti/sync', { type });
-      alert(res.message || `Sync ${type} selesai`);
+      toast(res.message || `Sync ${type} selesai`, 'success');
       fetchData();
-    } catch (err: any) { alert(err.response?.data?.message || err.message); }
+    } catch (err: any) { toast(err.response?.data?.message || err.message, 'error'); }
     finally { setSyncing(null); }
   };
 
@@ -72,7 +73,7 @@ export default function PDDIKTIPage() {
       const res = await get<any[]>('/pddikti/validate');
       setValidationErrors(res || []);
       setShowValidation(true);
-    } catch (err: any) { alert(err.message); }
+    } catch (err: any) { toast(err.message, 'error'); }
     finally { setLoadingValidation(false); }
   };
 
@@ -80,9 +81,9 @@ export default function PDDIKTIPage() {
     e.preventDefault();
     try {
       await put('/pddikti/config', configForm);
-      alert('Konfigurasi disimpan');
+      toast('Konfigurasi disimpan', 'success');
       fetchData();
-    } catch (err: any) { alert(err.response?.data?.message || err.message); }
+    } catch (err: any) { toast(err.response?.data?.message || err.message, 'error'); }
   };
 
   const testConnection = async () => {

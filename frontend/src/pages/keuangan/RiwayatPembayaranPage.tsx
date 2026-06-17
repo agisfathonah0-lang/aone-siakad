@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { getPaginated, get } from '../../api/client';
+import { toast } from '../../context/ToastContext';
 import type { Pembayaran, StrukPembayaran } from '../../types';
 import Badge from '../../components/ui/Badge';
 import StrukPembayaranModal from '../../components/keuangan/StrukPembayaran';
@@ -38,7 +39,7 @@ export default function RiwayatPembayaranPage() {
       const struk = await get<StrukPembayaran>(`/keuangan/pembayaran/${id}/struk`);
       setReceiptStruk(struk);
     } catch (err: any) {
-      alert(err.response?.data?.message || err.message);
+      toast(err.response?.data?.message || err.message, 'error');
     }
   };
 

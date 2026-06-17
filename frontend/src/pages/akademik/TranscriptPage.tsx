@@ -2,6 +2,7 @@ import { useState, Fragment } from 'react';
 import { get } from '../../api/client';
 import api from '../../api/client';
 import { Search, Loader2, Printer } from 'lucide-react';
+import { toast } from '../../context/ToastContext';
 
 interface TranscriptItem {
   kode: string;
@@ -68,7 +69,7 @@ export default function TranscriptPage() {
       const url = window.URL.createObjectURL(new Blob([response.data]));
       window.open(url, '_blank');
     } catch (err: any) {
-      alert(err.response?.data?.message || err.message);
+      toast(err.response?.data?.message || err.message, 'error');
     } finally {
       setLoadingCetak(false);
     }

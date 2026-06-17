@@ -3,6 +3,7 @@ import { get, post, put } from '../../api/client';
 import DataTable from '../../components/ui/DataTable';
 import Badge from '../../components/ui/Badge';
 import { Settings, Globe, RefreshCw, ExternalLink, Wifi, WifiOff } from 'lucide-react';
+import { toast } from '../../context/ToastContext';
 
 const statusBadge: Record<string, 'success' | 'warning' | 'danger'> = { Terbit: 'success', Ditolak: 'danger', 'Dalam Reviewer': 'warning' };
 
@@ -99,7 +100,7 @@ export default function OJSPage() {
       await put('/ojs/config', configForm);
       await loadConfig();
     } catch (err: any) {
-      alert(err.response?.data?.message || err.message);
+      toast(err.response?.data?.message || err.message, 'error');
     } finally {
       setSaving(false);
     }

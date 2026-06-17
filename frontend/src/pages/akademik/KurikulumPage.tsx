@@ -4,6 +4,7 @@ import DataTable from '../../components/ui/DataTable';
 import Modal from '../../components/ui/Modal';
 import Badge from '../../components/ui/Badge';
 import { Plus, RefreshCw, Pencil, Trash2, Eye, BookOpen, Search } from 'lucide-react';
+import { toast } from '../../context/ToastContext';
 
 interface Kurikulum {
   id: string;
@@ -118,7 +119,7 @@ export default function KurikulumPage() {
       setModal(false);
       fetchData();
     } catch (err: any) {
-      alert(err.response?.data?.message || err.message);
+      toast(err.response?.data?.message || err.message, 'error');
     }
   };
 
@@ -128,7 +129,7 @@ export default function KurikulumPage() {
       await del(`/akademik/kurikulum/${id}`);
       fetchData();
     } catch (err: any) {
-      alert(err.response?.data?.message || err.message);
+      toast(err.response?.data?.message || err.message, 'error');
     }
   };
 
@@ -141,7 +142,7 @@ export default function KurikulumPage() {
       const res = await get<Kurikulum & { mata_kuliah: MKRow[] }>(`/akademik/kurikulum/${row.id}`);
       setKurikulumMK(res.mata_kuliah || []);
     } catch (err: any) {
-      alert(err.response?.data?.message || err.message);
+      toast(err.response?.data?.message || err.message, 'error');
     }
   };
 
@@ -153,7 +154,7 @@ export default function KurikulumPage() {
       const res = await get<Kurikulum & { mata_kuliah: MKRow[] }>(`/akademik/kurikulum/${selected.id}`);
       setKurikulumMK(res.mata_kuliah || []);
     } catch (err: any) {
-      alert(err.response?.data?.message || err.message);
+      toast(err.response?.data?.message || err.message, 'error');
     }
   };
 
@@ -161,13 +162,13 @@ export default function KurikulumPage() {
     if (!confirm('Hapus mata kuliah dari kurikulum ini?')) return;
     if (!selected) return;
     const mk = mkOptions.find(m => m.kode === mkKode);
-    if (!mk) return alert('Mata kuliah tidak ditemukan');
+    if (!mk) return toast('Mata kuliah tidak ditemukan', 'warning');
     try {
       await del(`/akademik/kurikulum/${selected.id}/mata-kuliah/${mk.id}`);
       const res = await get<Kurikulum & { mata_kuliah: MKRow[] }>(`/akademik/kurikulum/${selected.id}`);
       setKurikulumMK(res.mata_kuliah || []);
     } catch (err: any) {
-      alert(err.response?.data?.message || err.message);
+      toast(err.response?.data?.message || err.message, 'error');
     }
   };
 

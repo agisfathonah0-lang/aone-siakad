@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { getPaginated, post, get } from '../../api/client';
+import { toast } from '../../context/ToastContext';
 import { useMidtransSnap } from '../../hooks/useMidtransSnap';
 import type { Pembayaran, Tagihan, Mahasiswa, StrukPembayaran } from '../../types';
 import DataTable from '../../components/ui/DataTable';
@@ -50,12 +51,12 @@ export default function PembayaranPage() {
   const save = async (e: React.FormEvent) => {
     e.preventDefault();
     try { await post('/keuangan/pembayaran/manual', form); setModal(false); fetchData(); }
-    catch (err: any) { alert(err.response?.data?.message || err.message); }
+    catch (err: any) { toast(err.response?.data?.message || err.message, 'error'); }
   };
 
   const handleMidtrans = async () => {
-    if (!form.tagihan_id || !form.mahasiswa_id) { alert('Pilih mahasiswa dan tagihan terlebih dahulu'); return; }
-    if (!midtrans.ready) { alert(midtrans.error || 'Midtrans belum siap'); return; }
+    if (!form.tagihan_id || !form.mahasiswa_id) { toast('Pilih mahasiswa dan tagihan terlebih dahulu', 'warning'); return; }
+    if (!midtrans.ready) { toast(midtrans.error || 'Midtrans belum siap', 'warning'); return; }
     setMidtransLoading(true);
     try {
       const result = await post<{ snap_token: string }>('/keuangan/pembayaran/midtrans-snap', {
@@ -68,7 +69,7 @@ export default function PembayaranPage() {
         onError: () => { fetchData(); },
       });
     } catch (err: any) {
-      alert(err.response?.data?.message || err.message);
+      toast(err.response?.data?.message || err.message, 'error');
     } finally { setMidtransLoading(false); }
   };
 
@@ -82,7 +83,7 @@ export default function PembayaranPage() {
       const struk = await get<StrukPembayaran>(`/keuangan/pembayaran/${id}/struk`);
       setReceiptStruk(struk);
     } catch (err: any) {
-      alert(err.response?.data?.message || err.message);
+      toast(err.response?.data?.message || err.message, 'error');
     }
   };
 

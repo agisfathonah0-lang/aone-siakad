@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { toast } from '../../context/ToastContext';
 import { getPaginated, post, put, del } from '../../api/client';
 import type { MataKuliah } from '../../types';
 import DataTable from '../../components/ui/DataTable';
@@ -51,13 +52,13 @@ export default function MatakuliahPage() {
       else await post('/akademik/mata-kuliah', body);
       setModal(false); fetchData();
     }
-    catch (err: any) { alert(err.response?.data?.message || err.message); }
+    catch (err: any) { toast(err.response?.data?.message || err.message, 'error'); }
   };
 
   const handleDelete = async (id: string) => {
     if (!confirm('Yakin ingin menghapus mata kuliah ini?')) return;
     try { await del(`/akademik/mata-kuliah/${id}`); fetchData(); }
-    catch (err: any) { alert(err.response?.data?.message || err.message); }
+    catch (err: any) { toast(err.response?.data?.message || err.message, 'error'); }
   };
 
   const columns = [

@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { get, post } from '../../api/client';
+import { toast } from '../../context/ToastContext';
 import { Loader2, Camera, Play, ExternalLink, RefreshCw, Wifi, WifiOff, StopCircle, Video } from 'lucide-react';
 import Hls from 'hls.js';
 
@@ -121,7 +122,7 @@ function LiveView({ camera }: { camera: Camera }) {
         }
       }
     } catch (err: any) {
-      alert(err.response?.data?.message || err.message);
+      toast(err.response?.data?.message || err.message, 'error');
     } finally { setStreamLoading(false); }
   }, [camera.id]);
 

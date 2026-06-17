@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { toast } from '../../context/ToastContext';
 import { Link } from 'react-router-dom';
 import { get, getPaginated, post, put, del as apiDel } from '../../api/client';
 import type { Mahasiswa } from '../../types';
@@ -73,7 +74,7 @@ export default function MahasiswaPage() {
         await post('/akademik/mahasiswa', payload);
       }
       setModal(false); fetchData();
-    } catch (err: any) { alert(err.response?.data?.message || err.message); }
+    } catch (err: any) { toast(err.response?.data?.message || err.message, 'error'); }
   };
 
   const remove = async (id: string) => {
@@ -81,7 +82,7 @@ export default function MahasiswaPage() {
     try {
       await apiDel(`/akademik/mahasiswa/${id}`);
       fetchData();
-    } catch (err: any) { alert(err.response?.data?.message || err.message); }
+    } catch (err: any) { toast(err.response?.data?.message || err.message, 'error'); }
   };
 
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {

@@ -6,6 +6,7 @@ import DataTable from '../../components/ui/DataTable';
 import StatCard from '../../components/ui/StatCard';
 import Badge from '../../components/ui/Badge';
 import { Settings, Save, RefreshCw, Database, Loader2, Wifi, WifiOff, CheckCircle, AlertCircle, BookOpen, Users, GraduationCap, BarChart3, Search, BookMarked } from 'lucide-react';
+import { toast } from '../../context/ToastContext';
 
 type Tab = 'dashboard' | 'courses' | 'users' | 'grades' | 'config' | 'sync';
 
@@ -108,7 +109,7 @@ export default function LMSPage() {
       const data = await put<LmsConfig>('/akademik/lms/config', configForm);
       if (data) setConfig(data);
     } catch (err: any) {
-      alert(err.response?.data?.message || err.message);
+      toast(err.response?.data?.message || err.message, 'error');
     }
     finally { setSaving(false); }
   };

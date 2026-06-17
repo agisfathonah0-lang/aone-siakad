@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { getPaginated, post, put, del } from '../../api/client';
+import { toast } from '../../context/ToastContext';
 import DataTable from '../../components/ui/DataTable';
 import Modal from '../../components/ui/Modal';
 import Badge from '../../components/ui/Badge';
@@ -134,14 +135,14 @@ export default function SeminarPage() {
       else { await post('/akademik/seminar', form); }
       setModal(false);
       fetchData();
-    } catch (err: any) { alert(err.response?.data?.message || err.message); }
+    } catch (err: any) { toast(err.response?.data?.message || err.message, 'error'); }
     finally { setSubmitting(false); }
   }
 
   async function deleteRow(id: string) {
     if (!confirm('Hapus data seminar ini?')) return;
     try { await del(`/akademik/seminar/${id}`); fetchData(); }
-    catch (err: any) { alert(err.response?.data?.message || err.message); }
+    catch (err: any) { toast(err.response?.data?.message || err.message, 'error'); }
   }
 
   function openNilai(row: Seminar) {
@@ -158,7 +159,7 @@ export default function SeminarPage() {
       await put(`/akademik/seminar/${nilaiItem.id}/nilai`, nilaiForm);
       setNilaiModal(false);
       fetchData();
-    } catch (err: any) { alert(err.response?.data?.message || err.message); }
+    } catch (err: any) { toast(err.response?.data?.message || err.message, 'error'); }
     finally { setSubmitting(false); }
   }
 
@@ -180,7 +181,7 @@ export default function SeminarPage() {
     try {
       await del(`/akademik/seminar/${selectedSeminar.id}/peserta/${pesertaId}`);
       setPesertaList(p => p.filter(x => x.id !== pesertaId));
-    } catch (err: any) { alert(err.response?.data?.message || err.message); }
+    } catch (err: any) { toast(err.response?.data?.message || err.message, 'error'); }
   }
 
   const columns = [

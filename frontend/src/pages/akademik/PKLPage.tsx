@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { getPaginated, get, post, put, del as apiDel } from '../../api/client';
+import { toast } from '../../context/ToastContext';
 import { useAuth } from '../../context/AuthContext';
 import DataTable from '../../components/ui/DataTable';
 import Modal from '../../components/ui/Modal';
@@ -130,14 +131,14 @@ export default function PKLPage() {
       else { await post('/akademik/pkl', form); }
       setModal(false);
       fetchData();
-    } catch (err: any) { alert(err.response?.data?.message || err.message); }
+    } catch (err: any) { toast(err.response?.data?.message || err.message, 'error'); }
     finally { setSubmitting(false); }
   }
 
   async function deleteRow(id: string) {
     if (!confirm('Hapus data PKL ini?')) return;
     try { await apiDel(`/akademik/pkl/${id}`); fetchData(); }
-    catch (err: any) { alert(err.response?.data?.message || err.message); }
+    catch (err: any) { toast(err.response?.data?.message || err.message, 'error'); }
   }
 
   function openNilai(row: PKL) {
@@ -154,7 +155,7 @@ export default function PKLPage() {
       await put(`/akademik/pkl/${nilaiItem.id}/nilai`, nilaiForm);
       setNilaiModal(false);
       fetchData();
-    } catch (err: any) { alert(err.response?.data?.message || err.message); }
+    } catch (err: any) { toast(err.response?.data?.message || err.message, 'error'); }
     finally { setSubmitting(false); }
   }
 
@@ -214,7 +215,7 @@ export default function PKLPage() {
       setLogbookModal(false);
       const res = await get<PKLLogbook[]>(`/akademik/pkl/${selectedPkl}/logbook`);
       setLogbookData(Array.isArray(res) ? res : []);
-    } catch (err: any) { alert(err.response?.data?.message || err.message); }
+    } catch (err: any) { toast(err.response?.data?.message || err.message, 'error'); }
     finally { setSubmitting(false); }
   }
 
@@ -224,7 +225,7 @@ export default function PKLPage() {
       await apiDel(`/akademik/pkl/logbook/${id}`);
       const res = await get<PKLLogbook[]>(`/akademik/pkl/${selectedPkl}/logbook`);
       setLogbookData(Array.isArray(res) ? res : []);
-    } catch (err: any) { alert(err.response?.data?.message || err.message); }
+    } catch (err: any) { toast(err.response?.data?.message || err.message, 'error'); }
   }
 
   async function approveLogbook(id: string) {
@@ -232,7 +233,7 @@ export default function PKLPage() {
       await put(`/akademik/pkl/logbook/${id}/approve`, {});
       const res = await get<PKLLogbook[]>(`/akademik/pkl/${selectedPkl}/logbook`);
       setLogbookData(Array.isArray(res) ? res : []);
-    } catch (err: any) { alert(err.response?.data?.message || err.message); }
+    } catch (err: any) { toast(err.response?.data?.message || err.message, 'error'); }
   }
 
   const logbookCols = [

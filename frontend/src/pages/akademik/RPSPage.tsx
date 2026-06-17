@@ -3,6 +3,7 @@ import { getPaginated, post, put, del } from '../../api/client';
 import DataTable from '../../components/ui/DataTable';
 import Modal from '../../components/ui/Modal';
 import { Plus, RefreshCw, Pencil, Trash2, BookOpen } from 'lucide-react';
+import { toast } from '../../context/ToastContext';
 
 interface RPS {
   id: string;
@@ -101,7 +102,7 @@ export default function RPSPage() {
       setModal(false);
       fetchData();
     } catch (err: any) {
-      alert(err.response?.data?.message || err.message);
+      toast(err.response?.data?.message || err.message, 'error');
     }
   };
 
@@ -111,7 +112,7 @@ export default function RPSPage() {
       await del(`/akademik/rps/${id}`);
       fetchData();
     } catch (err: any) {
-      alert(err.response?.data?.message || err.message);
+      toast(err.response?.data?.message || err.message, 'error');
     }
   };
 

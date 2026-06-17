@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { get, getPaginated, post, put, del } from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
+import { toast } from '../../context/ToastContext';
 import type { AbsensiDosen, Dosen } from '../../types';
 import DataTable from '../../components/ui/DataTable';
 import Modal from '../../components/ui/Modal';
@@ -102,7 +103,7 @@ export default function AbsensiDosenPage() {
       fetchToday();
       fetchData();
     } catch (err: any) {
-      alert(err.response?.data?.message || err.message);
+      toast(err.response?.data?.message || err.message, 'error');
     }
   };
 
@@ -131,7 +132,7 @@ export default function AbsensiDosenPage() {
       setModal(false);
       fetchData();
     } catch (err: any) {
-      alert(err.response?.data?.message || err.message);
+      toast(err.response?.data?.message || err.message, 'error');
     }
   };
 
@@ -142,7 +143,7 @@ export default function AbsensiDosenPage() {
       setEditModal(false);
       fetchData();
     } catch (err: any) {
-      alert(err.response?.data?.message || err.message);
+      toast(err.response?.data?.message || err.message, 'error');
     }
   };
 
@@ -152,7 +153,7 @@ export default function AbsensiDosenPage() {
       await del('/akademik/absensi-dosen/' + id);
       fetchData();
     } catch (err: any) {
-      alert(err.response?.data?.message || err.message);
+      toast(err.response?.data?.message || err.message, 'error');
     }
   };
 

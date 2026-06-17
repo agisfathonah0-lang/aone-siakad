@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { get, put, post } from '../../api/client';
 import { UserCheck, Search, Loader2, Plus, MessageSquare } from 'lucide-react';
+import { toast } from '../../context/ToastContext';
 import { useAuth } from '../../context/AuthContext';
 import Modal from '../../components/ui/Modal';
 
@@ -67,7 +68,7 @@ export default function PerwalianPage() {
       setLogForm({ catatan: '', tanggal: new Date().toISOString().slice(0, 10) });
       const d = await get<any[]>(`/akademik/perwalian/log/${logMahasiswa.id}`);
       setLogs(Array.isArray(d) ? d : []);
-    } catch (err: any) { alert(err.response?.data?.message || 'Gagal menambah catatan'); }
+    } catch (err: any) { toast(err.response?.data?.message || 'Gagal menambah catatan', 'error'); }
   }
 
   async function setDosenWali(mhsId: string, dosenId: string) {

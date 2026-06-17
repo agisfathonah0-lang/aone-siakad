@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { get, getPaginated, post, put, del as apiDel } from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
+import { toast } from '../../context/ToastContext';
 import type { Buku, AnggotaPerpustakaan, PeminjamanBuku, Mahasiswa } from '../../types';
 import DataTable from '../../components/ui/DataTable';
 import Modal from '../../components/ui/Modal';
@@ -118,9 +119,9 @@ function MahasiswaBukuSection() {
     setBorrowing(buku_id);
     try {
       await post('/akademik/perpustakaan/pinjam', { buku_id });
-      alert('Buku berhasil dipinjam!');
+      toast('Buku berhasil dipinjam!', 'success');
       fetchData();
-    } catch (err: any) { alert(err.response?.data?.message || err.message); }
+    } catch (err: any) { toast(err.response?.data?.message || err.message, 'error'); }
     finally { setBorrowing(null); }
   };
 
@@ -199,9 +200,9 @@ function MahasiswaPinjamankuSection() {
     setReturning(id);
     try {
       await put(`/akademik/perpustakaan/peminjaman/${id}/kembali`, {});
-      alert('Buku berhasil dikembalikan!');
+      toast('Buku berhasil dikembalikan!', 'success');
       fetchData();
-    } catch (err: any) { alert(err.response?.data?.message || err.message); }
+    } catch (err: any) { toast(err.response?.data?.message || err.message, 'error'); }
     finally { setReturning(null); }
   };
 
@@ -293,7 +294,7 @@ function BukuSection() {
         await post('/akademik/perpustakaan/buku', payload);
       }
       setModal(false); fetchData();
-    } catch (err: any) { alert(err.response?.data?.message || err.message); }
+    } catch (err: any) { toast(err.response?.data?.message || err.message, 'error'); }
   };
 
   const remove = async (id: string) => {
@@ -301,7 +302,7 @@ function BukuSection() {
     try {
       await apiDel(`/akademik/perpustakaan/buku/${id}`);
       fetchData();
-    } catch (err: any) { alert(err.response?.data?.message || err.message); }
+    } catch (err: any) { toast(err.response?.data?.message || err.message, 'error'); }
   };
 
   const columns = [
@@ -401,14 +402,14 @@ function AnggotaSection() {
     try {
       await post('/akademik/perpustakaan/anggota', { mahasiswa_id: selectedMhsId });
       setModal(false); setSelectedMhsId(''); fetchData();
-    } catch (err: any) { alert(err.response?.data?.message || err.message); }
+    } catch (err: any) { toast(err.response?.data?.message || err.message, 'error'); }
   };
 
   const toggleActive = async (row: AnggotaPerpustakaan) => {
     try {
       await put(`/akademik/perpustakaan/anggota/${row.id}`, { is_active: !row.is_active });
       fetchData();
-    } catch (err: any) { alert(err.response?.data?.message || err.message); }
+    } catch (err: any) { toast(err.response?.data?.message || err.message, 'error'); }
   };
 
   const remove = async (id: string) => {
@@ -416,7 +417,7 @@ function AnggotaSection() {
     try {
       await apiDel(`/akademik/perpustakaan/anggota/${id}`);
       fetchData();
-    } catch (err: any) { alert(err.response?.data?.message || err.message); }
+    } catch (err: any) { toast(err.response?.data?.message || err.message, 'error'); }
   };
 
   const columns = [
@@ -507,7 +508,7 @@ function PeminjamanSection() {
       setModalTambah(false);
       setFormPinjam({ buku_id: '', anggota_id: '', tanggal_jatuh_tempo: '' });
       fetchData();
-    } catch (err: any) { alert(err.response?.data?.message || err.message); }
+    } catch (err: any) { toast(err.response?.data?.message || err.message, 'error'); }
   };
 
   const kembalikanBuku = async (e: React.FormEvent) => {
@@ -517,7 +518,7 @@ function PeminjamanSection() {
       await put(`/akademik/perpustakaan/peminjaman/${modalKembali.id}/kembali`, {});
       setModalKembali(null);
       fetchData();
-    } catch (err: any) { alert(err.response?.data?.message || err.message); }
+    } catch (err: any) { toast(err.response?.data?.message || err.message, 'error'); }
   };
 
   const bayarDenda = async (e: React.FormEvent) => {
@@ -528,7 +529,7 @@ function PeminjamanSection() {
       setModalBayarDenda(null);
       setFormBayar({ nominal: 0, keterangan: '' });
       fetchData();
-    } catch (err: any) { alert(err.response?.data?.message || err.message); }
+    } catch (err: any) { toast(err.response?.data?.message || err.message, 'error'); }
   };
 
   const defaultJatuhTempo = () => {
@@ -683,7 +684,7 @@ function EbookSection() {
         await post('/akademik/perpustakaan/ebook', form);
       }
       setModal(false); fetchData();
-    } catch (err: any) { alert(err.response?.data?.message || err.message); }
+    } catch (err: any) { toast(err.response?.data?.message || err.message, 'error'); }
   };
 
   const remove = async (id: string) => {
@@ -691,7 +692,7 @@ function EbookSection() {
     try {
       await apiDel(`/akademik/perpustakaan/ebook/${id}`);
       fetchData();
-    } catch (err: any) { alert(err.response?.data?.message || err.message); }
+    } catch (err: any) { toast(err.response?.data?.message || err.message, 'error'); }
   };
 
   const download = async (row: Ebook) => {
@@ -846,7 +847,7 @@ function RepositoriSection() {
         await post('/akademik/perpustakaan/repositori', form);
       }
       setModal(false); fetchData();
-    } catch (err: any) { alert(err.response?.data?.message || err.message); }
+    } catch (err: any) { toast(err.response?.data?.message || err.message, 'error'); }
   };
 
   const remove = async (id: string) => {
@@ -854,7 +855,7 @@ function RepositoriSection() {
     try {
       await apiDel(`/akademik/perpustakaan/repositori/${id}`);
       fetchData();
-    } catch (err: any) { alert(err.response?.data?.message || err.message); }
+    } catch (err: any) { toast(err.response?.data?.message || err.message, 'error'); }
   };
 
   const columns = [

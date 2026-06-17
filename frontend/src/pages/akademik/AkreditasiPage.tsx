@@ -6,6 +6,7 @@ import Badge from '../../components/ui/Badge';
 import { Plus, Pencil, Trash2, Award, Eye, Upload, ListChecks, RefreshCw } from 'lucide-react';
 import type { Akreditasi, StandarAkreditasi, DokumenAkreditasi } from '../../types';
 import FileUpload from '../../components/ui/FileUpload';
+import { toast } from '../../context/ToastContext';
 
 const peringkatColors: Record<string, string> = {
   Unggul: 'success',
@@ -145,7 +146,7 @@ function AkreditasiTab() {
       setModal(false);
       fetchData();
     } catch (err: any) {
-      alert(err.response?.data?.message || err.message);
+      toast(err.response?.data?.message || err.message, 'error');
     }
   };
 
@@ -155,7 +156,7 @@ function AkreditasiTab() {
       await del(`/akademik/akreditasi/${id}`);
       fetchData();
     } catch (err: any) {
-      alert(err.response?.data?.message || err.message);
+      toast(err.response?.data?.message || err.message, 'error');
     }
   };
 
@@ -167,7 +168,7 @@ function AkreditasiTab() {
       const res = await get<Akreditasi & { dokumen: DokumenAkreditasi[] }>(`/akademik/akreditasi/${row.id}`);
       setDokumenList(res.dokumen || []);
     } catch (err: any) {
-      alert(err.response?.data?.message || err.message);
+      toast(err.response?.data?.message || err.message, 'error');
     }
   };
 
@@ -209,7 +210,7 @@ function AkreditasiTab() {
       const res = await get<Akreditasi & { dokumen: DokumenAkreditasi[] }>(`/akademik/akreditasi/${selected.id}`);
       setDokumenList(res.dokumen || []);
     } catch (err: any) {
-      alert(err.response?.data?.message || err.message);
+      toast(err.response?.data?.message || err.message, 'error');
     }
   };
 
@@ -221,7 +222,7 @@ function AkreditasiTab() {
       const res = await get<Akreditasi & { dokumen: DokumenAkreditasi[] }>(`/akademik/akreditasi/${selected.id}`);
       setDokumenList(res.dokumen || []);
     } catch (err: any) {
-      alert(err.response?.data?.message || err.message);
+      toast(err.response?.data?.message || err.message, 'error');
     }
   };
 

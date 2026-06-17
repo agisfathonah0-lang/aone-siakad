@@ -6,6 +6,7 @@ import type { Beasiswa, BeasiswaPenerima, BeasiswaPencairan } from '../../types'
 import DataTable from '../../components/ui/DataTable';
 import Badge from '../../components/ui/Badge';
 import Modal from '../../components/ui/Modal';
+import { toast } from '../../context/ToastContext';
 
 const statusPenerimaBadge: Record<string, 'warning' | 'success' | 'danger'> = { pending: 'warning', disetujui: 'success', ditolak: 'danger' };
 const statusPenerimaLabel: Record<string, string> = { pending: 'Pending', disetujui: 'Disetujui', ditolak: 'Ditolak' };
@@ -105,7 +106,7 @@ export default function BeasiswaPage() {
     try {
       await post(`/akademik/beasiswa/${beasiswaId}/penerima`, { mahasiswa_id: mhsData.mahasiswa_id });
       setMyRegistrations(prev => new Set(prev).add(beasiswaId));
-    } catch (err: any) { alert(err.response?.data?.message || err.message); }
+    } catch (err: any) { toast(err.response?.data?.message || err.message, 'error'); }
   }
 
   async function openDetail(row: Beasiswa) {
@@ -151,7 +152,7 @@ export default function BeasiswaPage() {
       }
       setShowForm(false);
       fetchData();
-    } catch (err: any) { alert(err.response?.data?.message || err.message); }
+    } catch (err: any) { toast(err.response?.data?.message || err.message, 'error'); }
     finally { setSubmitting(false); }
   }
 
@@ -160,7 +161,7 @@ export default function BeasiswaPage() {
       await del(`/akademik/beasiswa/${id}`);
       setShowDeleteConfirm(null);
       fetchData();
-    } catch (err: any) { alert(err.response?.data?.message || err.message); }
+    } catch (err: any) { toast(err.response?.data?.message || err.message, 'error'); }
   }
 
   const columns = [
@@ -203,7 +204,7 @@ export default function BeasiswaPage() {
     try {
       await patch(`/akademik/beasiswa/penerima/${penerimaId}/status`, { status, keterangan: '' });
       loadPenerima();
-    } catch (err: any) { alert(err.response?.data?.message || err.message); }
+    } catch (err: any) { toast(err.response?.data?.message || err.message, 'error'); }
   }
 
   async function openPencairan(penerima: BeasiswaPenerima) {
@@ -228,7 +229,7 @@ export default function BeasiswaPage() {
       setPencairanForm({ nominal: 0, tanggal_cair: new Date().toISOString().slice(0, 10), keterangan: '' });
       const res = await get<BeasiswaPencairan[]>(`/akademik/beasiswa/penerima/${pencairanPenerima.id}/pencairan`);
       setPencairanList(Array.isArray(res) ? res : []);
-    } catch (err: any) { alert(err.response?.data?.message || err.message); }
+    } catch (err: any) { toast(err.response?.data?.message || err.message, 'error'); }
     finally { setPencairanSubmitting(false); }
   }
 

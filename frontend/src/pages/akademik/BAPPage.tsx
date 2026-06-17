@@ -3,6 +3,7 @@ import { get, getPaginated, post, put, del } from '../../api/client';
 import DataTable from '../../components/ui/DataTable';
 import Modal from '../../components/ui/Modal';
 import { Plus, RefreshCw, Pencil, Trash2, ClipboardList } from 'lucide-react';
+import { toast } from '../../context/ToastContext';
 
 interface BAP {
   id: string;
@@ -120,7 +121,7 @@ export default function BAPPage() {
       setModal(false);
       fetchData();
     } catch (err: any) {
-      alert(err.response?.data?.message || err.message);
+      toast(err.response?.data?.message || err.message, 'error');
     }
   };
 
@@ -130,7 +131,7 @@ export default function BAPPage() {
       await del(`/akademik/bap/${id}`);
       fetchData();
     } catch (err: any) {
-      alert(err.response?.data?.message || err.message);
+      toast(err.response?.data?.message || err.message, 'error');
     }
   };
 

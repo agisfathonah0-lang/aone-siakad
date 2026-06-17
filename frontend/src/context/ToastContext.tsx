@@ -1,4 +1,4 @@
-import { createContext, useContext, useState, useCallback, type ReactNode } from 'react';
+import { createContext, useContext, useState, useCallback, useEffect, type ReactNode } from 'react';
 
 type ToastType = 'success' | 'error' | 'info' | 'warning';
 
@@ -13,19 +13,28 @@ interface ToastContextValue {
 }
 
 const ToastContext = createContext<ToastContextValue>({ toast: () => {} });
-
+let globalToastFn: ((message: string, type?: ToastType) => void) | null = null;
 let nextId = 0;
+
+export function toast(message: string, type: ToastType = 'info') {
+  if (globalToastFn) globalToastFn(message, type);
+}
 
 export function ToastProvider({ children }: { children: ReactNode }) {
   const [toasts, setToasts] = useState<Toast[]>([]);
 
-  const toast = useCallback((message: string, type: ToastType = 'info') => {
+  const addToast = useCallback((message: string, type: ToastType = 'info') => {
     const id = nextId++;
     setToasts(prev => [...prev, { id, type, message }]);
     setTimeout(() => {
       setToasts(prev => prev.filter(t => t.id !== id));
     }, 3500);
   }, []);
+
+  useEffect(() => {
+    globalToastFn = addToast;
+    return () => { globalToastFn = null; };
+  }, [addToast]);
 
   const remove = (id: number) => setToasts(prev => prev.filter(t => t.id !== id));
 
@@ -44,7 +53,7 @@ export function ToastProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <ToastContext.Provider value={{ toast }}>
+    <ToastContext.Provider value={{ toast: addToast }}>
       {children}
       <div className="fixed top-4 right-4 z-[9999] flex flex-col gap-2 max-w-sm w-full pointer-events-none">
         {toasts.map(t => (

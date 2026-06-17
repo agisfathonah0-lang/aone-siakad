@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { getPaginated, get, post, put, del as apiDel } from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
+import { toast } from '../../context/ToastContext';
 import DataTable from '../../components/ui/DataTable';
 import Modal from '../../components/ui/Modal';
 import Badge from '../../components/ui/Badge';
@@ -116,14 +117,14 @@ export default function KKNPage() {
       else { await post('/akademik/kkn', form); }
       setModal(false);
       fetchData();
-    } catch (err: any) { alert(err.response?.data?.message || err.message); }
+    } catch (err: any) { toast(err.response?.data?.message || err.message, 'error'); }
     finally { setSubmitting(false); }
   }
 
   async function deleteRow(id: string) {
     if (!confirm('Hapus data KKN ini?')) return;
     try { await apiDel(`/akademik/kkn/${id}`); fetchData(); }
-    catch (err: any) { alert(err.response?.data?.message || err.message); }
+    catch (err: any) { toast(err.response?.data?.message || err.message, 'error'); }
   }
 
   function openNilai(row: KKN) {
@@ -140,7 +141,7 @@ export default function KKNPage() {
       await put(`/akademik/kkn/${nilaiItem.id}/nilai`, nilaiForm);
       setNilaiModal(false);
       fetchData();
-    } catch (err: any) { alert(err.response?.data?.message || err.message); }
+    } catch (err: any) { toast(err.response?.data?.message || err.message, 'error'); }
     finally { setSubmitting(false); }
   }
 
@@ -198,7 +199,7 @@ export default function KKNPage() {
       setLogbookModal(false);
       const res = await get<KKNLogbook[]>(`/akademik/kkn/${selectedKkn}/logbook`);
       setLogbookData(Array.isArray(res) ? res : []);
-    } catch (err: any) { alert(err.response?.data?.message || err.message); }
+    } catch (err: any) { toast(err.response?.data?.message || err.message, 'error'); }
     finally { setSubmitting(false); }
   }
 
@@ -208,7 +209,7 @@ export default function KKNPage() {
       await apiDel(`/akademik/kkn/logbook/${id}`);
       const res = await get<KKNLogbook[]>(`/akademik/kkn/${selectedKkn}/logbook`);
       setLogbookData(Array.isArray(res) ? res : []);
-    } catch (err: any) { alert(err.response?.data?.message || err.message); }
+    } catch (err: any) { toast(err.response?.data?.message || err.message, 'error'); }
   }
 
   async function approveLogbook(id: string) {
@@ -216,7 +217,7 @@ export default function KKNPage() {
       await put(`/akademik/kkn/logbook/${id}/approve`, {});
       const res = await get<KKNLogbook[]>(`/akademik/kkn/${selectedKkn}/logbook`);
       setLogbookData(Array.isArray(res) ? res : []);
-    } catch (err: any) { alert(err.response?.data?.message || err.message); }
+    } catch (err: any) { toast(err.response?.data?.message || err.message, 'error'); }
   }
 
   const logbookCols = [
@@ -277,14 +278,14 @@ export default function KKNPage() {
       else { await post('/akademik/kkn-kelompok', kelompokForm); }
       setKelompokModal(false);
       fetchKelompok();
-    } catch (err: any) { alert(err.response?.data?.message || err.message); }
+    } catch (err: any) { toast(err.response?.data?.message || err.message, 'error'); }
     finally { setSubmitting(false); }
   }
 
   async function deleteKelompok(id: string) {
     if (!confirm('Hapus kelompok ini?')) return;
     try { await apiDel(`/akademik/kkn-kelompok/${id}`); fetchKelompok(); }
-    catch (err: any) { alert(err.response?.data?.message || err.message); }
+    catch (err: any) { toast(err.response?.data?.message || err.message, 'error'); }
   }
 
   async function openKelompokDetail(row: KKNKelompok) {
@@ -309,7 +310,7 @@ export default function KKNPage() {
       setAnggotaModal(false);
       const res = await get<any[]>(`/akademik/kkn-kelompok/${kelompokDetail.id}`);
       setAnggotaList(Array.isArray(res) ? res : []);
-    } catch (err: any) { alert(err.response?.data?.message || err.message); }
+    } catch (err: any) { toast(err.response?.data?.message || err.message, 'error'); }
     finally { setSubmitting(false); }
   }
 
@@ -320,7 +321,7 @@ export default function KKNPage() {
       await apiDel(`/akademik/kkn-kelompok/${kelompokDetail.id}/anggota/${anggotaId}`);
       const res = await get<any[]>(`/akademik/kkn-kelompok/${kelompokDetail.id}`);
       setAnggotaList(Array.isArray(res) ? res : []);
-    } catch (err: any) { alert(err.response?.data?.message || err.message); }
+    } catch (err: any) { toast(err.response?.data?.message || err.message, 'error'); }
   }
 
   const kelompokCols = [

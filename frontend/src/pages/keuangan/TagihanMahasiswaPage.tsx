@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { get, post } from '../../api/client';
+import { toast } from '../../context/ToastContext';
 import { useMidtransSnap } from '../../hooks/useMidtransSnap';
 import type { Tagihan, StrukPembayaran } from '../../types';
 import Badge from '../../components/ui/Badge';
@@ -32,7 +33,7 @@ export default function TagihanMahasiswaPage() {
   const rupiah = (n: number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(n);
 
   const handleBayar = async (tagihan: Tagihan) => {
-    if (!midtrans.ready) { alert(midtrans.error || 'Midtrans belum siap'); return; }
+    if (!midtrans.ready) { toast(midtrans.error || 'Midtrans belum siap', 'warning'); return; }
     setPayingId(tagihan.id);
     const safetyTimer = setTimeout(() => setPayingId(null), 120000);
     try {
@@ -65,7 +66,7 @@ export default function TagihanMahasiswaPage() {
       });
     } catch (err: any) {
       clearTimeout(safetyTimer);
-      alert(err.response?.data?.message || err.message);
+      toast(err.response?.data?.message || err.message, 'error');
       setPayingId(null);
     }
   };

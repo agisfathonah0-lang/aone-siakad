@@ -5,6 +5,7 @@ import DataTable from '../../components/ui/DataTable';
 import Modal from '../../components/ui/Modal';
 import Badge from '../../components/ui/Badge';
 import { Calculator, Printer, Search, RefreshCw } from 'lucide-react';
+import { toast } from '../../context/ToastContext';
 
 const nilaiHurufColor: Record<string, string> = { A: 'success', 'A-': 'success', 'B+': 'info', B: 'info', 'B-': 'info', 'C+': 'warning', C: 'warning', D: 'danger', E: 'danger' };
 
@@ -94,19 +95,19 @@ export default function NilaiPage() {
       });
       setModal(false); fetchData();
     }
-    catch (err: any) { alert(err.response?.data?.message || err.message); }
+    catch (err: any) { toast(err.response?.data?.message || err.message, 'error'); }
   };
 
   const handleKalkulasiBatch = async () => {
-    if (!jadwalFilter) { alert('Pilih jadwal terlebih dahulu'); return; }
+    if (!jadwalFilter) { toast('Pilih jadwal terlebih dahulu', 'warning'); return; }
     if (!confirm('Kalkulasi ulang semua nilai untuk jadwal ini?')) return;
     setKalkulasiLoading(true);
     try {
       const res = await post<{ updated: number }>(`/akademik/nilai/kalkulasi/${jadwalFilter}`);
-      alert(`${res.updated} nilai berhasil dikalkulasi`);
+      toast(`${res.updated} nilai berhasil dikalkulasi`, 'success');
       fetchData();
     }
-    catch (err: any) { alert(err.response?.data?.message || err.message); }
+    catch (err: any) { toast(err.response?.data?.message || err.message, 'error'); }
     finally { setKalkulasiLoading(false); }
   };
 

@@ -4,6 +4,7 @@ import type { CmsSection } from '../../types';
 import Modal from '../../components/ui/Modal';
 import Badge from '../../components/ui/Badge';
 import { Plus, RefreshCw, Pencil, Bold, Italic, Heading, List, Link } from 'lucide-react';
+import { toast } from '../../context/ToastContext';
 
 function WysiwygEditor({ value, onChange }: { value: string; onChange: (v: string) => void }) {
   const editorRef = useRef<HTMLDivElement>(null);
@@ -76,7 +77,7 @@ export default function CMSPage() {
       const body = { title: form.title, content: { html: form.content }, is_published: form.is_published };
       await put(`/cms/${form.key}`, body);
       setModal(false); fetchData();
-    } catch (err: any) { alert(err.response?.data?.message || 'Gagal menyimpan'); }
+    } catch (err: any) { toast(err.response?.data?.message || 'Gagal menyimpan', 'error'); }
   };
 
   if (loading) return <div className="flex items-center justify-center py-20 text-slate-400">Memuat...</div>;

@@ -6,6 +6,7 @@ import Modal from '../../components/ui/Modal';
 import Badge from '../../components/ui/Badge';
 import { Search, Eye, Upload } from 'lucide-react';
 import FileUpload from '../../components/ui/FileUpload';
+import { toast } from '../../context/ToastContext';
 
 const statusBadge: Record<string, 'warning' | 'info' | 'success' | 'danger'> = { baru: 'warning', verifikasi: 'info', diterima: 'success', ditolak: 'danger', daftar_ulang: 'success' };
 
@@ -28,7 +29,7 @@ export default function PPDBPage() {
 
   const openDetail = async (id: string) => {
     try { const r = await get<PPDB>(`/ppdb/${id}`); setDetail(r); setDetailModal(true); }
-    catch (err: any) { alert(err.message); }
+    catch (err: any) { toast(err.message, 'error'); }
   };
 
   const openUpload = (id: string) => { setUploadPendaftar(id); setUploadForm({ nama: '', url: '' }); setUploadModal(true); };
@@ -40,12 +41,12 @@ export default function PPDBPage() {
       await post(`/ppdb/${uploadPendaftar}/upload-dokumen`, { dokumen: [uploadForm] });
       setUploadModal(false);
       if (detail?.id === uploadPendaftar) { const r = await get<PPDB>(`/ppdb/${uploadPendaftar}`); setDetail(r); }
-    } catch (err: any) { alert(err.response?.data?.message || 'Gagal upload dokumen'); }
+    } catch (err: any) { toast(err.response?.data?.message || 'Gagal upload dokumen', 'error'); }
   };
 
   const updateStatus = async (id: string, status: string) => {
     try { await post(`/ppdb/${id}/status`, { status }); fetchData(); setDetailModal(false); }
-    catch (err: any) { alert(err.response?.data?.message || err.message); }
+    catch (err: any) { toast(err.response?.data?.message || err.message, 'error'); }
   };
 
   const columns = [

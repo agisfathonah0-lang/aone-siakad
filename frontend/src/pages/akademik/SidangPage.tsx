@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { get, getPaginated, post, put, del as apiDel } from '../../api/client';
+import { toast } from '../../context/ToastContext';
 import type { Sidang } from '../../types';
 import DataTable from '../../components/ui/DataTable';
 import Modal from '../../components/ui/Modal';
@@ -99,13 +100,13 @@ export default function SidangPage() {
         await post('/akademik/sidang', payload);
       }
       setModal(false); fetchData();
-    } catch (err: any) { alert(err.response?.data?.message || err.message); }
+    } catch (err: any) { toast(err.response?.data?.message || err.message, 'error'); }
   };
 
   const remove = async (id: string) => {
     if (!confirm('Hapus data sidang ini?')) return;
     try { await apiDel(`/akademik/sidang/${id}`); fetchData(); }
-    catch (err: any) { alert(err.response?.data?.message || err.message); }
+    catch (err: any) { toast(err.response?.data?.message || err.message, 'error'); }
   };
 
   const [nilaiModal, setNilaiModal] = useState<Sidang | null>(null);
@@ -122,14 +123,14 @@ export default function SidangPage() {
     try {
       await put(`/akademik/sidang/${nilaiModal.id}/nilai`, nilaiForm);
       setNilaiModal(null); fetchData();
-    } catch (err: any) { alert(err.response?.data?.message || err.message); }
+    } catch (err: any) { toast(err.response?.data?.message || err.message, 'error'); }
   };
 
   const updateStatus = async (id: string, status: string) => {
     try {
       await put(`/akademik/sidang/${id}/status`, { status });
       fetchData();
-    } catch (err: any) { alert(err.response?.data?.message || err.message); }
+    } catch (err: any) { toast(err.response?.data?.message || err.message, 'error'); }
   };
 
   const hitungNilaiHuruf = (nilai: number): string => {

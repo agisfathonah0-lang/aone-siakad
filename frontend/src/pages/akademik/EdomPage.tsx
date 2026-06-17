@@ -6,6 +6,7 @@ import DataTable from '../../components/ui/DataTable';
 import Modal from '../../components/ui/Modal';
 import Badge from '../../components/ui/Badge';
 import { Plus, Pencil, Trash2, CheckCircle, Calendar, Star, Send, ClipboardCheck, BarChart3, Users, Search, Loader2 } from 'lucide-react';
+import { toast } from '../../context/ToastContext';
 
 const aspekList = ['Pengajaran', 'Materi', 'Sikap', 'Komunikasi', 'Penugasan'];
 const aspekColors: Record<string, string> = { Pengajaran: 'info', Materi: 'success', Sikap: 'warning', Komunikasi: 'info', Penugasan: 'default' };
@@ -86,13 +87,13 @@ function KuisionerTab() {
       else await post('/akademik/edom/kuisioner', form);
       setModal(false);
       fetchData();
-    } catch (err: any) { alert(err.response?.data?.message || err.message); }
+    } catch (err: any) { toast(err.response?.data?.message || err.message, 'error'); }
   };
 
   const handleDelete = async (id: string) => {
     if (!confirm('Yakin ingin menghapus pertanyaan ini?')) return;
     try { await del(`/akademik/edom/kuisioner/${id}`); fetchData(); }
-    catch (err: any) { alert(err.response?.data?.message || err.message); }
+    catch (err: any) { toast(err.response?.data?.message || err.message, 'error'); }
   };
 
   const columns = [
@@ -188,18 +189,18 @@ function PeriodeTab() {
       else await post('/akademik/edom/periode', form);
       setModal(false);
       fetchData();
-    } catch (err: any) { alert(err.response?.data?.message || err.message); }
+    } catch (err: any) { toast(err.response?.data?.message || err.message, 'error'); }
   };
 
   const handleDelete = async (id: string) => {
     if (!confirm('Yakin ingin menghapus periode ini?')) return;
     try { await del(`/akademik/edom/periode/${id}`); fetchData(); }
-    catch (err: any) { alert(err.response?.data?.message || err.message); }
+    catch (err: any) { toast(err.response?.data?.message || err.message, 'error'); }
   };
 
   const handleAktifkan = async (id: string) => {
     try { await post(`/akademik/edom/periode/${id}/aktifkan`); fetchData(); }
-    catch (err: any) { alert(err.response?.data?.message || err.message); }
+    catch (err: any) { toast(err.response?.data?.message || err.message, 'error'); }
   };
 
   const openJadwal = async (p: EdomPeriode) => {
@@ -223,7 +224,7 @@ function PeriodeTab() {
       setSelectedJadwal('');
       const res = await get<EdomJadwal[]>(`/akademik/edom/jadwal/${selectedPeriode.id}`);
       setJadwalList(Array.isArray(res) ? res : []);
-    } catch (err: any) { alert(err.response?.data?.message || err.message); }
+    } catch (err: any) { toast(err.response?.data?.message || err.message, 'error'); }
   };
 
   const removeJadwal = async (id: string) => {
@@ -231,7 +232,7 @@ function PeriodeTab() {
     try {
       await del(`/akademik/edom/jadwal/${id}`);
       setJadwalList((prev) => prev.filter((j) => j.id !== id));
-    } catch (err: any) { alert(err.response?.data?.message || err.message); }
+    } catch (err: any) { toast(err.response?.data?.message || err.message, 'error'); }
   };
 
   const columns = [
@@ -418,7 +419,7 @@ function IsiEvaluasiTab() {
       setCompletedJadwal((prev) => new Set(prev).add(selectedJadwal.id));
       setAlreadyFilled((prev) => new Set(prev).add(selectedJadwal.id));
       setEvaluasiModal(false);
-    } catch (err: any) { alert(err.response?.data?.message || err.message); }
+    } catch (err: any) { toast(err.response?.data?.message || err.message, 'error'); }
     finally { setSubmitting(false); }
   };
 

@@ -6,6 +6,7 @@ import Modal from '../../components/ui/Modal';
 import Badge from '../../components/ui/Badge';
 import { useAuth } from '../../context/AuthContext';
 import { Send, Plus, RefreshCw } from 'lucide-react';
+import { toast } from '../../context/ToastContext';
 
 const roleAccess = ['super_admin', 'admin', 'akademik'];
 
@@ -36,7 +37,7 @@ export default function AlumniPage() {
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     try { await post('/alumni/tracer', form); setModal(false); fetchData(); setForm({ tahun_lulus: new Date().getFullYear(), institusi: '', pekerjaan: '', gaji: 5000000, masa_tunggu: 3, kesesuaian: 'Sesuai', kepuasan: 3, saran: '' }); }
-    catch (err: any) { alert(err.response?.data?.message || err.message); }
+    catch (err: any) { toast(err.response?.data?.message || err.message, 'error'); }
   };
 
   const rupiah = (n: number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(n);

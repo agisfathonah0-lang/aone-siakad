@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
+import { toast } from '../../context/ToastContext';
 import api, { get, getPaginated, post, patch } from '../../api/client';
 import { Plus, Printer, Search, Loader2 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
@@ -95,7 +96,7 @@ export default function KRSPage() {
 
   async function handleApprove(id: string) {
     try { await patch(`/akademik/krs/${id}/approve`); fetchData(); }
-    catch (err: any) { alert(err.response?.data?.message || err.message); }
+    catch (err: any) { toast(err.response?.data?.message || err.message, 'error'); }
   }
 
   async function handleReject(id: string) {
@@ -105,7 +106,7 @@ export default function KRSPage() {
       setRejectReason('');
       fetchData();
     } catch (err: any) {
-      alert(err.response?.data?.message || err.message);
+      toast(err.response?.data?.message || err.message, 'error');
     }
   }
 
@@ -140,7 +141,7 @@ export default function KRSPage() {
       setSelectedJadwal('');
       fetchData();
     } catch (err: any) {
-      alert(err.response?.data?.message || err.message);
+      toast(err.response?.data?.message || err.message, 'error');
     } finally { setSubmitting(false); }
   }
 
@@ -217,7 +218,7 @@ export default function KRSPage() {
                   const url = window.URL.createObjectURL(new Blob([response.data]));
                   window.open(url, '_blank');
                 } catch (err: any) {
-                  alert(err.response?.data?.message || err.message);
+                  toast(err.response?.data?.message || err.message, 'error');
                 } finally {
                   setLoadingCetak(false);
                 }

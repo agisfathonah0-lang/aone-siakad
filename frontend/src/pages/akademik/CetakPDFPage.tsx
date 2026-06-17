@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { get } from '../../api/client';
 import api from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
+import { toast } from '../../context/ToastContext';
 import { Printer, Search, Loader2, FileText, Calendar } from 'lucide-react';
 import type { Mahasiswa } from '../../types';
 
@@ -44,7 +45,7 @@ export default function CetakPDFPage() {
       const url = window.URL.createObjectURL(new Blob([response.data]));
       window.open(url, '_blank');
     } catch (err: any) {
-      alert(err.response?.data?.message || err.message);
+      toast(err.response?.data?.message || err.message, 'error');
     } finally {
       setLoadingCetak(false);
     }
