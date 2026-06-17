@@ -199,6 +199,45 @@ h1, h2, h3, h4, h5, h6 {
   50% { opacity: 0.8; }
 }
 
+@keyframes slide-in {
+  0% { opacity: 0; transform: translateX(100%) scale(0.95); }
+  100% { opacity: 1; transform: translateX(0) scale(1); }
+}
+
+@keyframes spin-slow {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes float-up {
+  0% { transform: translateY(0) scale(0); opacity: 0; }
+  20% { opacity: 1; }
+  80% { opacity: 0.5; }
+  100% { transform: translateY(-100vh) scale(1); opacity: 0; }
+}
+
+@utility animate-slide-in {
+  animation: slide-in 0.35s ease-out;
+}
+
+@utility animate-spin-slow {
+  animation: spin-slow 3s linear infinite;
+}
+
+@utility animate-float-up {
+  animation: float-up 3s ease-in infinite;
+}
+
+@utility animate-shimmer {
+  background-size: 400% 100%;
+  animation: shimmer-bg 2s ease-in-out infinite;
+}
+
+@keyframes shimmer-bg {
+  0% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
 .dark select option {
   background: #18181b;
   color: #e4e4e7;

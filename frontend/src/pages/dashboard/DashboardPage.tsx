@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { get } from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
-import { Users, BookOpen, DollarSign, GraduationCap, Loader2, FileSpreadsheet, Printer, Library, BellRing, TrendingUp, ArrowRight, Sparkles, School, UserCheck, BookMarked, ScrollText, ClipboardCheck, CreditCard, Bot, Wallet, Receipt, CheckCircle, Clock, AlertCircle, User } from 'lucide-react';
+import { Users, BookOpen, DollarSign, GraduationCap, Loader2, FileSpreadsheet, Printer, Library, BellRing, TrendingUp, ArrowRight, Sparkles, School, UserCheck, BookMarked, ScrollText, ClipboardCheck, CreditCard, Bot, Wallet, Receipt, CheckCircle, Clock, AlertCircle, User, BarChart3 } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
+import Skeleton from '../../components/ui/Skeleton';
 
 const adminQuickActions = [
   { label: 'Tambah Mahasiswa', icon: UserCheck, path: 'mahasiswa', color: 'from-emerald-500 to-emerald-600' },
@@ -19,23 +20,73 @@ const mhsQuickActions = [
   { label: 'Riwayat Bayar', icon: CreditCard, path: 'riwayat-pembayaran', color: 'from-rose-500 to-rose-600' },
 ];
 
-  const adminGradientMap: Record<string, string> = {
-    Mahasiswa: 'from-indigo-500/20 via-indigo-500/5 to-transparent',
-    Dosen: 'from-emerald-500/20 via-emerald-500/5 to-transparent',
-    'Mata Kuliah': 'from-amber-500/20 via-amber-500/5 to-transparent',
-    Tagihan: 'from-rose-500/20 via-rose-500/5 to-transparent',
-    Alumni: 'from-purple-500/20 via-purple-500/5 to-transparent',
-    Prodi: 'from-cyan-500/20 via-cyan-500/5 to-transparent',
-  };
+const adminGradientMap: Record<string, string> = {
+  Mahasiswa: 'from-indigo-500/20 via-indigo-500/5 to-transparent',
+  Dosen: 'from-emerald-500/20 via-emerald-500/5 to-transparent',
+  'Mata Kuliah': 'from-amber-500/20 via-amber-500/5 to-transparent',
+  Tagihan: 'from-rose-500/20 via-rose-500/5 to-transparent',
+  Alumni: 'from-purple-500/20 via-purple-500/5 to-transparent',
+  Prodi: 'from-cyan-500/20 via-cyan-500/5 to-transparent',
+};
 
-  const cardGradients: Record<string, string> = {
-    Mahasiswa: 'from-indigo-500 to-indigo-600',
-    Dosen: 'from-emerald-500 to-emerald-600',
-    'Mata Kuliah': 'from-amber-500 to-amber-600',
-    Tagihan: 'from-rose-500 to-rose-600',
-    Alumni: 'from-purple-500 to-purple-600',
-    Prodi: 'from-cyan-500 to-cyan-600',
-  };
+function StatCardSkeleton() {
+  return (
+    <div className="bg-white dark:bg-zinc-900/50 rounded-2xl p-4 shadow-sm ring-1 ring-slate-200/50 dark:ring-zinc-800/30">
+      <Skeleton className="w-10 h-10 rounded-xl mb-3" />
+      <Skeleton className="h-7 w-16 mb-1" />
+      <Skeleton className="h-3 w-20" />
+    </div>
+  );
+}
+
+function ProgressBar({ value, total, color }: { value: number; total: number; color: string }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [visible, setVisible] = useState(false);
+  const pct = Math.min((value / Math.max(total, 1)) * 100, 100);
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) { setVisible(true); observer.disconnect(); }
+    }, { threshold: 0.3 });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <div ref={ref} className="w-full h-1.5 bg-slate-100 dark:bg-zinc-800 rounded-full overflow-hidden">
+      <div
+        className={`h-full rounded-full transition-all duration-1000 ease-out ${color}`}
+        style={{ width: visible ? `${pct}%` : '0%' }}
+      />
+    </div>
+  );
+}
+
+function MiniBarChart({ data }: { data: Array<{ label: string; value: number }> }) {
+  const maxVal = Math.max(...data.map(d => d.value), 1);
+  return (
+    <div className="flex items-end gap-1.5 h-20 pt-2">
+      {data.map((d, i) => {
+        const h = (d.value / maxVal) * 100;
+        const color = d.value >= 3 ? 'bg-emerald-500' : d.value >= 2.5 ? 'bg-amber-500' : 'bg-red-400';
+        return (
+          <div key={i} className="flex-1 flex flex-col items-center gap-1">
+            <span className="text-[9px] font-bold dark:text-white tabular-nums">{d.value.toFixed(2)}</span>
+            <div className="w-full flex flex-col items-center">
+              <div
+                className={`w-full rounded-t-sm ${color} transition-all duration-700 ease-out`}
+                style={{ height: `${Math.max(h, 4)}%` }}
+              />
+              <span className="text-[7px] text-slate-400 dark:text-zinc-500 mt-1 truncate w-full text-center">{d.label}</span>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
 
 export default function DashboardPage() {
   const navigate = useNavigate();
@@ -95,11 +146,34 @@ export default function DashboardPage() {
   }, [isMahasiswa]);
 
   if (loading) return (
-    <div className="flex items-center justify-center py-32">
-      <div className="text-center">
-        <Loader2 className="w-8 h-8 animate-spin text-emerald-500 mx-auto mb-3" />
-        <p className="text-sm text-slate-400">Memuat dashboard...</p>
-      </div>
+    <div className="space-y-6 animate-fade-in">
+      <Skeleton className="h-32 rounded-2xl" />
+      {isMahasiswa ? (
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
+            <Skeleton className="h-44 rounded-2xl" />
+            <div className="md:col-span-3 grid grid-cols-2 sm:grid-cols-4 gap-3">
+              {[...Array(4)].map((_, i) => <StatCardSkeleton key={i} />)}
+            </div>
+          </div>
+          <Skeleton className="h-32 rounded-2xl" />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <Skeleton className="h-52 rounded-2xl" />
+            <Skeleton className="h-52 rounded-2xl" />
+          </div>
+        </>
+      ) : (
+        <>
+          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
+            {[...Array(6)].map((_, i) => <StatCardSkeleton key={i} />)}
+          </div>
+          <Skeleton className="h-32 rounded-2xl" />
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            <Skeleton className="h-52 rounded-2xl" />
+            <Skeleton className="h-52 rounded-2xl" />
+          </div>
+        </>
+      )}
     </div>
   );
 
@@ -110,6 +184,11 @@ export default function DashboardPage() {
   const mhs = mhsProfile || {};
   const totalSks = khsData?.totalSks || 0;
   const ipk = khsData?.ipk || 0;
+
+  const ipData = (khsData?.semesters || []).slice(-6).map((sem: any) => ({
+    label: sem.semester,
+    value: parseFloat(sem.ip) || 0,
+  }));
 
   return (
     <div className="space-y-6">
@@ -239,7 +318,7 @@ export default function DashboardPage() {
 
             <div className="bg-white dark:bg-zinc-900/50 rounded-2xl p-5 shadow-sm ring-1 ring-slate-200/50 dark:ring-zinc-800/30">
               <div className="flex items-center gap-2 mb-4">
-                <TrendingUp size={15} className="text-emerald-500" />
+                <BarChart3 size={15} className="text-emerald-500" />
                 <h2 className="text-sm font-bold font-display dark:text-white">Ringkasan Akademik</h2>
               </div>
               {!khsData?.semesters?.length ? (
@@ -248,22 +327,30 @@ export default function DashboardPage() {
                   <p className="text-xs font-medium">Belum ada data KHS</p>
                 </div>
               ) : (
-                <div className="space-y-2.5">
-                  {khsData.semesters.slice(-4).reverse().map((sem: any, i: number) => (
-                    <div key={i} className="flex items-center justify-between p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-zinc-800/50 transition-all">
-                      <div>
-                        <p className="text-xs font-semibold dark:text-white">Semester {sem.semester} ({sem.tahunAkademik})</p>
-                        <p className="text-[10px] text-slate-400">{sem.totalSks} SKS</p>
-                      </div>
-                      <span className={`text-xs font-bold ${sem.ip >= 3 ? 'text-emerald-500' : sem.ip >= 2.5 ? 'text-amber-500' : 'text-red-500'}`}>IP: {sem.ip}</span>
+                <>
+                  {ipData.length > 1 && (
+                    <div className="mb-4 p-3 rounded-xl bg-slate-50 dark:bg-zinc-800/30">
+                      <p className="text-[10px] font-semibold text-slate-400 mb-2 uppercase tracking-wider">Trend IP per Semester</p>
+                      <MiniBarChart data={ipData} />
                     </div>
-                  ))}
-                  {khsData.semesters.length > 4 && (
-                    <button onClick={() => navigate('khs')} className="flex items-center gap-1 text-xs font-semibold text-emerald-500 hover:text-emerald-400 transition-colors mt-1">
-                      Lihat KHS lengkap <ArrowRight size={12} />
-                    </button>
                   )}
-                </div>
+                  <div className="space-y-2.5">
+                    {khsData.semesters.slice(-4).reverse().map((sem: any, i: number) => (
+                      <div key={i} className="flex items-center justify-between p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-zinc-800/50 transition-all">
+                        <div>
+                          <p className="text-xs font-semibold dark:text-white">Semester {sem.semester} ({sem.tahunAkademik})</p>
+                          <p className="text-[10px] text-slate-400">{sem.totalSks} SKS</p>
+                        </div>
+                        <span className={`text-xs font-bold ${sem.ip >= 3 ? 'text-emerald-500' : sem.ip >= 2.5 ? 'text-amber-500' : 'text-red-500'}`}>IP: {sem.ip}</span>
+                      </div>
+                    ))}
+                    {khsData.semesters.length > 4 && (
+                      <button onClick={() => navigate('khs')} className="flex items-center gap-1 text-xs font-semibold text-emerald-500 hover:text-emerald-400 transition-colors mt-1">
+                        Lihat KHS lengkap <ArrowRight size={12} />
+                      </button>
+                    )}
+                  </div>
+                </>
               )}
             </div>
           </div>
@@ -332,9 +419,7 @@ export default function DashboardPage() {
                       <span className="text-slate-500 dark:text-zinc-400">{item.label}</span>
                       <span className="font-bold dark:text-white">{item.value}</span>
                     </div>
-                    <div className="w-full h-1.5 bg-slate-100 dark:bg-zinc-800 rounded-full overflow-hidden">
-                      <div className={`h-full rounded-full transition-all duration-500 ${item.color}`} style={{ width: `${Math.min((item.value / Math.max(item.total, 1)) * 100, 100)}%` }} />
-                    </div>
+                    <ProgressBar value={item.value} total={item.total} color={item.color} />
                   </div>
                 ))}
               </div>
@@ -350,19 +435,25 @@ export default function DashboardPage() {
               </div>
               <div className="grid grid-cols-2 gap-2">
                 {[
-                  { label: 'Perpustakaan', path: 'perpustakaan', icon: Library, color: 'text-amber-500', bg: 'bg-amber-50 dark:bg-amber-900/20' },
-                  { label: 'PPDB', path: 'ppdb', icon: Users, color: 'text-indigo-500', bg: 'bg-indigo-50 dark:bg-indigo-900/20' },
-                  { label: 'Keuangan', path: 'tagihan', icon: DollarSign, color: 'text-rose-500', bg: 'bg-rose-50 dark:bg-rose-900/20' },
-                  { label: 'EDOM', path: 'edom', icon: BellRing, color: 'text-purple-500', bg: 'bg-purple-50 dark:bg-purple-900/20' },
-                  { label: 'Akreditasi', path: 'akreditasi', icon: BookOpen, color: 'text-cyan-500', bg: 'bg-cyan-50 dark:bg-cyan-900/20' },
-                  { label: 'Integrasi LMS', path: 'integrasi-lms', icon: TrendingUp, color: 'text-emerald-500', bg: 'bg-emerald-50 dark:bg-emerald-900/20' },
+                  { label: 'Perpustakaan', path: 'perpustakaan', icon: Library, color: 'text-amber-500', bg: 'bg-amber-50 dark:bg-amber-900/20', bar: 'bg-amber-500' },
+                  { label: 'PPDB', path: 'ppdb', icon: Users, color: 'text-indigo-500', bg: 'bg-indigo-50 dark:bg-indigo-900/20', bar: 'bg-indigo-500' },
+                  { label: 'Keuangan', path: 'tagihan', icon: DollarSign, color: 'text-rose-500', bg: 'bg-rose-50 dark:bg-rose-900/20', bar: 'bg-rose-500' },
+                  { label: 'EDOM', path: 'edom', icon: BellRing, color: 'text-purple-500', bg: 'bg-purple-50 dark:bg-purple-900/20', bar: 'bg-purple-500' },
+                  { label: 'Akreditasi', path: 'akreditasi', icon: BookOpen, color: 'text-cyan-500', bg: 'bg-cyan-50 dark:bg-cyan-900/20', bar: 'bg-cyan-500' },
+                  { label: 'Integrasi LMS', path: 'integrasi-lms', icon: TrendingUp, color: 'text-emerald-500', bg: 'bg-emerald-50 dark:bg-emerald-900/20', bar: 'bg-emerald-500' },
                 ].map((mod) => (
                   <button key={mod.label} onClick={() => navigate(mod.path)}
-                    className="flex items-center gap-2.5 p-2.5 rounded-xl hover:bg-slate-50 dark:hover:bg-zinc-800/50 transition-all text-left">
-                    <div className={`w-8 h-8 rounded-lg ${mod.bg} flex items-center justify-center ${mod.color}`}>
-                      <mod.icon size={15} />
+                    className="group relative overflow-hidden rounded-xl p-2.5 text-left transition-all hover:-translate-y-0.5 hover:shadow-md active:scale-[0.98] bg-white dark:bg-zinc-900/50 ring-1 ring-slate-200/50 dark:ring-zinc-800/30 hover:ring-2"
+                    style={{ ['--hover-color' as string]: mod.bar.replace('bg-', 'rgb(var(--color-') }}
+                  >
+                    <div className={`absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-r ${mod.bar.replace('bg-', 'from-')}/10 via-transparent to-transparent`} />
+                    <div className="absolute top-0 left-0 w-full h-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-r from-transparent via-current to-transparent" style={{ color: mod.bar.replace('bg-', '') }} />
+                    <div className="relative flex items-center gap-2.5">
+                      <div className={`w-8 h-8 rounded-lg ${mod.bg} flex items-center justify-center ${mod.color} transition-transform duration-300 group-hover:scale-110`}>
+                        <mod.icon size={15} />
+                      </div>
+                      <span className="text-xs font-semibold dark:text-white">{mod.label}</span>
                     </div>
-                    <span className="text-xs font-semibold dark:text-white">{mod.label}</span>
                   </button>
                 ))}
               </div>
