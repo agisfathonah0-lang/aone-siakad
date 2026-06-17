@@ -10,6 +10,7 @@
     "migrate": "tsx src/database/migrate.ts",
     "migrate:create": "tsx src/database/migrate.ts --create",
     "seed": "tsx src/database/seed.ts",
+"seed:content": "tsx src/database/seed-content.ts",
     "lint": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest"
