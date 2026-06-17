@@ -1,9 +1,11 @@
 import { useState, useEffect } from 'react';
 import { get, put } from '../../api/client';
-import { Loader2, Save, CheckCircle2, CreditCard, Eye, EyeOff } from 'lucide-react';
+import { Loader2, Save, CheckCircle2, CreditCard, Eye, EyeOff, Image as ImageIcon } from 'lucide-react';
+import FileUpload from '../../components/ui/FileUpload';
 
 export default function CampusSettingsPage() {
   const [settings, setSettings] = useState<Record<string, any>>({});
+  const [tenantInfo, setTenantInfo] = useState<{ logo_url: string | null }>({ logo_url: null });
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState<string | null>(null);
   const [showMidtransKey, setShowMidtransKey] = useState(false);
@@ -13,8 +15,12 @@ export default function CampusSettingsPage() {
   async function load() {
     setLoading(true);
     try {
-      const d = await get<Record<string, any>>('/akademik/settings');
+      const [d, t] = await Promise.all([
+        get<Record<string, any>>('/akademik/settings'),
+        get<{ logo_url: string | null }>('/akademik/settings/tenant').catch(() => ({ logo_url: null })),
+      ]);
       setSettings(d || {});
+      setTenantInfo(t || { logo_url: null });
     } finally { setLoading(false); }
   }
 
@@ -50,6 +56,32 @@ export default function CampusSettingsPage() {
       <div>
         <h1 className="text-xl font-bold font-display tracking-tight dark:text-white">Pengaturan Kampus</h1>
         <p className="text-xs text-slate-500 dark:text-zinc-500">Konfigurasi sistem akademik</p>
+      </div>
+
+      <div className="bg-white dark:bg-zinc-900/50 rounded-xl p-5 shadow-sm ring-1 ring-slate-200/50 dark:ring-zinc-800/30 space-y-4 max-w-2xl">
+        <div className="flex items-center gap-2 pb-2 border-b border-slate-100 dark:border-zinc-800">
+          <ImageIcon size={16} className="text-emerald-500" />
+          <h2 className="text-sm font-bold font-display dark:text-white">Logo Kampus</h2>
+        </div>
+        <div className="flex items-center gap-4">
+          {tenantInfo.logo_url && (
+            <div className="w-16 h-16 rounded-xl overflow-hidden bg-slate-100 dark:bg-zinc-800 shrink-0">
+              <img src={tenantInfo.logo_url} alt="Logo" className="w-full h-full object-cover" />
+            </div>
+          )}
+          <div className="flex-1">
+            <FileUpload
+              value={tenantInfo.logo_url || ''}
+              onChange={async (url) => {
+                await put('/akademik/settings/tenant/logo', { logo_url: url });
+                setTenantInfo(prev => ({ ...prev, logo_url: url }));
+              }}
+              accept="image/*"
+              label="Upload Logo Kampus"
+              hint="Format JPG, PNG, WEBP. Maks 2MB."
+            />
+          </div>
+        </div>
       </div>
 
       <div className="bg-white dark:bg-zinc-900/50 rounded-xl p-5 shadow-sm ring-1 ring-slate-200/50 dark:ring-zinc-800/30 space-y-4 max-w-2xl">

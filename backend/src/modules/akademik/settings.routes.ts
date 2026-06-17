@@ -37,4 +37,22 @@ router.put('/:key', authenticate, requireRole(Role.ADMIN), async (req: Request, 
   } catch (err) { next(err); }
 });
 
+router.get('/tenant', authenticate, requireRole(Role.ADMIN, Role.AKADEMIK), async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    if (!req.tenant) throw new AppError(400, 'Tenant tidak terdeteksi');
+    const { rows } = await query('SELECT id, slug, name, nama_pt, singkatan, logo_url, alamat, telepon, email, website FROM public.tenants WHERE id = $1', [req.tenant.id]);
+    sendSuccess(res, rows[0] || null);
+  } catch (err) { next(err); }
+});
+
+router.put('/tenant/logo', authenticate, requireRole(Role.ADMIN), async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    if (!req.tenant) throw new AppError(400, 'Tenant tidak terdeteksi');
+    const { logo_url } = req.body;
+    if (!logo_url) throw new AppError(400, 'URL logo wajib dikirim');
+    await query('UPDATE public.tenants SET logo_url = $1 WHERE id = $2', [logo_url, req.tenant.id]);
+    sendSuccess(res, { logo_url }, 'Logo berhasil diperbarui');
+  } catch (err) { next(err); }
+});
+
 export default router;
