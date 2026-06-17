@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { get } from '../api/client';
 import useSEO from '../hooks/useSEO';
+import SplashScreen from '../components/ui/SplashScreen';
 import { Building2, GraduationCap, Users, BookOpen, ArrowRight, ExternalLink, Loader2, Award, UserCheck, ChevronLeft, ChevronRight, X, Mail, Phone, MapPin, Calendar, Target, Eye, Quote, School, Trophy, Sparkles } from 'lucide-react';
 
 interface CampusData {
@@ -90,9 +91,7 @@ function CampusLandingPage({ slug }: { slug: string }) {
   }, [data, nextHero]);
 
   if (loading) return (
-    <div className="min-h-screen bg-black flex items-center justify-center">
-      <Loader2 className="w-6 h-6 animate-spin text-emerald-500" />
-    </div>
+    <SplashScreen logo={data?.tenant.logo_url || '/logo.png'} nama={data?.tenant.nama_pt || 'Memuat...'} duration={3000} onDone={() => {}} />
   );
 
   if (error || !data) return (

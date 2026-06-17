@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import useSEO from '../hooks/useSEO';
+import SplashScreen from '../components/ui/SplashScreen';
 import {
   GraduationCap, Wallet, Library, Star, Award, Printer, Database, Layout,
   Sparkles, ArrowRight, Check, Menu, X, Users, Quote, ChevronDown, Clock
@@ -74,6 +75,7 @@ function Counter({ target, suffix = '' }: { target: number; suffix?: string }) {
 
 export default function LandingPage() {
   const navigate = useNavigate();
+  const [showSplash, setShowSplash] = useState(true);
   const [mobileMenu, setMobileMenu] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [promoSlots, setPromoSlots] = useState(10);
@@ -98,7 +100,9 @@ export default function LandingPage() {
   }, []);
 
   return (
-    <div className="min-h-screen font-sans bg-white text-slate-900 overflow-x-hidden">
+    <>
+      {showSplash && <SplashScreen onDone={() => setShowSplash(false)} />}
+      <div className="min-h-screen font-sans bg-white text-slate-900 overflow-x-hidden" style={{ display: showSplash ? 'none' : undefined }}>
       <div className="relative bg-gradient-to-r from-emerald-600 via-emerald-500 to-indigo-600 overflow-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 sm:py-4 relative z-10 flex flex-col sm:flex-row items-center justify-between gap-3">
           <div className="flex items-center gap-3 text-xs sm:text-sm text-white/90">
@@ -324,5 +328,6 @@ export default function LandingPage() {
         </div>
       </footer>
     </div>
+    </>
   );
 }
