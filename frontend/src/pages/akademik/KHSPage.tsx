@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { get } from '../../api/client';
-import { Loader2, AlertCircle, GraduationCap, BookOpen } from 'lucide-react';
+import { Loader2, GraduationCap, BookOpen, SearchX, FileQuestion } from 'lucide-react';
 
 interface MataKuliah {
   kode: string; mk_nama: string; sks: number;
@@ -43,7 +43,39 @@ export default function KHSPage() {
   };
 
   if (loading) return <div className="flex items-center justify-center py-20 text-slate-400"><Loader2 className="w-5 h-5 animate-spin mr-2" /><span className="text-sm font-medium">Memuat KHS...</span></div>;
-  if (error) return <div className="flex flex-col items-center justify-center py-20 text-red-400"><AlertCircle className="w-8 h-8 mb-2" /><p className="text-sm font-medium">Gagal memuat KHS</p><p className="text-xs mt-1">{error}</p><button onClick={fetchData} className="mt-3 text-xs text-indigo-500 hover:underline">Coba Lagi</button></div>;
+
+  const noData = error?.toLowerCase().includes('tidak ditemukan') || error?.toLowerCase().includes('belum ada') || error?.toLowerCase().includes('no data');
+
+  if (error && noData) return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h1 className="text-xl font-bold font-display tracking-tight dark:text-white">Kartu Hasil Studi</h1>
+      </div>
+      <div className="flex flex-col items-center justify-center py-20 text-slate-400">
+        <div className="w-16 h-16 rounded-2xl bg-slate-100 dark:bg-zinc-800/50 flex items-center justify-center mb-4">
+          <SearchX className="w-8 h-8 text-slate-300 dark:text-zinc-600" />
+        </div>
+        <p className="text-sm font-semibold text-slate-600 dark:text-zinc-300">Belum Ada Data KHS</p>
+        <p className="text-xs text-slate-400 dark:text-zinc-500 mt-1 text-center max-w-xs">Data Kartu Hasil Studi belum tersedia. Hubungi bagian akademik untuk informasi lebih lanjut.</p>
+      </div>
+    </div>
+  );
+
+  if (error) return (
+    <div className="space-y-4">
+      <div className="flex items-center justify-between">
+        <h1 className="text-xl font-bold font-display tracking-tight dark:text-white">Kartu Hasil Studi</h1>
+      </div>
+      <div className="flex flex-col items-center justify-center py-20 text-red-400">
+        <div className="w-16 h-16 rounded-2xl bg-red-50 dark:bg-red-900/20 flex items-center justify-center mb-4">
+          <FileQuestion className="w-8 h-8 text-red-300 dark:text-red-500" />
+        </div>
+        <p className="text-sm font-semibold text-red-500">Gagal Memuat KHS</p>
+        <p className="text-xs mt-1 text-slate-400 dark:text-zinc-500">{error}</p>
+        <button onClick={fetchData} className="mt-4 px-4 py-2 rounded-xl bg-red-50 dark:bg-red-900/20 text-red-500 text-xs font-bold hover:bg-red-100 dark:hover:bg-red-900/30 transition-all">Coba Lagi</button>
+      </div>
+    </div>
+  );
 
   return (
     <div className="space-y-4">
@@ -76,8 +108,11 @@ export default function KHSPage() {
 
       {semesters.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-slate-400">
-          <BookOpen className="w-10 h-10 mb-3" />
-          <p className="text-sm font-medium">Belum ada data KHS</p>
+          <div className="w-16 h-16 rounded-2xl bg-slate-100 dark:bg-zinc-800/50 flex items-center justify-center mb-4">
+            <BookOpen className="w-8 h-8 text-slate-300 dark:text-zinc-600" />
+          </div>
+          <p className="text-sm font-semibold text-slate-600 dark:text-zinc-300">Belum Ada Data KHS</p>
+          <p className="text-xs text-slate-400 dark:text-zinc-500 mt-1 text-center max-w-xs">Belum ada data Kartu Hasil Studi yang tersimpan. Silakan hubungi bagian akademik jika ini seharusnya sudah tersedia.</p>
         </div>
       ) : (
         <div className="space-y-3">
