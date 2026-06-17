@@ -40,7 +40,6 @@ const DEFAULT_APPEARANCE = {
 
 router.get(
   '/',
-  authenticate,
   async (req: Request, _res: Response, next: NextFunction) => {
     try {
       if (!req.tenant) throw new AppError(400, 'Tenant tidak terdeteksi');
