@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import useSEO from '../hooks/useSEO';
 import SplashScreen from '../components/ui/SplashScreen';
@@ -73,12 +73,40 @@ function Counter({ target, suffix = '' }: { target: number; suffix?: string }) {
   return <div ref={ref}>{count}{suffix}</div>;
 }
 
+function useReveal(ref: React.RefObject<HTMLElement | null>, cls = 'section-visible') {
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const observer = new IntersectionObserver(([entry]) => {
+      if (entry.isIntersecting) { el.classList.add(cls); observer.disconnect(); }
+    }, { threshold: 0.15 });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, [ref, cls]);
+}
+
 export default function LandingPage() {
   const navigate = useNavigate();
   const [showSplash, setShowSplash] = useState(true);
   const [mobileMenu, setMobileMenu] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [promoSlots, setPromoSlots] = useState(10);
+  const [taglineIdx, setTaglineIdx] = useState(0);
+  const fiturRef = useRef<HTMLElement>(null);
+  const testimoniRef = useRef<HTMLElement>(null);
+  const hargaRef = useRef<HTMLElement>(null);
+  const ctaRef = useRef<HTMLElement>(null);
+  useReveal(fiturRef as any);
+  useReveal(testimoniRef as any);
+  useReveal(hargaRef as any);
+  useReveal(ctaRef as any);
+
+  const taglines = ['Modern', 'Terintegrasi', 'All-in-One', 'Digital'];
+
+  useEffect(() => {
+    const id = setInterval(() => setTaglineIdx(p => (p + 1) % taglines.length), 2500);
+    return () => clearInterval(id);
+  }, []);
 
   useSEO(
     'AONE SIAKAD - Sistem Informasi Akademik Terintegrasi',
@@ -137,7 +165,48 @@ export default function LandingPage() {
         </div>
       </header>
 
-      <section id="fitur" className="py-24 relative bg-white">
+      <section id="hero" className="relative min-h-[85vh] flex items-center overflow-hidden bg-gradient-to-br from-emerald-50 via-white to-indigo-50">
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute -top-40 -right-40 w-96 h-96 bg-emerald-200/30 rounded-full blur-[120px]" />
+          <div className="absolute -bottom-40 -left-40 w-[500px] h-[500px] bg-indigo-200/20 rounded-full blur-[150px]" />
+          <div className="absolute top-1/3 left-1/2 w-2 h-2 bg-emerald-400/40 rounded-full animate-float" />
+          <div className="absolute top-1/4 right-1/4 w-3 h-3 bg-indigo-400/30 rounded-full animate-float" style={{ animationDelay: '1s' }} />
+          <div className="absolute bottom-1/3 left-1/4 w-1.5 h-1.5 bg-emerald-500/30 rounded-full animate-float" style={{ animationDelay: '2s' }} />
+        </div>
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full">
+          <div className="max-w-3xl">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-100/80 border border-emerald-200 text-emerald-700 text-xs font-bold mb-6 animate-fade-up">
+              <Sparkles size={12} /> Platform SIAKAD No.1 di Indonesia
+            </div>
+            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black font-display tracking-tight text-slate-900 leading-[1.05] mb-4">
+              SIAKAD{' '}
+              <span className="relative inline-block">
+                <span className="text-emerald-600">{taglines[taglineIdx]}</span>
+                <span className="absolute -bottom-1 left-0 w-full h-1 bg-emerald-500/30 rounded-full" />
+              </span>
+            </h1>
+            <p className="text-lg sm:text-xl text-slate-500 leading-relaxed max-w-2xl mb-8 animate-fade-up-delay-1">
+              Kelola akademik, keuangan, perpustakaan, PPDB, dan akreditasi dalam satu platform terintegrasi. 
+              Dipercaya 100+ institusi pendidikan di Indonesia.
+            </p>
+            <div className="flex flex-col sm:flex-row items-center gap-3 animate-fade-up-delay-2">
+              <button onClick={() => navigate('/register')} className="w-full sm:w-auto px-8 py-3.5 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white rounded-2xl text-sm font-bold shadow-xl shadow-emerald-500/25 hover:shadow-emerald-500/40 hover:scale-105 transition-all inline-flex items-center justify-center gap-2">
+                Demo Gratis <ArrowRight size={16} />
+              </button>
+              <a href="#fitur" className="w-full sm:w-auto px-8 py-3.5 rounded-2xl text-sm font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 transition-all inline-flex items-center justify-center gap-2">
+                Lihat Fitur
+              </a>
+            </div>
+            <div className="flex items-center gap-6 mt-8 text-xs text-slate-400 animate-fade-up-delay-3">
+              <span className="flex items-center gap-1.5"><Check size={12} className="text-emerald-500" /> Gratis 14 hari</span>
+              <span className="flex items-center gap-1.5"><Check size={12} className="text-emerald-500" /> No CC required</span>
+              <span className="flex items-center gap-1.5"><Check size={12} className="text-emerald-500" /> Support 24/7</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="fitur" ref={fiturRef} className="py-24 relative bg-white section-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto mb-16 space-y-4">
             <span className="text-emerald-600 text-sm font-bold font-mono tracking-widest uppercase">Fitur Lengkap</span>
@@ -146,7 +215,7 @@ export default function LandingPage() {
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {features.map((f, i) => (
-              <Link key={i} to={`/fitur/${featureSlugs[f.title] || f.title.toLowerCase().replace(/\s+/g, '-')}`} className="group relative p-6 rounded-2xl bg-white border border-slate-200 hover:border-emerald-300 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-emerald-500/10">
+              <Link key={i} to={`/fitur/${featureSlugs[f.title] || f.title.toLowerCase().replace(/\s+/g, '-')}`} className="group relative p-6 rounded-2xl bg-white border border-slate-200 hover:border-emerald-300 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-emerald-500/10 animate-fade-up" style={{ animationDelay: `${i * 0.1}s`, animationFillMode: 'both' }}>
                 <div className={`absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity bg-gradient-to-br ${f.color}`} />
                 <div className="relative z-10">
                   <div className="w-12 h-12 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center mb-4 group-hover:bg-emerald-100 transition-colors">
@@ -185,7 +254,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <section id="testimonial" className="py-24 relative bg-slate-50">
+      <section id="testimonial" ref={testimoniRef} className="py-24 relative bg-slate-50 section-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto mb-16 space-y-4">
             <span className="text-emerald-600 text-sm font-bold font-mono tracking-widest uppercase">Testimonial</span>
@@ -194,7 +263,7 @@ export default function LandingPage() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
             {testimonials.map((t, i) => (
-              <div key={i} className="p-6 rounded-2xl bg-white border border-slate-200 hover:border-emerald-200 hover:shadow-lg transition-all duration-300">
+              <div key={i} className="p-6 rounded-2xl bg-white border border-slate-200 hover:border-emerald-200 hover:shadow-lg transition-all duration-300 animate-fade-up" style={{ animationDelay: `${i * 0.15}s`, animationFillMode: 'both' }}>
                 <Quote className="w-8 h-8 text-emerald-400/30 mb-4" />
                 <p className="text-sm text-slate-600 leading-relaxed mb-6 italic">&ldquo;{t.quote}&rdquo;</p>
                 <div className="flex items-center gap-3 pt-4 border-t border-slate-100">
@@ -222,7 +291,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <section id="harga" className="py-24 relative bg-white">
+      <section id="harga" ref={hargaRef} className="py-24 relative bg-white section-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto mb-16 space-y-4">
             <span className="text-emerald-600 text-sm font-bold font-mono tracking-widest uppercase">Harga</span>
@@ -231,7 +300,7 @@ export default function LandingPage() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
             {pricingPlans.map((plan, i) => (
-              <div key={i} className={`relative rounded-2xl border-2 p-8 transition-all duration-300 hover:-translate-y-1 ${plan.popular ? 'border-emerald-500 bg-white shadow-xl shadow-emerald-500/10 scale-105 md:scale-110' : 'border-slate-200 bg-white hover:shadow-lg'}`}>
+              <div key={i} className={`relative rounded-2xl border-2 p-8 transition-all duration-300 hover:-translate-y-1 animate-fade-up ${plan.popular ? 'border-emerald-500 bg-white shadow-xl shadow-emerald-500/10 scale-105 md:scale-110' : 'border-slate-200 bg-white hover:shadow-lg'}`} style={{ animationDelay: `${i * 0.12}s`, animationFillMode: 'both' }}>
                 {plan.popular && (
                   <div className="absolute -top-3 left-1/2 -translate-x-1/2 px-4 py-1 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white text-[10px] font-bold rounded-full shadow-lg">
                     Paling Populer
@@ -267,7 +336,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <section className="py-20 relative overflow-hidden bg-gradient-to-r from-emerald-600 to-indigo-700">
+      <section ref={ctaRef} className="py-20 relative overflow-hidden bg-gradient-to-r from-emerald-600 to-indigo-700 section-hidden">
         <div className="absolute top-0 right-0 w-[400px] h-[400px] bg-white/10 rounded-full blur-[100px]" />
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 text-center">
           <h2 className="text-4xl sm:text-5xl font-black font-display tracking-tight text-white mb-4">
