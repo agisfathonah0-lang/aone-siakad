@@ -639,6 +639,8 @@ interface Ebook {
 }
 
 function EbookSection() {
+  const { user } = useAuth();
+  const canManage = user && !['mahasiswa', 'dosen'].includes(user.role);
   const [data, setData] = useState<Ebook[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -715,7 +717,7 @@ function EbookSection() {
         </div>
         <div className="flex gap-2">
           <button onClick={fetchData} className="p-2 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-zinc-300 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors"><RefreshCw size={16} /></button>
-          <button onClick={openCreate} className="flex items-center gap-1.5 px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition-all shadow-lg shadow-indigo-500/20"><Plus size={14} /> Tambah E-book</button>
+          {canManage && <button onClick={openCreate} className="flex items-center gap-1.5 px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold transition-all shadow-lg shadow-indigo-500/20"><Plus size={14} /> Tambah E-book</button>}
         </div>
       </div>
 
@@ -750,8 +752,8 @@ function EbookSection() {
                         <Download size={11} /> Download
                       </button>
                     )}
-                    <button onClick={() => openEdit(ebook)} className="p-1 text-slate-400 hover:text-indigo-500 transition-colors"><Pencil size={13} /></button>
-                    <button onClick={() => remove(ebook.id)} className="p-1 text-slate-400 hover:text-red-500 transition-colors"><Trash2 size={13} /></button>
+                    {canManage && <button onClick={() => openEdit(ebook)} className="p-1 text-slate-400 hover:text-indigo-500 transition-colors"><Pencil size={13} /></button>}
+                    {canManage && <button onClick={() => remove(ebook.id)} className="p-1 text-slate-400 hover:text-red-500 transition-colors"><Trash2 size={13} /></button>}
                   </div>
                 </div>
               </div>

@@ -6,15 +6,15 @@ import Modal from '../../components/ui/Modal';
 import Badge from '../../components/ui/Badge';
 import { Plus, RefreshCw, Trash2 } from 'lucide-react';
 
-const hariList = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
-const hariColors: Record<string, string> = { Senin: 'info', Selasa: 'success', Rabu: 'warning', Kamis: 'info', Jumat: 'success', Sabtu: 'warning' };
+const hariList = ['senin', 'selasa', 'rabu', 'kamis', 'jumat', 'sabtu'];
+const hariColors: Record<string, string> = { senin: 'info', selasa: 'success', rabu: 'warning', kamis: 'info', jumat: 'success', sabtu: 'warning' };
 
 export default function JadwalPage() {
   const [data, setData] = useState<Jadwal[]>([]);
   const [loading, setLoading] = useState(true); const [error, setError] = useState('');
   const [page, setPage] = useState(1); const [totalPages, setTotalPages] = useState(1);
   const [modal, setModal] = useState(false); const [edit, setEdit] = useState<Jadwal | null>(null);
-  const [form, setForm] = useState({ mata_kuliah_id: '', dosen_id: '', hari: 'Senin', jam_mulai: '08:00', jam_selesai: '09:40', ruangan: '', kelas: 'A', kuota: 40, tahun_akademik: '2025/2026', semester: 'Ganjil' });
+  const [form, setForm] = useState({ mata_kuliah_id: '', dosen_id: '', hari: 'senin', jam_mulai: '08:00', jam_selesai: '09:40', ruangan: '', kelas: 'A', kuota: 40, tahun_akademik: '2025/2026', semester: 'Ganjil' });
   const [mkList, setMkList] = useState<{ id: string; kode: string; nama: string }[]>([]);
   const [dosenList, setDosenList] = useState<{ id: string; nama: string; nidn: string }[]>([]);
   const [prodi, setProdi] = useState<{ id: string; nama: string; jenjang: string }[]>([]);
@@ -52,7 +52,7 @@ export default function JadwalPage() {
 
   const openCreate = () => {
     setEdit(null);
-    setForm({ mata_kuliah_id: '', dosen_id: '', hari: 'Senin', jam_mulai: '08:00', jam_selesai: '09:40', ruangan: '', kelas: 'A', kuota: 40, tahun_akademik: '2025/2026', semester: 'Ganjil' });
+    setForm({ mata_kuliah_id: '', dosen_id: '', hari: 'senin', jam_mulai: '08:00', jam_selesai: '09:40', ruangan: '', kelas: 'A', kuota: 40, tahun_akademik: '2025/2026', semester: 'Ganjil' });
     setModal(true);
   };
 
