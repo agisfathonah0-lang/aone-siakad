@@ -106,6 +106,8 @@ export default function DashboardPage() {
   const [mhsProfile, setMhsProfile] = useState<any>(null);
   const [khsData, setKhsData] = useState<any>(null);
   const [tagihanMe, setTagihanMe] = useState<any[]>([]);
+  const [clock, setClock] = useState(new Date());
+  const [aktivitas, setAktivitas] = useState<any[]>([]);
 
   const isMahasiswa = user?.role === 'mahasiswa';
 
@@ -142,6 +144,17 @@ export default function DashboardPage() {
           prodi: prodi.pagination?.total || 0,
         });
       }).finally(() => setLoading(false));
+    }
+  }, [isMahasiswa]);
+
+  useEffect(() => {
+    const id = setInterval(() => setClock(new Date()), 1000);
+    return () => clearInterval(id);
+  }, []);
+
+  useEffect(() => {
+    if (!isMahasiswa) {
+      get<any[]>('/akademik/notifikasi?limit=5').then(setAktivitas).catch(() => {});
     }
   }, [isMahasiswa]);
 
@@ -207,9 +220,17 @@ export default function DashboardPage() {
               {isMahasiswa ? 'Selamat datang di portal mahasiswa' : 'Berikut ringkasan data kampus hari ini'}
             </p>
           </div>
-          <div className="flex items-center gap-2 text-xs text-emerald-100/70">
-            <BellRing size={14} />
-            <span>{new Date().toLocaleDateString('id', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}</span>
+          <div className="flex items-center gap-3 text-xs text-emerald-100/70">
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/10 backdrop-blur-sm border border-white/10">
+              <BellRing size={13} />
+              <span className="tabular-nums">
+                {clock.toLocaleDateString('id', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
+              </span>
+              <span className="w-1 h-1 rounded-full bg-emerald-300/50" />
+              <span className="tabular-nums font-mono font-bold text-emerald-200">
+                {clock.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+              </span>
+            </div>
           </div>
         </div>
       </div>
@@ -217,7 +238,7 @@ export default function DashboardPage() {
       {isMahasiswa ? (
         <>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-            <div className="md:col-span-1 bg-white dark:bg-zinc-900/50 rounded-2xl p-4 shadow-sm ring-1 ring-slate-200/50 dark:ring-zinc-800/30">
+            <div className="md:col-span-1 glass-card rounded-2xl p-4">
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center text-emerald-500">
                   <User size={18} />
@@ -243,8 +264,8 @@ export default function DashboardPage() {
                 { label: 'IPK', value: ipk || '-', icon: TrendingUp, color: 'text-emerald-500', bg: 'bg-emerald-50 dark:bg-emerald-900/20', bar: 'bg-emerald-500' },
                 { label: 'SKS Tempuh', value: totalSks || '-', icon: BookOpen, color: 'text-amber-500', bg: 'bg-amber-50 dark:bg-amber-900/20', bar: 'bg-amber-500' },
                 { label: 'Tagihan', value: tagihanPending, extra: `${tagihanLunas} lunas`, icon: Wallet, color: 'text-rose-500', bg: 'bg-rose-50 dark:bg-rose-900/20', bar: 'bg-rose-500' },
-              ].map((card) => (
-                <div key={card.label} className="relative bg-white dark:bg-zinc-900/50 rounded-2xl p-4 shadow-sm ring-1 ring-slate-200/50 dark:ring-zinc-800/30 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 overflow-hidden group">
+              ].map((card, idx) => (
+                <div key={card.label} className={`relative glass-card rounded-2xl p-4 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 overflow-hidden group animate-stagger-${idx + 1}`}>
                   <div className={`absolute top-0 left-0 w-full h-0.5 ${card.bar} opacity-60`} />
                   <div className={`w-10 h-10 rounded-xl ${card.bg} flex items-center justify-center ${card.color} mb-3 ring-4 ring-white dark:ring-zinc-900 shadow-sm`}>
                     <card.icon size={18} />
@@ -257,7 +278,7 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          <div className="bg-white dark:bg-zinc-900/50 rounded-2xl p-5 shadow-sm ring-1 ring-slate-200/50 dark:ring-zinc-800/30">
+          <div className="glass-card rounded-2xl p-5">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <Sparkles size={16} className="text-emerald-500" />
@@ -279,7 +300,7 @@ export default function DashboardPage() {
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <div className="bg-white dark:bg-zinc-900/50 rounded-2xl p-5 shadow-sm ring-1 ring-slate-200/50 dark:ring-zinc-800/30">
+            <div className="glass-card rounded-2xl p-5">
               <div className="flex items-center gap-2 mb-4">
                 <Receipt size={15} className="text-emerald-500" />
                 <h2 className="text-sm font-bold font-display dark:text-white">Tagihan Terkini</h2>
@@ -316,7 +337,7 @@ export default function DashboardPage() {
               )}
             </div>
 
-            <div className="bg-white dark:bg-zinc-900/50 rounded-2xl p-5 shadow-sm ring-1 ring-slate-200/50 dark:ring-zinc-800/30">
+            <div className="glass-card rounded-2xl p-5">
               <div className="flex items-center gap-2 mb-4">
                 <BarChart3 size={15} className="text-emerald-500" />
                 <h2 className="text-sm font-bold font-display dark:text-white">Ringkasan Akademik</h2>
@@ -365,8 +386,8 @@ export default function DashboardPage() {
               { label: 'Mata Kuliah', value: stats?.matakuliah ?? 0, icon: BookMarked, color: 'text-amber-500', bg: 'bg-amber-50 dark:bg-amber-900/20', bar: 'bg-amber-500' },
               { label: 'Tagihan', value: stats?.tagihan ?? 0, icon: DollarSign, color: 'text-rose-500', bg: 'bg-rose-50 dark:bg-rose-900/20', bar: 'bg-rose-500' },
               { label: 'Alumni', value: stats?.alumni ?? 0, icon: GraduationCap, color: 'text-purple-500', bg: 'bg-purple-50 dark:bg-purple-900/20', bar: 'bg-purple-500' },
-            ].map((card) => (
-              <div key={card.label} className="relative group bg-white dark:bg-zinc-900/50 rounded-2xl p-4 shadow-sm ring-1 ring-slate-200/50 dark:ring-zinc-800/30 hover:shadow-lg hover:-translate-y-1 transition-all duration-200 cursor-pointer overflow-hidden" onClick={() => navigate(card.label.toLowerCase().replace(/\s+/g, '-'))}>
+            ].map((card, idx) => (
+              <div key={card.label} className={`relative group glass-card rounded-2xl p-4 hover:shadow-lg hover:-translate-y-1 transition-all duration-200 cursor-pointer overflow-hidden animate-stagger-${idx + 1}`} onClick={() => navigate(card.label.toLowerCase().replace(/\s+/g, '-'))}>
                 <div className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${adminGradientMap[card.label] || 'from-slate-500/5'} opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
                 <div className={`absolute top-0 left-0 w-full h-0.5 ${card.bar} opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
                 <div className="relative">
@@ -380,7 +401,7 @@ export default function DashboardPage() {
             ))}
           </div>
 
-          <div className="bg-white dark:bg-zinc-900/50 rounded-2xl p-5 shadow-sm ring-1 ring-slate-200/50 dark:ring-zinc-800/30">
+          <div className="glass-card rounded-2xl p-5 animate-stagger-1">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <Sparkles size={16} className="text-emerald-500" />
@@ -401,18 +422,43 @@ export default function DashboardPage() {
             </div>
           </div>
 
+          <div className="glass-card rounded-2xl p-5 animate-stagger-2">
+            <div className="flex items-center gap-2 mb-4">
+              <Clock size={15} className="text-emerald-500" />
+              <h2 className="text-sm font-bold font-display dark:text-white">Aktivitas Terkini</h2>
+            </div>
+            {aktivitas.length === 0 ? (
+              <div className="flex flex-col items-center py-6 text-slate-400">
+                <BellRing size={24} className="text-slate-300 mb-2" />
+                <p className="text-xs font-medium">Belum ada aktivitas</p>
+              </div>
+            ) : (
+              <div className="space-y-1">
+                {aktivitas.map((a: any, i: number) => (
+                  <div key={a.id || i} className="flex items-center gap-2.5 p-2 rounded-xl hover:bg-slate-50 dark:hover:bg-zinc-800/30 transition-all">
+                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 flex-shrink-0" />
+                    <p className="text-xs text-slate-600 dark:text-zinc-300 flex-1 truncate">{a.judul || a.message}</p>
+                    <span className="text-[10px] text-slate-400 tabular-nums">
+                      {a.created_at ? new Date(a.created_at).toLocaleDateString('id-ID', { day: 'numeric', month: 'short' }) : ''}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <div className="bg-white dark:bg-zinc-900/50 rounded-2xl p-5 shadow-sm ring-1 ring-slate-200/50 dark:ring-zinc-800/30">
+            <div className="glass-card rounded-2xl p-5">
               <div className="flex items-center gap-2 mb-4">
                 <TrendingUp size={15} className="text-emerald-500" />
                 <h2 className="text-sm font-bold font-display dark:text-white">Ringkasan Akademik</h2>
               </div>
               <div className="space-y-3">
                 {[
-                  { label: 'Mahasiswa Aktif', value: stats?.mahasiswa ?? 0, total: (stats?.mahasiswa + stats?.alumni) || 1, color: 'bg-indigo-500' },
-                  { label: 'Dosen Aktif', value: stats?.dosen ?? 0, total: stats?.dosen || 1, color: 'bg-emerald-500' },
-                  { label: 'Total Mata Kuliah', value: stats?.matakuliah ?? 0, total: stats?.matakuliah || 1, color: 'bg-amber-500' },
-                  { label: 'Program Studi', value: stats?.prodi ?? 0, total: stats?.prodi || 1, color: 'bg-cyan-500' },
+                  { label: 'Mahasiswa Aktif', value: stats?.mahasiswa ?? 0, total: (stats?.mahasiswa + (stats?.alumni || 0)) || 1, color: 'bg-indigo-500' },
+                  { label: 'Dosen Tetap', value: stats?.dosen ?? 0, total: Math.max(stats?.dosen || 1, 1), color: 'bg-emerald-500' },
+                  { label: 'Program Studi', value: stats?.prodi ?? 0, total: Math.max(stats?.prodi || 1, 1), color: 'bg-cyan-500' },
+                  { label: 'Tagihan Pending', value: stats?.tagihan ?? 0, total: Math.max(stats?.tagihan || 1, 1), color: 'bg-rose-500' },
                 ].map((item) => (
                   <div key={item.label}>
                     <div className="flex justify-between text-xs mb-1">
@@ -428,7 +474,7 @@ export default function DashboardPage() {
               </button>
             </div>
 
-            <div className="bg-white dark:bg-zinc-900/50 rounded-2xl p-5 shadow-sm ring-1 ring-slate-200/50 dark:ring-zinc-800/30">
+            <div className="glass-card rounded-2xl p-5">
               <div className="flex items-center gap-2 mb-4">
                 <Library size={15} className="text-emerald-500" />
                 <h2 className="text-sm font-bold font-display dark:text-white">Modul Terintegrasi</h2>
