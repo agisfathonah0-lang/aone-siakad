@@ -166,27 +166,45 @@ export default function LandingPage() {
         </div>
       </header>
 
-      <section id="hero" className="relative min-h-[85vh] flex items-center overflow-hidden bg-gradient-to-br from-emerald-50 via-white to-indigo-50">
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute -top-40 -right-40 w-96 h-96 bg-emerald-200/30 rounded-full blur-[120px]" />
-          <div className="absolute -bottom-40 -left-40 w-[500px] h-[500px] bg-indigo-200/20 rounded-full blur-[150px]" />
-          <div className="absolute top-1/3 left-1/2 w-2 h-2 bg-emerald-400/40 rounded-full animate-float" />
-          <div className="absolute top-1/4 right-1/4 w-3 h-3 bg-indigo-400/30 rounded-full animate-float" style={{ animationDelay: '1s' }} />
-          <div className="absolute bottom-1/3 left-1/4 w-1.5 h-1.5 bg-emerald-500/30 rounded-full animate-float" style={{ animationDelay: '2s' }} />
-        </div>
+      <section id="hero" className="relative min-h-[85vh] flex items-center overflow-hidden bg-gradient-to-br from-slate-900 via-emerald-950 to-slate-900">
+        {/* Tech grid background */}
+        <div className="absolute inset-0 opacity-[0.08]" style={{ backgroundImage: 'linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.1) 1px, transparent 1px)', backgroundSize: '60px 60px' }} />
+        <div className="absolute inset-0 opacity-[0.04]" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(255,255,255,0.3) 1px, transparent 0)', backgroundSize: '20px 20px' }} />
+
+        {/* Animated tech orbs */}
+        <div className="absolute top-1/4 -left-20 w-[500px] h-[500px] bg-emerald-500/20 rounded-full blur-[150px] animate-pulse-glow" />
+        <div className="absolute bottom-1/4 -right-20 w-[400px] h-[400px] bg-teal-500/15 rounded-full blur-[120px] animate-pulse-glow" style={{ animationDelay: '2s' }} />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-indigo-500/10 rounded-full blur-[180px] animate-pulse-glow" style={{ animationDelay: '4s' }} />
+
+        {/* Rotating tech rings */}
+        <div className="absolute top-1/3 right-1/4 w-64 h-64 border border-emerald-500/20 rounded-full animate-rotate-line" />
+        <div className="absolute top-1/3 right-1/4 w-40 h-40 border border-teal-500/15 rounded-full animate-rotate-line" style={{ animationDirection: 'reverse', animationDuration: '15s' }} />
+        <div className="absolute bottom-1/4 left-1/3 w-48 h-48 border border-indigo-500/15 rounded-full animate-rotate-line" style={{ animationDuration: '25s' }} />
+
+        {/* Floating tech particles */}
+        <div className="absolute top-1/4 left-1/4 w-1 h-1 bg-emerald-400/60 rounded-full shadow-[0_0_6px_2px_rgba(52,211,153,0.3)] animate-drift" />
+        <div className="absolute top-1/3 right-1/3 w-1.5 h-1.5 bg-teal-400/50 rounded-full shadow-[0_0_8px_3px_rgba(45,212,191,0.25)] animate-drift" style={{ animationDelay: '2s', animationDuration: '15s' }} />
+        <div className="absolute bottom-1/3 left-1/2 w-1 h-1 bg-indigo-400/50 rounded-full shadow-[0_0_6px_2px_rgba(129,140,248,0.3)] animate-drift" style={{ animationDelay: '4s', animationDuration: '10s' }} />
+        <div className="absolute top-1/2 right-1/4 w-2 h-2 bg-emerald-500/40 rounded-full shadow-[0_0_10px_4px_rgba(16,185,129,0.2)] animate-drift" style={{ animationDelay: '1s', animationDuration: '18s' }} />
+        <div className="absolute bottom-1/4 right-1/3 w-1 h-1 bg-teal-300/50 rounded-full shadow-[0_0_6px_2px_rgba(94,234,212,0.3)] animate-drift" style={{ animationDelay: '3s', animationDuration: '14s' }} />
+
+        {/* Glowing accent lines */}
+        <div className="absolute top-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-emerald-400/40 to-transparent" />
+        <div className="absolute bottom-0 left-0 w-full h-px bg-gradient-to-r from-transparent via-teal-400/30 to-transparent" />
+        <div className="absolute top-0 right-0 w-px h-full bg-gradient-to-b from-transparent via-emerald-400/20 to-transparent" />
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full">
           <div className="max-w-3xl">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-100/80 border border-emerald-200 text-emerald-700 text-xs font-bold mb-6 animate-fade-up">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-xs font-bold mb-6 animate-fade-up">
               <Sparkles size={12} /> Platform SIAKAD No.1 di Indonesia
             </div>
-            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black font-display tracking-tight text-slate-900 leading-[1.05] mb-4">
+            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black font-display tracking-tight text-white leading-[1.05] mb-4">
               SIAKAD{' '}
               <span className="relative inline-block">
-                <span className="text-emerald-600">{taglines[taglineIdx]}</span>
-                <span className="absolute -bottom-1 left-0 w-full h-1 bg-emerald-500/30 rounded-full" />
+                <span className="text-emerald-400">{taglines[taglineIdx]}</span>
+                <span className="absolute -bottom-1 left-0 w-full h-1 bg-emerald-400/30 rounded-full" />
               </span>
             </h1>
-            <p className="text-lg sm:text-xl text-slate-500 leading-relaxed max-w-2xl mb-8 animate-fade-up-delay-1">
+            <p className="text-lg sm:text-xl text-slate-300 leading-relaxed max-w-2xl mb-8 animate-fade-up-delay-1">
               Kelola akademik, keuangan, perpustakaan, PPDB, dan akreditasi dalam satu platform terintegrasi. 
               Dipercaya 100+ institusi pendidikan di Indonesia.
             </p>
@@ -194,14 +212,14 @@ export default function LandingPage() {
               <button onClick={() => navigate('/register')} className="w-full sm:w-auto px-8 py-3.5 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white rounded-2xl text-sm font-bold shadow-xl shadow-emerald-500/25 hover:shadow-emerald-500/40 hover:scale-105 transition-all inline-flex items-center justify-center gap-2">
                 Demo Gratis <ArrowRight size={16} />
               </button>
-              <a href="#fitur" className="w-full sm:w-auto px-8 py-3.5 rounded-2xl text-sm font-bold text-slate-700 bg-slate-100 hover:bg-slate-200 transition-all inline-flex items-center justify-center gap-2">
+              <a href="#fitur" className="w-full sm:w-auto px-8 py-3.5 rounded-2xl text-sm font-bold text-white bg-white/10 hover:bg-white/20 transition-all inline-flex items-center justify-center gap-2 backdrop-blur-sm">
                 Lihat Fitur
               </a>
             </div>
             <div className="flex items-center gap-6 mt-8 text-xs text-slate-400 animate-fade-up-delay-3">
-              <span className="flex items-center gap-1.5"><Check size={12} className="text-emerald-500" /> Gratis 14 hari</span>
-              <span className="flex items-center gap-1.5"><Check size={12} className="text-emerald-500" /> No CC required</span>
-              <span className="flex items-center gap-1.5"><Check size={12} className="text-emerald-500" /> Support 24/7</span>
+              <span className="flex items-center gap-1.5"><Check size={12} className="text-emerald-400" /> Gratis 14 hari</span>
+              <span className="flex items-center gap-1.5"><Check size={12} className="text-emerald-400" /> No CC required</span>
+              <span className="flex items-center gap-1.5"><Check size={12} className="text-emerald-400" /> Support 24/7</span>
             </div>
           </div>
         </div>
