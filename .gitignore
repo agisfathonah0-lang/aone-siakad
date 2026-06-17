@@ -28,3 +28,7 @@ tmp/
 temp/
 uploads/
 *.tsbuildinfo
+
+# Prototypes
+campusone v2/
+campusone v3/
