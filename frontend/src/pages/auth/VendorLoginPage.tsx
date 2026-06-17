@@ -43,7 +43,9 @@ export default function VendorLoginPage() {
         </button>
 
         <div className="text-center mb-8">
-          <img src="/logo.jpg" alt="AONE" className="h-10 w-auto mx-auto mb-3" />
+          <div className={`inline-flex p-3 rounded-2xl ${isDark ? 'bg-zinc-900' : 'bg-emerald-50'} mb-3`}>
+            <img src="/logo.jpg" alt="AONE" className="h-10 w-auto" />
+          </div>
           <h1 className={`text-2xl font-display font-extrabold tracking-tight ${isDark ? 'text-white' : 'text-slate-800'}`}>
             AONE <span className="text-emerald-500">SIAKAD</span>
             <span className="text-slate-400 mx-1">/</span>

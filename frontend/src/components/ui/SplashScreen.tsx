@@ -55,11 +55,13 @@ export default function SplashScreen({ logo, nama, duration = 2200, onDone }: Sp
             <div className="absolute -inset-4 bg-gradient-to-r from-teal-400/50 via-emerald-300/50 to-teal-400/50 rounded-[44px] blur-2xl animate-spin-slow" style={{ animationDuration: '4s', animationDirection: 'reverse' }} />
             <div className="absolute inset-0 bg-emerald-400/20 rounded-[40px] blur-3xl scale-150" />
             <div className="relative flex items-center justify-center">
-              <img
-                src={logo || '/logo.jpg'}
-                alt={nama || 'AONE SIAKAD'}
-                className="w-28 h-28 md:w-32 md:h-32 object-contain drop-shadow-2xl"
-              />
+              <div className="w-32 h-32 md:w-36 md:h-36 rounded-2xl bg-emerald-950 flex items-center justify-center ring-2 ring-white/10">
+                <img
+                  src={logo || '/logo.jpg'}
+                  alt={nama || 'AONE SIAKAD'}
+                  className="w-28 h-28 md:w-32 md:h-32 object-contain drop-shadow-2xl"
+                />
+              </div>
             </div>
           </div>
         </div>
