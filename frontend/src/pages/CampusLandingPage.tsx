@@ -520,8 +520,8 @@ function CampusLandingPage({ slug }: { slug: string }) {
       </footer>
 
       {showPopup && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#0a0a0f]/80 backdrop-blur-sm animate-in fade-in duration-200" onClick={() => { setShowPopup(false); localStorage.setItem(`popup_${slug}_seen`, 'true'); }}>
-          <div className="max-w-md w-full rounded-2xl bg-[#0a0a0f] border border-white/10 overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#0a0a0f]/80 backdrop-blur-sm" onClick={() => { setShowPopup(false); localStorage.setItem(`popup_${slug}_seen`, 'true'); }}>
+          <div className="max-w-md w-full rounded-2xl bg-[#0a0a0f] border border-white/10 overflow-hidden shadow-2xl" onClick={e => e.stopPropagation()}>
             <button onClick={() => { setShowPopup(false); localStorage.setItem(`popup_${slug}_seen`, 'true'); }} className="absolute top-3 right-3 p-1.5 rounded-full bg-black/40 hover:bg-black/60 transition-colors z-10">
               <X size={14} />
             </button>
@@ -548,7 +548,7 @@ function CampusLandingPage({ slug }: { slug: string }) {
         @keyframes drift { 0%,100%{transform:translate(0,0)} 33%{transform:translate(15px,-15px)} 66%{transform:translate(-10px,10px)} }
         @keyframes fade-in { from{opacity:0;transform:translateY(10px)} to{opacity:1;transform:translateY(0)} }
         .animate-fade-in { animation: fade-in 0.6s ease-out }
-        @keyframes zoom-in-95 { from{opacity:0;transform:scale(0.95)} to{opacity:1;transform:scale(1)} }
+
       `}</style>
     </div>
   );
