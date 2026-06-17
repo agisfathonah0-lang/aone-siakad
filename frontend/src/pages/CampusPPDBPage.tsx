@@ -26,7 +26,7 @@ export default function CampusPPDBPage() {
   useSEO(
     `PPDB ${campus?.tenant.nama_pt || campus?.tenant.name || 'Kampus'} - AONE SIAKAD`,
     `Pendaftaran PPDB online ${campus?.tenant.nama_pt || campus?.tenant.name || 'Kampus'} - Sistem Penerimaan Peserta Didik Baru.`,
-    campus?.tenant.logo_url || '/logo.png'
+    campus?.tenant.logo_url || '/logo.jpg'
   );
 
   useEffect(() => {

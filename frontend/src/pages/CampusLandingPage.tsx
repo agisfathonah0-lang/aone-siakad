@@ -47,7 +47,7 @@ function CampusLandingPage({ slug }: { slug: string }) {
   useSEO(
     data?.landingPage.seoTitle || data?.tenant.name || 'Kampus',
     data?.landingPage.seoDescription || `${data?.tenant.nama_pt || 'Kampus'} - Sistem Informasi Akademik terintegrasi.`,
-    data?.tenant.logo_url || '/logo.png'
+    data?.tenant.logo_url || '/logo.jpg'
   );
 
   useEffect(() => {
@@ -91,7 +91,7 @@ function CampusLandingPage({ slug }: { slug: string }) {
   }, [data, nextHero]);
 
   if (loading) return (
-    <SplashScreen logo={data?.tenant.logo_url || '/logo.png'} nama={data?.tenant.nama_pt || 'Memuat...'} duration={3000} onDone={() => {}} />
+    <SplashScreen logo={data?.tenant.logo_url || '/logo.jpg'} nama={data?.tenant.nama_pt || 'Memuat...'} duration={3000} onDone={() => {}} />
   );
 
   if (error || !data) return (

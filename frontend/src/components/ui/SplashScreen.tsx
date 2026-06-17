@@ -55,7 +55,7 @@ export default function SplashScreen({ logo, nama, duration = 2200, onDone }: Sp
             <div className="absolute -inset-3 bg-gradient-to-r from-teal-400/50 via-emerald-300/50 to-teal-400/50 rounded-[36px] blur-2xl animate-spin-slow" style={{ animationDuration: '4s', animationDirection: 'reverse' }} />
             <div className="absolute inset-0 bg-emerald-400/20 rounded-[32px] blur-3xl scale-150" />
             <img
-              src={logo || '/logo.png'}
+              src={logo || '/logo.jpg'}
               alt={nama || 'AONE SIAKAD'}
               className="w-24 h-24 md:w-28 md:h-28 object-contain shadow-2xl shadow-emerald-500/30 ring-2 ring-white/20 relative"
             />

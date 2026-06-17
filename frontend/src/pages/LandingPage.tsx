@@ -111,7 +111,7 @@ export default function LandingPage() {
   useSEO(
     'AONE SIAKAD - Sistem Informasi Akademik Terintegrasi',
     'Sistem Informasi Akademik terintegrasi untuk institusi pendidikan di Indonesia. Kelola akademik, keuangan, perpustakaan, PPDB, dan akreditasi dalam satu platform.',
-    '/logo.png'
+    '/logo.jpg'
   );
 
   useEffect(() => {
@@ -146,7 +146,8 @@ export default function LandingPage() {
       <header className={`sticky top-0 z-50 transition-all duration-300 ${scrolled ? 'bg-white/90 backdrop-blur-xl border-b border-slate-200 shadow-sm' : 'bg-white'}`}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <img src="/logo.png" alt="AONE SIAKAD" className="h-10 w-auto" />
+            <img src="/logo.jpg" alt="AONE" className="h-8 w-auto" />
+            <span className="text-lg font-bold tracking-tight text-slate-800">AONE SIAKAD</span>
           </div>
           <nav className="hidden lg:flex items-center gap-1">
             <a href="#hero" className="px-4 py-2 text-sm text-slate-600 hover:text-emerald-600 transition-colors font-medium">Beranda</a>
@@ -361,7 +362,8 @@ export default function LandingPage() {
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 mb-12">
             <div className="col-span-2 lg:col-span-1">
               <div className="flex items-center gap-3 mb-4">
-                <img src="/logo.png" alt="AONE SIAKAD" className="h-10 w-auto brightness-0 invert" />
+                <img src="/logo.jpg" alt="AONE" className="h-8 w-auto brightness-0 invert" />
+                <span className="text-lg font-bold tracking-tight text-white">AONE SIAKAD</span>
               </div>
               <p className="text-sm text-slate-400 leading-relaxed">Platform SIAKAD all-in-one untuk universitas Indonesia. Dipercaya 100+ kampus mitra di seluruh Indonesia.</p>
             </div>

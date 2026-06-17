@@ -106,7 +106,8 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
       <aside className={`fixed top-0 left-0 z-50 h-full w-64 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl transform transition-transform duration-200 lg:translate-x-0 lg:static lg:z-auto shadow-lg shadow-black/5 ${open ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="flex items-center justify-between h-16 px-5">
           <div className="flex items-center gap-2.5">
-            <img src="/logo.png" alt="AONE SIAKAD" className="h-12 w-auto" />
+            <img src="/logo.jpg" alt="AONE" className="h-10 w-auto" />
+            <span className="text-lg font-bold tracking-tight text-slate-800 dark:text-white">AONE SIAKAD</span>
           </div>
           <div className="flex items-center gap-1">
             <ThemeToggle />
