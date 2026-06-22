@@ -155,8 +155,10 @@ export default function DashboardPage() {
   }, [isMahasiswa]);
 
   if (loading) return (
-    <div className="space-y-6">
-      <Skeleton className="h-32 rounded-2xl bg-white/5" />
+    <>
+      <div className="fixed inset-0 bg-[#0a0a0f]" />
+      <div className="space-y-6 relative z-10">
+        <Skeleton className="h-32 rounded-2xl bg-white/5" />
       {isMahasiswa ? (
         <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
           <Skeleton className="h-44 rounded-2xl bg-white/5" />
@@ -174,7 +176,8 @@ export default function DashboardPage() {
         <Skeleton className="h-52 rounded-2xl bg-white/5" />
         <Skeleton className="h-52 rounded-2xl bg-white/5" />
       </div>
-    </div>
+      </div>
+    </>
   );
 
   const rupiah = (n: number) => new Intl.NumberFormat('id-ID', { style: 'currency', currency: 'IDR', minimumFractionDigits: 0 }).format(n);
@@ -191,7 +194,9 @@ export default function DashboardPage() {
   }));
 
   return (
-    <motion.div variants={containerVariants} initial="hidden" animate="visible" className="space-y-6 relative">
+    <>
+    <div className="fixed inset-0 bg-[#0a0a0f] pointer-events-none" />
+    <motion.div variants={containerVariants} initial="hidden" animate="visible" className="space-y-6 relative z-10">
       {/* Ambient background */}
       <div className="fixed inset-0 pointer-events-none overflow-hidden">
         <div className="absolute -top-40 -left-40 w-[500px] h-[500px] bg-emerald-500/5 rounded-full blur-[150px]" />
@@ -508,5 +513,6 @@ export default function DashboardPage() {
         </>
       )}
     </motion.div>
+    </>
   );
 }
