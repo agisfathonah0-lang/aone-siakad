@@ -3,6 +3,11 @@ import { NavLink, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard, GraduationCap, Presentation, Wallet, Ellipsis, Share2, Sparkles,
   BarChart3, Settings, LogOut, X, Users, Plus, type LucideIcon,
+  UserCheck, Building2, UserCog, BookOpen, CalendarDays, ClipboardCheck, Award,
+  ScrollText, ClipboardList, BookTemplate, FileText, ClipboardSignature, Printer,
+  Briefcase, BookMarked, MessageSquare, Star, Trophy, Receipt, CreditCard,
+  ReceiptText, Library, Newspaper, Calendar, Bell, Palette, DoorOpen, List,
+  Globe, Layout, Bot, AlertTriangle, Database, Cctv,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { filterMenusByRole, SIDEBAR_MENUS, type MenuItem } from '../../utils/roles';
@@ -11,6 +16,11 @@ import ThemeToggle from '../ui/ThemeToggle';
 const iconMap: Record<string, LucideIcon> = {
   LayoutDashboard, GraduationCap, Presentation, Wallet, EllipsisHorizontal: Ellipsis,
   Share2, Sparkles, BarChart3, Settings, Users,
+  UserCheck, Building2, UserCog, BookOpen, CalendarDays, ClipboardCheck, Award,
+  ScrollText, ClipboardList, BookTemplate, FileText, ClipboardSignature,
+  Printer, Briefcase, BookMarked, MessageSquare, Star, Trophy, Receipt, CreditCard,
+  ReceiptText, Library, Newspaper, Calendar, Bell, Cctv, Palette,
+  DoorOpen, List, Globe, Layout, Bot, AlertTriangle, Database,
 };
 
 const sectionColors: Record<string, string> = {
@@ -183,6 +193,34 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
                 </p>
                 {leafItems.map((item: any) => {
                   const Icon = iconMap[item.icon] || LayoutDashboard;
+                  if (item.children?.length) {
+                    return (
+                      <div key={item.label} className="mb-1">
+                        <p className="text-[9px] font-bold text-gray-400 dark:text-zinc-500 tracking-widest px-3 mb-1 uppercase">{item.label}</p>
+                        {item.children.map((sub: any) => {
+                          const SubIcon = iconMap[sub.icon] || LayoutDashboard;
+                          return (
+                            <NavLink
+                              key={sub.path || sub.label}
+                              to={sub.path || '#'}
+                              end
+                              onClick={onClose}
+                              className={({ isActive }) =>
+                                `w-full text-left px-3 py-2 rounded-lg text-[12px] mb-0.5 transition-all flex items-center gap-2 ${
+                                  isActive
+                                    ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-semibold border-l-4 border-emerald-500 dark:border-emerald-400'
+                                    : 'text-gray-500 dark:text-zinc-400 hover:bg-gray-100 dark:hover:bg-zinc-800 hover:text-gray-800 dark:hover:text-zinc-200'
+                                }`
+                              }
+                            >
+                              <SubIcon size={13} />
+                              {sub.label}
+                            </NavLink>
+                          );
+                        })}
+                      </div>
+                    );
+                  }
                   const isLeafActive = item._isDirect
                     ? location.pathname.endsWith(item.path || '')
                     : location.pathname.endsWith(item.path || '');
