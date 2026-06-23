@@ -83,8 +83,12 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
       <aside className={`fixed lg:static inset-y-0 left-0 z-30 flex transition-transform duration-300 ${open ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
         {/* Narrow icon rail */}
         <div className="w-14 bg-[#181d2f] flex flex-col items-center py-4 gap-1 shrink-0">
-          <div className="w-9 h-9 rounded-xl bg-blue-500 flex items-center justify-center mb-3 shadow-lg shadow-blue-500/40">
-            <GraduationCap size={18} className="text-white" />
+          <div className="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center mb-3 overflow-hidden ring-1 ring-white/10">
+            {user?.logo_url ? (
+              <img src={user.logo_url} alt="" className="w-full h-full object-contain p-0.5" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; (e.target as HTMLImageElement).parentElement!.classList.add('bg-blue-500', 'shadow-lg', 'shadow-blue-500/40'); }} />
+            ) : (
+              <GraduationCap size={18} className="text-white" />
+            )}
           </div>
 
           {navContent.map((item: any, i: number) => {
@@ -124,8 +128,26 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
 
         {/* Wide text panel */}
         <div className="w-48 bg-white dark:bg-zinc-900 border-r border-gray-200 dark:border-zinc-800 flex flex-col">
+          {/* Campus */}
+          {user?.nama_pt && (
+            <div className="px-4 py-3 border-b border-gray-100 dark:border-zinc-800">
+              <div className="flex items-center gap-2">
+                <div className="w-6 h-6 rounded-lg bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white text-[9px] font-bold shrink-0 overflow-hidden">
+                  {user.logo_url ? (
+                    <img src={user.logo_url} alt="" className="w-full h-full object-contain p-0.5" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                  ) : (
+                    user.nama_pt.charAt(0)
+                  )}
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-gray-600 dark:text-zinc-300 truncate leading-tight">{user.nama_pt}</p>
+                  <p className="text-[9px] text-gray-400 dark:text-zinc-500 truncate leading-tight">{user.tenantSlug || ''}</p>
+                </div>
+              </div>
+            </div>
+          )}
           {/* User */}
-          <div className="px-4 py-4 border-b border-gray-100 dark:border-zinc-800 flex items-center gap-2.5">
+          <div className="px-4 py-3 border-b border-gray-100 dark:border-zinc-800 flex items-center gap-2.5">
             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center text-white text-[11px] font-bold shrink-0">
               {initialAvatar(user?.nama)}
             </div>
@@ -173,7 +195,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
                       className={({ isActive }) =>
                         `w-full text-left px-3 py-2 rounded-lg text-[12px] mb-0.5 transition-all flex items-center gap-2 ${
                           isActive
-                            ? 'bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 font-semibold'
+                            ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-semibold border-l-4 border-emerald-500 dark:border-emerald-400'
                             : 'text-gray-500 dark:text-zinc-400 hover:bg-gray-100 dark:hover:bg-zinc-800 hover:text-gray-800 dark:hover:text-zinc-200'
                         }`
                       }

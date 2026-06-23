@@ -18,7 +18,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     const token = localStorage.getItem('aone_access_token');
     if (token) {
-      get<User & { tenantSlug?: string }>('/auth/me').then((u) => {
+      get<User>('/auth/me').then((u) => {
         setUser(u);
         if (u.tenantSlug) {
           localStorage.setItem('aone_tenant_slug', u.tenantSlug);

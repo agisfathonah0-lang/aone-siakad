@@ -246,7 +246,7 @@ router.get('/me', authenticate, async (req: Request, res: Response, next: NextFu
 
     if (req.user.tenantId) {
       const { rows: tenantRows } = await query(
-        'SELECT schema_name, slug FROM public.tenants WHERE id = $1',
+        'SELECT schema_name, slug, nama_pt, logo_url FROM public.tenants WHERE id = $1',
         [req.user.tenantId]
       );
       if (tenantRows.length === 0) throw new AppError(404, 'Tenant tidak ditemukan');
@@ -256,7 +256,7 @@ router.get('/me', authenticate, async (req: Request, res: Response, next: NextFu
         [req.user.id]
       );
       if (rows.length === 0) throw new AppError(404, 'User tidak ditemukan');
-      sendSuccess(res, { ...rows[0], tenantSlug: tenantRows[0].slug });
+      sendSuccess(res, { ...rows[0], tenantSlug: tenantRows[0].slug, nama_pt: tenantRows[0].nama_pt, logo_url: tenantRows[0].logo_url });
       return;
     }
 

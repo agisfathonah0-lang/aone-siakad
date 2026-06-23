@@ -27,6 +27,9 @@ export interface User {
   nama: string;
   tenantId: string | null;
   vendorUserId?: string;
+  tenantSlug?: string;
+  nama_pt?: string;
+  logo_url?: string;
 }
 
 export interface Mahasiswa {

@@ -151,9 +151,10 @@ function CampusLandingPage({ slug }: { slug: string }) {
       <header className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${isDark ? 'bg-[#0f172a]/80 border-b border-white/5' : 'bg-white/80 border-b border-slate-200'} backdrop-blur-xl`}>
         <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
             <motion.div initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-xl shadow-slate-900/10 rotate-3 p-1.5 border overflow-hidden" style={{ borderColor: `${c}30` }}>
-              {tenant.logo_url ? <img src={tenant.logo_url} alt="" className="w-full h-full object-contain" /> : <span className="font-black text-lg" style={{ color: c }}>{tenant.singkatan?.charAt(0) || 'K'}</span>}
-            </div>
+              <div className="w-12 h-12 bg-white rounded-2xl flex items-center justify-center shadow-xl shadow-slate-900/10 rotate-3 p-1.5 border overflow-hidden relative" style={{ borderColor: `${c}30` }}>
+                <span className="font-black text-lg" style={{ color: c }}>{tenant.singkatan?.charAt(0) || 'K'}</span>
+                {tenant.logo_url ? <img src={tenant.logo_url} alt="" className="absolute inset-0 w-full h-full object-contain" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} /> : null}
+              </div>
             <div className="hidden sm:block">
               <span className="font-black tracking-tight text-xl leading-none uppercase">{tenant.singkatan || tenant.nama_pt}</span>
               <div className="flex items-center gap-2 mt-0.5">
