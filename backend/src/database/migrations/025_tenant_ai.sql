@@ -1,5 +1,5 @@
 -- AI Chat History with token tracking
-CREATE TABLE IF NOT EXISTS "{schema}".ai_chat_history (
+CREATE TABLE IF NOT EXISTS {schema}.ai_chat_history (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   user_id VARCHAR(255) NOT NULL,
   pesan TEXT NOT NULL,
@@ -11,7 +11,7 @@ CREATE TABLE IF NOT EXISTS "{schema}".ai_chat_history (
 );
 
 -- AI RPS Generation History
-CREATE TABLE IF NOT EXISTS "{schema}".ai_rps_history (
+CREATE TABLE IF NOT EXISTS {schema}.ai_rps_history (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   mata_kuliah VARCHAR(255) NOT NULL,
   prodi VARCHAR(255) NOT NULL,
@@ -27,7 +27,7 @@ CREATE TABLE IF NOT EXISTS "{schema}".ai_rps_history (
 );
 
 -- AI usage tracking per tenant per hari
-CREATE TABLE IF NOT EXISTS "{schema}".ai_usage (
+CREATE TABLE IF NOT EXISTS {schema}.ai_usage (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
   tgl DATE NOT NULL DEFAULT CURRENT_DATE,
   input_tokens INTEGER DEFAULT 0,
@@ -49,10 +49,10 @@ ON CONFLICT (setting_key) DO NOTHING;
 
 -- Migration untuk tenant existing: add columns if not exist
 DO $$ BEGIN
-  ALTER TABLE "{schema}".ai_chat_history ADD COLUMN IF NOT EXISTS input_tokens INTEGER DEFAULT 0;
-  ALTER TABLE "{schema}".ai_chat_history ADD COLUMN IF NOT EXISTS output_tokens INTEGER DEFAULT 0;
-  ALTER TABLE "{schema}".ai_chat_history ADD COLUMN IF NOT EXISTS model VARCHAR(50) DEFAULT 'gpt-4o-mini';
-  ALTER TABLE "{schema}".ai_rps_history ADD COLUMN IF NOT EXISTS input_tokens INTEGER DEFAULT 0;
-  ALTER TABLE "{schema}".ai_rps_history ADD COLUMN IF NOT EXISTS output_tokens INTEGER DEFAULT 0;
+  ALTER TABLE {schema}.ai_chat_history ADD COLUMN IF NOT EXISTS input_tokens INTEGER DEFAULT 0;
+  ALTER TABLE {schema}.ai_chat_history ADD COLUMN IF NOT EXISTS output_tokens INTEGER DEFAULT 0;
+  ALTER TABLE {schema}.ai_chat_history ADD COLUMN IF NOT EXISTS model VARCHAR(50) DEFAULT 'gpt-4o-mini';
+  ALTER TABLE {schema}.ai_rps_history ADD COLUMN IF NOT EXISTS input_tokens INTEGER DEFAULT 0;
+  ALTER TABLE {schema}.ai_rps_history ADD COLUMN IF NOT EXISTS output_tokens INTEGER DEFAULT 0;
 EXCEPTION WHEN others THEN NULL;
 END $$;
