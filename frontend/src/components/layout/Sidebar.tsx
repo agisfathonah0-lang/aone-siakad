@@ -1,27 +1,28 @@
-import { useState } from 'react';
-import { NavLink } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { NavLink, useLocation } from 'react-router-dom';
 import {
-  LayoutDashboard, Users, BookOpen, Calendar, ClipboardList, CheckSquare,
-  DollarSign, CreditCard, FileText, GraduationCap, Database, BookMarked,
-  BarChart3, LogOut, Building2, X, UserCheck, Globe, Settings, Shield,
-  Cctv, Ticket, ScrollText, Bell, Palette, Printer, Award, Share2,
-  UserCog, ClipboardCheck, Star, Trophy, Wallet, MessageSquare,
-  Library, Newspaper, Presentation, Receipt, Ellipsis, DoorOpen,
-  BookDashed, ClipboardPenLine, Briefcase, Sparkles, Bot, AlertTriangle, ReceiptText, type LucideIcon,
+  LayoutDashboard, GraduationCap, Presentation, Wallet, Ellipsis, Share2, Sparkles,
+  BarChart3, Settings, LogOut, X, Users, Plus, type LucideIcon,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { filterMenusByRole, SIDEBAR_MENUS, type MenuItem } from '../../utils/roles';
 import ThemeToggle from '../ui/ThemeToggle';
 
 const iconMap: Record<string, LucideIcon> = {
-  LayoutDashboard, Users, BookOpen, Calendar, CalendarDays: Calendar,
-  ClipboardList, CheckSquare, DollarSign, CreditCard, FileText,
-  GraduationCap, Database, BookMarked, BarChart3, Building2, UserCheck,
-  Globe, Settings, Shield, ScrollText, Bell, Palette, Printer, Award,
-  Share2, UserCog, ClipboardCheck, Star, Trophy, Wallet, MessageSquare,
-  Library, Newspaper, Presentation, Receipt, EllipsisHorizontal: Ellipsis,
-  DoorOpen,   BookTemplate: BookDashed, ClipboardSignature: ClipboardPenLine,
-  Briefcase, Sparkles, Bot, AlertTriangle, ReceiptText,
+  LayoutDashboard, GraduationCap, Presentation, Wallet, EllipsisHorizontal: Ellipsis,
+  Share2, Sparkles, BarChart3, Settings, Users,
+};
+
+const sectionColors: Record<string, string> = {
+  Dashboard: 'bg-blue-500',
+  Akademik: 'bg-emerald-500',
+  Perkuliahan: 'bg-violet-500',
+  Keuangan: 'bg-orange-500',
+  Lainnya: 'bg-cyan-500',
+  Integrasi: 'bg-rose-500',
+  'Fitur AI': 'bg-indigo-500',
+  Laporan: 'bg-amber-500',
+  Pengaturan: 'bg-slate-500',
 };
 
 interface SidebarProps {
@@ -31,122 +32,179 @@ interface SidebarProps {
 
 const vendorNav: { label: string; icon: LucideIcon; path: string }[] = [
   { label: 'Dashboard', icon: LayoutDashboard, path: '/vendor' },
-  { label: 'Manajemen Institusi', icon: Building2, path: '/vendor/tenants' },
-  { label: 'Paket & Harga', icon: BarChart3, path: '/vendor/plans' },
-  { label: 'Tiket Dukungan', icon: Ticket, path: '/vendor/tickets' },
+  { label: 'Institusi', icon: Users, path: '/vendor/tenants' },
+  { label: 'Paket', icon: BarChart3, path: '/vendor/plans' },
   { label: 'Pengaturan', icon: Settings, path: '/vendor/settings' },
-  { label: 'Firewall', icon: Shield, path: '/vendor/firewall' },
-  { label: 'CCTV', icon: Cctv, path: '/vendor/cctv' },
-  { label: 'Landing Pages', icon: Globe, path: '/vendor/landing-pages' },
-  { label: 'Vendor Users', icon: Users, path: '/vendor/users' },
-  { label: 'Audit Log', icon: ScrollText, path: '/vendor/audit' },
-  { label: 'Monitor', icon: Database, path: '/vendor/monitor' },
 ];
 
-function SidebarNavItem({ item, depth, onClose }: { item: MenuItem; depth?: number; onClose: () => void }) {
-  const [expanded, setExpanded] = useState(false);
-  const Icon = iconMap[item.icon];
-
-  if (item.children && item.children.length > 0) {
-    return (
-      <div>
-        <button
-          onClick={() => setExpanded(!expanded)}
-          className="flex items-center justify-between w-full gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all text-slate-500 dark:text-zinc-400 hover:bg-slate-50 dark:hover:bg-zinc-800/50"
-        >
-          <div className="flex items-center gap-3">
-            {Icon && <Icon size={17} />}
-            {item.label}
-          </div>
-          <svg
-            className={`w-3.5 h-3.5 transition-transform ${expanded ? 'rotate-180' : ''}`}
-            fill="none" stroke="currentColor" viewBox="0 0 24 24"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-          </svg>
-        </button>
-        {expanded && (
-          <div className="ml-2 mt-0.5 space-y-0.5 border-l-2 border-slate-100 dark:border-zinc-700 pl-2">
-            {item.children.map((child) => (
-              <SidebarNavItem key={child.path || child.label} item={child} depth={(depth || 0) + 1} onClose={onClose} />
-            ))}
-          </div>
-        )}
-      </div>
-    );
-  }
-
-  return (
-    <NavLink
-      to={item.path!}
-      end={item.path === 'dashboard'}
-      onClick={onClose}
-      className={({ isActive }) =>
-        `flex items-center gap-3 px-3 py-2.5 text-sm font-medium transition-all ${
-          isActive
-            ? 'bg-emerald-500/10 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-r-4 border-emerald-500 dark:border-emerald-400 shadow-sm rounded-l-xl rounded-r-none'
-            : 'text-slate-500 dark:text-zinc-400 hover:bg-slate-50 dark:hover:bg-zinc-800/50 rounded-xl'
-        }`
-      }
-    >
-      {Icon && <Icon size={17} />}
-      {item.label}
-    </NavLink>
-  );
+function initialAvatar(nama?: string) {
+  if (!nama) return '?';
+  return nama.split(' ').map(s => s[0]).slice(0, 2).join('').toUpperCase();
 }
 
 export default function Sidebar({ open, onClose }: SidebarProps) {
   const { user, logout } = useAuth();
+  const location = useLocation();
   const role = user?.role || 'mahasiswa';
   const isVendor = role === 'vendor_super_admin';
 
   const filteredMenus = isVendor ? [] : filterMenusByRole(SIDEBAR_MENUS, user?.role);
+  const [activeSection, setActiveSection] = useState(0);
+  const [activeSectionId, setActiveSectionId] = useState('Dashboard');
+
+  // Determine active section from current path
+  useEffect(() => {
+    const path = location.pathname.split('/').pop() || 'dashboard';
+    const idx = filteredMenus.findIndex(m => {
+      if (m.path === path) return true;
+      return m.children?.some(c => c.path === path);
+    });
+    if (idx >= 0) {
+      setActiveSection(idx);
+      setActiveSectionId(filteredMenus[idx].label);
+    }
+  }, [location.pathname, filteredMenus]);
+
+  const sectionMenus = filteredMenus;
+  const currentSection = sectionMenus[activeSection];
+
+  // Collect all leaf items from current section
+  const leafItems = currentSection?.children?.length
+    ? currentSection.children
+    : currentSection?.path
+      ? [{ ...currentSection, _isDirect: true }]
+      : [];
+
+  const navContent = isVendor ? vendorNav : sectionMenus;
 
   return (
     <>
-      {open && <div className="fixed inset-0 bg-black/20 backdrop-blur-sm z-40 lg:hidden" onClick={onClose} />}
-      <aside className={`fixed top-0 left-0 z-50 h-full w-64 bg-white/95 dark:bg-zinc-900/95 backdrop-blur-xl transform transition-transform duration-200 lg:translate-x-0 lg:static lg:z-auto shadow-lg shadow-black/5 ${open ? 'translate-x-0' : '-translate-x-full'}`}>
-        <div className="flex items-center justify-between h-16 px-5">
-          <div className="flex items-center gap-2.5">
-            <div className="p-1.5 rounded-xl bg-white dark:bg-zinc-900">
-              <img src="/logo.jpg" alt="AONE" className="h-9 w-auto" />
-            </div>
-            <span className="text-lg font-bold tracking-tight text-slate-800 dark:text-white">AONE SIAKAD</span>
+      {open && <div className="fixed inset-0 bg-black/40 z-20 lg:hidden" onClick={onClose} />}
+      <aside className={`fixed lg:static inset-y-0 left-0 z-30 flex transition-transform duration-300 ${open ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}`}>
+        {/* Narrow icon rail */}
+        <div className="w-14 bg-[#181d2f] flex flex-col items-center py-4 gap-1 shrink-0">
+          <div className="w-9 h-9 rounded-xl bg-blue-500 flex items-center justify-center mb-3 shadow-lg shadow-blue-500/40">
+            <GraduationCap size={18} className="text-white" />
           </div>
-          <div className="flex items-center gap-1">
-            <ThemeToggle />
-            <button onClick={onClose} className="lg:hidden text-slate-400 hover:text-slate-600 transition-colors">
-              <X size={18} />
+
+          {navContent.map((item: any, i: number) => {
+            const Icon = isVendor ? item.icon : (iconMap[item.icon] || LayoutDashboard);
+            const sectionColor = isVendor ? 'bg-blue-500' : (sectionColors[item.label] || 'bg-slate-500');
+            const isActive = isVendor
+              ? location.pathname === item.path
+              : activeSection === i;
+            return (
+              <button
+                key={item.label}
+                onClick={() => {
+                  if (isVendor) {
+                    window.location.href = item.path;
+                  } else {
+                    setActiveSection(i);
+                    setActiveSectionId(item.label);
+                  }
+                }}
+                className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all ${
+                  isActive
+                    ? `${sectionColor} shadow-lg ${sectionColor.replace('bg-', 'shadow-')}/40 text-white`
+                    : 'text-white/35 hover:bg-white/10 hover:text-white/70'
+                }`}
+                title={item.label}
+              >
+                <Icon size={17} />
+              </button>
+            );
+          })}
+
+          <div className="flex-1" />
+          <button className="w-9 h-9 rounded-xl border-2 border-dashed border-white/15 flex items-center justify-center text-white/25 hover:border-white/35 hover:text-white/50 transition-all">
+            <Plus size={15} />
+          </button>
+        </div>
+
+        {/* Wide text panel */}
+        <div className="w-48 bg-white dark:bg-zinc-900 border-r border-gray-200 dark:border-zinc-800 flex flex-col">
+          {/* User */}
+          <div className="px-4 py-4 border-b border-gray-100 dark:border-zinc-800 flex items-center gap-2.5">
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center text-white text-[11px] font-bold shrink-0">
+              {initialAvatar(user?.nama)}
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-[12px] font-semibold text-gray-800 dark:text-white truncate leading-tight">{user?.nama || 'User'}</p>
+              <p className="text-[10px] text-gray-400 dark:text-zinc-500 truncate leading-tight">{user?.role?.replace('_', ' ') || ''}</p>
+            </div>
+            <button className="lg:hidden text-gray-400 hover:text-gray-600 dark:hover:text-zinc-300 shrink-0" onClick={onClose}>
+              <X size={14} />
             </button>
+          </div>
+
+          {/* Nav groups */}
+          <nav className="flex-1 overflow-y-auto py-3 px-2">
+            {isVendor ? vendorNav.filter(v => v.path !== location.pathname).map((item) => (
+              <NavLink
+                key={item.path}
+                to={item.path}
+                onClick={onClose}
+                className={({ isActive }) =>
+                  `w-full text-left px-3 py-2 rounded-lg text-[12px] mb-0.5 transition-all flex items-center gap-2 ${
+                    isActive ? 'bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 font-semibold' : 'text-gray-500 dark:text-zinc-400 hover:bg-gray-100 dark:hover:bg-zinc-800 hover:text-gray-800 dark:hover:text-zinc-200'
+                  }`
+                }
+              >
+                <item.icon size={13} />
+                {item.label}
+              </NavLink>
+            )) : currentSection && (
+              <div key={currentSection.label}>
+                <p className="text-[9px] font-bold text-gray-400 dark:text-zinc-500 tracking-widest px-3 mb-1 uppercase">
+                  {currentSection.label}
+                </p>
+                {leafItems.map((item: any) => {
+                  const Icon = iconMap[item.icon] || LayoutDashboard;
+                  const isLeafActive = item._isDirect
+                    ? location.pathname.endsWith(item.path || '')
+                    : location.pathname.endsWith(item.path || '');
+                  return (
+                    <NavLink
+                      key={item.path || item.label}
+                      to={item.path || '#'}
+                      end
+                      onClick={onClose}
+                      className={({ isActive }) =>
+                        `w-full text-left px-3 py-2 rounded-lg text-[12px] mb-0.5 transition-all flex items-center gap-2 ${
+                          isActive
+                            ? 'bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 font-semibold'
+                            : 'text-gray-500 dark:text-zinc-400 hover:bg-gray-100 dark:hover:bg-zinc-800 hover:text-gray-800 dark:hover:text-zinc-200'
+                        }`
+                      }
+                    >
+                      <Icon size={13} />
+                      {item.label}
+                    </NavLink>
+                  );
+                })}
+              </div>
+            )}
+          </nav>
+
+          {/* Bottom avatars + invite */}
+          <div className="px-3 py-3 border-t border-gray-100 dark:border-zinc-800 flex items-center justify-between">
+            <div className="flex -space-x-1.5">
+              {(['#3b82f6', '#10b981', '#f59e0b'] as const).map((c, i) => (
+                <div key={i} className="w-5 h-5 rounded-full border-2 border-white dark:border-zinc-900 flex items-center justify-center text-white text-[7px] font-bold" style={{ background: c }}>
+                  {['A', 'S', 'R'][i]}
+                </div>
+              ))}
+              <div className="w-5 h-5 rounded-full border-2 border-white dark:border-zinc-900 bg-gray-200 dark:bg-zinc-700 flex items-center justify-center text-gray-500 dark:text-zinc-400 text-[7px] font-bold">+3</div>
+            </div>
+            <div className="flex items-center gap-1">
+              <ThemeToggle />
+              <button onClick={logout} className="text-[10px] bg-blue-500 text-white px-2 py-1 rounded-md font-semibold hover:bg-blue-600 transition-colors whitespace-nowrap">
+                Keluar
+              </button>
+            </div>
           </div>
         </div>
-        <nav className="p-3 space-y-0.5 overflow-y-auto h-[calc(100%-4rem)] no-scrollbar">
-          {isVendor ? vendorNav.map((item) => (
-            <NavLink
-              key={item.path}
-              to={item.path}
-              end={item.path === '/vendor'}
-              onClick={onClose}
-               className={({ isActive }) =>
-                 `flex items-center gap-3 px-3 py-2.5 text-sm font-medium transition-all ${
-                   isActive
-                     ? 'bg-emerald-500/10 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-r-4 border-emerald-500 dark:border-emerald-400 shadow-sm rounded-l-xl rounded-r-none'
-                     : 'text-slate-500 dark:text-zinc-400 hover:bg-slate-50 dark:hover:bg-zinc-800/50 rounded-xl'
-                 }`
-               }
-             >
-               <item.icon size={17} />
-               {item.label}
-            </NavLink>
-          )) : filteredMenus.map((item) => (
-            <SidebarNavItem key={item.path || item.label} item={item} onClose={onClose} />
-          ))}
-          <div className="pt-4 mt-4">
-            <button onClick={logout} className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium text-red-400 hover:bg-red-50 dark:hover:bg-red-900/10 w-full transition-colors">
-              <LogOut size={17} /> Logout
-            </button>
-          </div>
-        </nav>
       </aside>
     </>
   );
