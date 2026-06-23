@@ -4,7 +4,7 @@ interface BadgeProps {
 }
 
 const variants: Record<string, string> = {
-  success: 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400',
+  success: 'bg-emerald-50 dark:bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 border border-emerald-200/50 dark:border-emerald-500/20',
   warning: 'bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400',
   danger: 'bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400',
   info: 'bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400',

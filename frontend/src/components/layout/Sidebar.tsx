@@ -147,7 +147,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
                 onClick={onClose}
                 className={({ isActive }) =>
                   `w-full text-left px-3 py-2 rounded-lg text-[12px] mb-0.5 transition-all flex items-center gap-2 ${
-                    isActive ? 'bg-blue-50 dark:bg-blue-500/10 text-blue-600 dark:text-blue-400 font-semibold' : 'text-gray-500 dark:text-zinc-400 hover:bg-gray-100 dark:hover:bg-zinc-800 hover:text-gray-800 dark:hover:text-zinc-200'
+                    isActive ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-semibold border-l-4 border-emerald-500 dark:border-emerald-400' : 'text-gray-500 dark:text-zinc-400 hover:bg-gray-100 dark:hover:bg-zinc-800 hover:text-gray-800 dark:hover:text-zinc-200'
                   }`
                 }
               >
@@ -199,7 +199,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
             </div>
             <div className="flex items-center gap-1">
               <ThemeToggle />
-              <button onClick={logout} className="text-[10px] bg-blue-500 text-white px-2 py-1 rounded-md font-semibold hover:bg-blue-600 transition-colors whitespace-nowrap">
+              <button onClick={logout} className="text-[10px] bg-emerald-500 text-white px-2 py-1 rounded-md font-semibold hover:bg-emerald-600 transition-colors whitespace-nowrap">
                 Keluar
               </button>
             </div>

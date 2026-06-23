@@ -14,7 +14,7 @@ export default function AppLayout() {
   const { user } = useAuth();
 
   return (
-    <div className="flex h-screen overflow-hidden bg-[#f4f6fb] dark:bg-zinc-950">
+    <div className="flex h-screen overflow-hidden bg-gradient-to-br from-slate-50 to-emerald-50/30 dark:from-zinc-950 dark:to-zinc-900">
       <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
       <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
         {/* Topbar */}
@@ -40,7 +40,7 @@ export default function AppLayout() {
             <button className="w-8 h-8 flex items-center justify-center text-gray-500 dark:text-zinc-400 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-lg transition-colors">
               <Settings size={16} />
             </button>
-            <div className="w-7 h-7 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center text-white text-[10px] font-bold cursor-pointer ml-1 shrink-0">
+            <div className="w-7 h-7 rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center text-white text-[10px] font-bold cursor-pointer ml-1 shrink-0">
               {initialAvatar(user?.nama)}
             </div>
           </div>

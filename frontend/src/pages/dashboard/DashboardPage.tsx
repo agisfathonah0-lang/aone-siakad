@@ -174,18 +174,18 @@ export default function DashboardPage() {
   }));
 
   if (loading) return (
-    <div className="p-5 lg:p-6 bg-[#f4f6fb] dark:bg-zinc-950 min-h-screen -m-4 lg:-m-6">
+    <div className="p-5 lg:p-6 bg-gradient-to-br from-slate-50 to-emerald-50/30 dark:from-zinc-950 dark:to-zinc-900 min-h-screen -m-4 lg:-m-6">
       <div className="animate-pulse space-y-5">
-        <div className="h-10 w-48 bg-white dark:bg-zinc-900 rounded-lg" />
+        <div className="h-10 w-48 bg-white/70 backdrop-blur-md dark:bg-zinc-900 rounded-lg" />
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          {[1, 2, 3].map(i => <div key={i} className="h-44 bg-white dark:bg-zinc-900 rounded-2xl" />)}
+          {[1, 2, 3].map(i => <div key={i} className="h-44 bg-white/70 backdrop-blur-md border-white/40 dark:bg-zinc-900/70 rounded-2xl" />)}
         </div>
       </div>
     </div>
   );
 
   return (
-    <div className="p-5 lg:p-6 bg-[#f4f6fb] dark:bg-zinc-950 min-h-screen -m-4 lg:-m-6">
+    <div className="p-5 lg:p-6 bg-gradient-to-br from-slate-50 to-emerald-50/30 dark:from-zinc-950 dark:to-zinc-900 min-h-screen -m-4 lg:-m-6">
       {/* Header row */}
       <div className="flex flex-wrap items-center justify-between gap-3 mb-5">
         <div>
@@ -197,11 +197,11 @@ export default function DashboardPage() {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <button className="flex items-center gap-1.5 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700 text-gray-700 dark:text-zinc-300 text-[12px] px-3 py-1.5 rounded-lg hover:bg-gray-50 dark:hover:bg-zinc-800 font-medium transition-colors">
+          <button className="flex items-center gap-1.5 bg-white/70 backdrop-blur-md border-white/40 dark:bg-zinc-900/70 dark:border-zinc-700/50 text-gray-700 dark:text-zinc-300 text-[12px] px-3 py-1.5 rounded-lg hover:bg-white/90 dark:hover:bg-zinc-800 font-medium transition-colors">
             <Filter size={12} />
             Filter
           </button>
-          <button className="flex items-center gap-1.5 bg-white dark:bg-zinc-900 border border-gray-200 dark:border-zinc-700 text-gray-600 dark:text-zinc-400 text-[12px] px-3 py-1.5 rounded-lg select-none transition-colors">
+          <button className="flex items-center gap-1.5 bg-white/70 backdrop-blur-md border-white/40 dark:bg-zinc-900/70 dark:border-zinc-700/50 text-gray-600 dark:text-zinc-400 text-[12px] px-3 py-1.5 rounded-lg select-none transition-colors">
             <ChevronDown size={11} className="text-gray-400 rotate-90" />
             <span>2024/2025 Ganjil</span>
             <ChevronDown size={11} className="text-gray-400 -rotate-90" />
@@ -216,7 +216,7 @@ export default function DashboardPage() {
           { label: isMahasiswa ? 'SKS Aktif' : 'Dosen & Prodi', value: isMahasiswa ? `${totalSks} SKS` : `${stats?.dosen ?? 0} Dosen`, change: isMahasiswa ? '+2 SKS' : '+5%', sub: isMahasiswa ? 'Semester ini' : '+5% semester lalu', color: '#10b981', data: sparklineData.nilai, icon: TrendingUp },
           { label: isMahasiswa ? 'Tagihan' : 'Mata Kuliah', value: isMahasiswa ? tagihanPending : (stats?.matakuliah ?? 0).toLocaleString(), change: isMahasiswa ? `${tagihanLunas} lunas` : '+8%', sub: isMahasiswa ? 'Menunggu pembayaran' : '+8% minggu lalu', color: '#f59e0b', data: sparklineData.sks, icon: TrendingUp },
         ].map((m, idx) => (
-          <div key={idx} className="bg-white dark:bg-zinc-900 rounded-2xl px-5 py-4 border border-gray-100 dark:border-zinc-800 hover:shadow-md dark:hover:shadow-black/20 transition-shadow">
+          <div key={idx} className="bg-white/70 backdrop-blur-md border-white/40 rounded-2xl px-5 py-4 border hover:shadow-lg hover:shadow-emerald-500/10 transition-shadow dark:bg-zinc-900/70 dark:border-zinc-800/50">
             <div className="flex items-start justify-between mb-1">
               <p className="text-[11px] text-gray-400 dark:text-zinc-500 font-medium">{m.label}</p>
               <span className="text-[11px] font-bold px-1.5 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
@@ -237,7 +237,7 @@ export default function DashboardPage() {
         <>
           {/* Mahasiswa: Profile + Quick Actions + Tagihan + KHS */}
           <div className="grid grid-cols-1 lg:grid-cols-4 gap-4 mb-5">
-            <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-gray-100 dark:border-zinc-800 p-4">
+            <div className="bg-white/70 backdrop-blur-md border-white/40 rounded-2xl border dark:bg-zinc-900/70 dark:border-zinc-800/50 p-4">
               <div className="flex items-center gap-3 mb-3">
                 <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center text-white text-sm font-bold shrink-0">
                   {(mhs.nama || user?.nama || '?').charAt(0).toUpperCase()}
@@ -277,7 +277,7 @@ export default function DashboardPage() {
           </div>
 
           {/* Quick Actions */}
-          <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-gray-100 dark:border-zinc-800 p-5 mb-5">
+          <div className="bg-white/70 backdrop-blur-md border-white/40 rounded-2xl border dark:bg-zinc-900/70 dark:border-zinc-800/50 p-5 mb-5">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <Sparkles size={16} className="text-blue-500" />
@@ -300,7 +300,7 @@ export default function DashboardPage() {
 
           {/* Tagihan + KHS */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-gray-100 dark:border-zinc-800 p-5">
+            <div className="bg-white/70 backdrop-blur-md border-white/40 rounded-2xl border dark:bg-zinc-900/70 dark:border-zinc-800/50 p-5">
               <div className="flex items-center gap-2 mb-4">
                 <Receipt size={15} className="text-blue-500" />
                 <h2 className="text-sm font-bold text-gray-900 dark:text-white">Tagihan Terkini</h2>
@@ -340,7 +340,7 @@ export default function DashboardPage() {
               )}
             </div>
 
-            <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-gray-100 dark:border-zinc-800 p-5">
+            <div className="bg-white/70 backdrop-blur-md border-white/40 rounded-2xl border dark:bg-zinc-900/70 dark:border-zinc-800/50 p-5">
               <div className="flex items-center gap-2 mb-4">
                 <BarChart3 size={15} className="text-blue-500" />
                 <h2 className="text-sm font-bold text-gray-900 dark:text-white">Ringkasan Akademik</h2>
@@ -407,7 +407,7 @@ export default function DashboardPage() {
           </div>
 
           {/* Quick Actions */}
-          <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-gray-100 dark:border-zinc-800 p-5 mb-5">
+          <div className="bg-white/70 backdrop-blur-md border-white/40 rounded-2xl border dark:bg-zinc-900/70 dark:border-zinc-800/50 p-5 mb-5">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <Zap size={16} className="text-blue-500" />
@@ -429,7 +429,7 @@ export default function DashboardPage() {
           </div>
 
           {/* Aktivitas Terkini */}
-          <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-gray-100 dark:border-zinc-800 p-5 mb-5">
+          <div className="bg-white/70 backdrop-blur-md border-white/40 rounded-2xl border dark:bg-zinc-900/70 dark:border-zinc-800/50 p-5 mb-5">
             <div className="flex items-center gap-2 mb-4">
               <Activity size={15} className="text-blue-500" />
               <h2 className="text-sm font-bold text-gray-900 dark:text-white">Aktivitas Terkini</h2>
@@ -459,7 +459,7 @@ export default function DashboardPage() {
 
           {/* Ringkasan Akademik + Modul Terintegrasi */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-gray-100 dark:border-zinc-800 p-5">
+            <div className="bg-white/70 backdrop-blur-md border-white/40 rounded-2xl border dark:bg-zinc-900/70 dark:border-zinc-800/50 p-5">
               <div className="flex items-center gap-2 mb-4">
                 <Target size={15} className="text-blue-500" />
                 <h2 className="text-sm font-bold text-gray-900 dark:text-white">Ringkasan Akademik</h2>
@@ -485,7 +485,7 @@ export default function DashboardPage() {
               </button>
             </div>
 
-            <div className="bg-white dark:bg-zinc-900 rounded-2xl border border-gray-100 dark:border-zinc-800 p-5">
+            <div className="bg-white/70 backdrop-blur-md border-white/40 rounded-2xl border dark:bg-zinc-900/70 dark:border-zinc-800/50 p-5">
               <div className="flex items-center gap-2 mb-4">
                 <Globe size={15} className="text-blue-500" />
                 <h2 className="text-sm font-bold text-gray-900 dark:text-white">Modul Terintegrasi</h2>
@@ -500,7 +500,7 @@ export default function DashboardPage() {
                   { label: 'Integrasi LMS', path: 'integrasi-lms', icon: TrendingUp, color: '#10b981', bg: 'bg-emerald-50 dark:bg-emerald-500/10' },
                 ].map((mod) => (
                   <button key={mod.label} onClick={() => navigate(mod.path)}
-                    className="group flex items-center gap-2.5 p-2.5 rounded-xl bg-white dark:bg-zinc-800/50 ring-1 ring-gray-200 dark:ring-zinc-700/30 hover:ring-2 hover:-translate-y-0.5 hover:shadow-md transition-all text-left">
+                    className="group flex items-center gap-2.5 p-2.5 rounded-xl bg-white/70 backdrop-blur-md border-white/40 dark:bg-zinc-900/70 ring-1 ring-gray-200/50 dark:ring-zinc-700/30 hover:ring-2 hover:-translate-y-0.5 hover:shadow-md transition-all text-left">
                     <div className={`w-8 h-8 rounded-lg ${mod.bg} flex items-center justify-center group-hover:scale-110 transition-transform`}>
                       <mod.icon size={15} style={{ color: mod.color }} />
                     </div>
