@@ -28,32 +28,36 @@ export default function DataTable<T extends Record<string, any>>({
 
   return (
     <div>
-      <div className="overflow-hidden rounded-xl bg-white dark:bg-zinc-900/50 shadow-sm ring-1 ring-slate-200/50 dark:ring-zinc-800/30">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-slate-100 dark:border-zinc-800/30">
+      <table className="w-full text-sm">
+        <thead>
+          <tr className="border-b border-slate-100/50 dark:border-zinc-800/30">
+            {columns.map((col) => (
+              <th key={col.key} className={`text-left px-5 py-3.5 font-semibold text-slate-400 dark:text-zinc-500 text-[11px] uppercase tracking-wider ${col.className || ''}`}>{col.label}</th>
+            ))}
+          </tr>
+        </thead>
+        <tbody className="divide-y divide-slate-100/30 dark:divide-zinc-800/20">
+          {data.map((row, i) => (
+            <tr key={(row.id as string) || i} className="transition-all duration-200 hover:bg-white/40 dark:hover:bg-white/[0.02]">
               {columns.map((col) => (
-                <th key={col.key} className={`text-left px-4 py-3.5 font-semibold text-slate-500 dark:text-zinc-400 text-[11px] uppercase tracking-wider ${col.className || ''}`}>{col.label}</th>
+                <td key={col.key} className={`px-5 py-3.5 text-sm ${col.className || ''}`}>{col.render ? col.render(row) : String(row[col.key] ?? '-')}</td>
               ))}
             </tr>
-          </thead>
-          <tbody className="divide-y divide-slate-100/50 dark:divide-zinc-800/20">
-            {data.map((row, i) => (
-              <tr key={(row.id as string) || i} className="transition-colors">
-                {columns.map((col) => (
-                  <td key={col.key} className={`px-4 py-3 text-sm ${col.className || ''}`}>{col.render ? col.render(row) : String(row[col.key] ?? '-')}</td>
-                ))}
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+          ))}
+        </tbody>
+      </table>
       {totalPages && totalPages > 1 && page && onPageChange && (
-        <div className="flex items-center justify-between mt-4 text-sm px-1">
-          <span className="text-slate-400 text-xs">Halaman {page} dari {totalPages}</span>
+        <div className="flex items-center justify-between px-5 py-3 border-t border-slate-100/50 dark:border-zinc-800/30">
+          <span className="text-xs text-slate-400 dark:text-zinc-500">Halaman {page} dari {totalPages}</span>
           <div className="flex gap-1">
-            <button disabled={page <= 1} onClick={() => onPageChange(page - 1)} className="p-1.5 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-zinc-800 disabled:opacity-30 transition-colors"><ChevronLeft size={16} /></button>
-            <button disabled={page >= totalPages} onClick={() => onPageChange(page + 1)} className="p-1.5 rounded-lg text-slate-500 hover:bg-slate-100 dark:hover:bg-zinc-800 disabled:opacity-30 transition-colors"><ChevronRight size={16} /></button>
+            <button disabled={page <= 1} onClick={() => onPageChange(page - 1)}
+              className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-zinc-300 hover:bg-slate-100 dark:hover:bg-zinc-800 disabled:opacity-30 disabled:hover:bg-transparent transition-all">
+              <ChevronLeft size={16} />
+            </button>
+            <button disabled={page >= totalPages} onClick={() => onPageChange(page + 1)}
+              className="p-1.5 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-zinc-300 hover:bg-slate-100 dark:hover:bg-zinc-800 disabled:opacity-30 disabled:hover:bg-transparent transition-all">
+              <ChevronRight size={16} />
+            </button>
           </div>
         </div>
       )}

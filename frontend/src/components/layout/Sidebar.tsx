@@ -82,8 +82,10 @@ function SidebarNavItem({ item, depth, onClose }: { item: MenuItem; depth?: numb
       end={item.path === 'dashboard'}
       onClick={onClose}
       className={({ isActive }) =>
-        `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
-          isActive ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 shadow-sm' : 'text-slate-500 dark:text-zinc-400 hover:bg-slate-50 dark:hover:bg-zinc-800/50'
+        `flex items-center gap-3 px-3 py-2.5 text-sm font-medium transition-all ${
+          isActive
+            ? 'bg-emerald-500/10 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-r-4 border-emerald-500 dark:border-emerald-400 shadow-sm rounded-l-xl rounded-r-none'
+            : 'text-slate-500 dark:text-zinc-400 hover:bg-slate-50 dark:hover:bg-zinc-800/50 rounded-xl'
         }`
       }
     >
@@ -125,14 +127,16 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
               to={item.path}
               end={item.path === '/vendor'}
               onClick={onClose}
-              className={({ isActive }) =>
-                `flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all ${
-                  isActive ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400 shadow-sm' : 'text-slate-500 dark:text-zinc-400 hover:bg-slate-50 dark:hover:bg-zinc-800/50'
-                }`
-              }
-            >
-              <item.icon size={17} />
-              {item.label}
+               className={({ isActive }) =>
+                 `flex items-center gap-3 px-3 py-2.5 text-sm font-medium transition-all ${
+                   isActive
+                     ? 'bg-emerald-500/10 dark:bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-r-4 border-emerald-500 dark:border-emerald-400 shadow-sm rounded-l-xl rounded-r-none'
+                     : 'text-slate-500 dark:text-zinc-400 hover:bg-slate-50 dark:hover:bg-zinc-800/50 rounded-xl'
+                 }`
+               }
+             >
+               <item.icon size={17} />
+               {item.label}
             </NavLink>
           )) : filteredMenus.map((item) => (
             <SidebarNavItem key={item.path || item.label} item={item} onClose={onClose} />
