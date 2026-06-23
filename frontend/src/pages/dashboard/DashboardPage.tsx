@@ -1,40 +1,43 @@
 import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'motion/react';
 import { get } from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
-import { Users, BookOpen, DollarSign, GraduationCap, Loader2, FileSpreadsheet, Printer, Library, BellRing, TrendingUp, ArrowRight, Sparkles, School, UserCheck, BookMarked, ScrollText, ClipboardCheck, CreditCard, Bot, Wallet, Receipt, CheckCircle, Clock, AlertCircle, User, BarChart3 } from 'lucide-react';
+import { Users, BookOpen, DollarSign, GraduationCap, Loader2, FileSpreadsheet, Printer, Library, BellRing, TrendingUp, ArrowRight, Sparkles, School, UserCheck, BookMarked, ScrollText, ClipboardCheck, CreditCard, Wallet, Receipt, CheckCircle, Clock, AlertCircle, User, BarChart3, Activity, Target, Globe, Zap, Gauge } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
 import Skeleton from '../../components/ui/Skeleton';
 
 const adminQuickActions = [
-  { label: 'Tambah Mahasiswa', icon: UserCheck, path: 'mahasiswa', color: 'from-emerald-500 to-emerald-600' },
-  { label: 'Input Nilai', icon: FileSpreadsheet, path: 'nilai', color: 'from-indigo-500 to-indigo-600' },
-  { label: 'Buat Jadwal', icon: BookOpen, path: 'jadwal', color: 'from-amber-500 to-amber-600' },
-  { label: 'Cetak KHS', icon: Printer, path: 'cetak-pdf', color: 'from-rose-500 to-rose-600' },
+  { label: 'Tambah Mahasiswa', icon: UserCheck, path: 'mahasiswa', gradient: 'from-emerald-500 to-emerald-600' },
+  { label: 'Input Nilai', icon: FileSpreadsheet, path: 'nilai', gradient: 'from-indigo-500 to-indigo-600' },
+  { label: 'Buat Jadwal', icon: BookOpen, path: 'jadwal', gradient: 'from-amber-500 to-amber-600' },
+  { label: 'Cetak KHS', icon: Printer, path: 'cetak-pdf', gradient: 'from-rose-500 to-rose-600' },
 ];
 
 const mhsQuickActions = [
-  { label: 'KHS', icon: ScrollText, path: 'khs', color: 'from-emerald-500 to-emerald-600' },
-  { label: 'Tagihan', icon: Receipt, path: 'tagihan', color: 'from-indigo-500 to-indigo-600' },
-  { label: 'KRS', icon: ClipboardCheck, path: 'krs', color: 'from-amber-500 to-amber-600' },
-  { label: 'Riwayat Bayar', icon: CreditCard, path: 'riwayat-pembayaran', color: 'from-rose-500 to-rose-600' },
+  { label: 'KHS', icon: ScrollText, path: 'khs', gradient: 'from-emerald-500 to-emerald-600' },
+  { label: 'Tagihan', icon: Receipt, path: 'tagihan', gradient: 'from-indigo-500 to-indigo-600' },
+  { label: 'KRS', icon: ClipboardCheck, path: 'krs', gradient: 'from-amber-500 to-amber-600' },
+  { label: 'Riwayat Bayar', icon: CreditCard, path: 'riwayat-pembayaran', gradient: 'from-rose-500 to-rose-600' },
 ];
 
-const adminGradientMap: Record<string, string> = {
-  Mahasiswa: 'from-indigo-500/20 via-indigo-500/5 to-transparent',
-  Dosen: 'from-emerald-500/20 via-emerald-500/5 to-transparent',
-  'Mata Kuliah': 'from-amber-500/20 via-amber-500/5 to-transparent',
-  Tagihan: 'from-rose-500/20 via-rose-500/5 to-transparent',
-  Alumni: 'from-purple-500/20 via-purple-500/5 to-transparent',
-  Prodi: 'from-cyan-500/20 via-cyan-500/5 to-transparent',
+const containerVariants = {
+  hidden: { opacity: 0 },
+  visible: { opacity: 1, transition: { staggerChildren: 0.05 } },
 };
 
-function StatCardSkeleton() {
+const itemVariants = {
+  hidden: { opacity: 0, y: 12 },
+  visible: { opacity: 1, y: 0 },
+};
+
+function StatCardSkeleton({ isDark }: { isDark: boolean }) {
+  const c = isDark ? 'bg-white/[0.03]' : 'bg-white';
   return (
-    <div className="bg-white dark:bg-zinc-900/50 rounded-2xl p-4 shadow-sm ring-1 ring-slate-200/50 dark:ring-zinc-800/30">
-      <Skeleton className="w-10 h-10 rounded-xl mb-3" />
-      <Skeleton className="h-7 w-16 mb-1" />
-      <Skeleton className="h-3 w-20" />
+    <div className={`${c} rounded-2xl p-4 shadow-sm ring-1 ring-slate-200/50 dark:ring-zinc-800/30 animate-pulse`}>
+      <div className="w-10 h-10 rounded-xl bg-slate-100 dark:bg-zinc-800 mb-3" />
+      <div className="h-7 w-16 bg-slate-100 dark:bg-zinc-800 rounded mb-1" />
+      <div className="h-3 w-20 bg-slate-100 dark:bg-zinc-800 rounded" />
     </div>
   );
 }
@@ -93,6 +96,16 @@ export default function DashboardPage() {
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [greeting, setGreeting] = useState('');
+
+  const [isDark, setIsDark] = useState(false);
+
+  useEffect(() => {
+    const checkDark = () => setIsDark(document.documentElement.classList.contains('dark'));
+    checkDark();
+    const observer = new MutationObserver(checkDark);
+    observer.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    return () => observer.disconnect();
+  }, []);
 
   useEffect(() => {
     const h = new Date().getHours();
@@ -158,36 +171,18 @@ export default function DashboardPage() {
     }
   }, [isMahasiswa]);
 
+  const bc = isDark
+    ? 'bg-zinc-900/80 backdrop-blur-xl border-zinc-800/50'
+    : 'bg-white shadow-sm ring-1 ring-slate-200/50';
+
+  const gb = isDark ? 'bg-zinc-950' : 'bg-slate-50';
+
   if (loading) return (
-    <div className="space-y-6 animate-fade-in relative">
-      <div className="fixed inset-0 pointer-events-none opacity-[0.03] dark:opacity-[0.04]" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, rgb(0,0,0) 1px, transparent 0)', backgroundSize: '24px 24px' }} />
-      <Skeleton className="h-32 rounded-2xl" />
-      {isMahasiswa ? (
-        <>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-            <Skeleton className="h-44 rounded-2xl" />
-            <div className="md:col-span-3 grid grid-cols-2 sm:grid-cols-4 gap-3">
-              {[...Array(4)].map((_, i) => <StatCardSkeleton key={i} />)}
-            </div>
-          </div>
-          <Skeleton className="h-32 rounded-2xl" />
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <Skeleton className="h-52 rounded-2xl" />
-            <Skeleton className="h-52 rounded-2xl" />
-          </div>
-        </>
-      ) : (
-        <>
-          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
-            {[...Array(6)].map((_, i) => <StatCardSkeleton key={i} />)}
-          </div>
-          <Skeleton className="h-32 rounded-2xl" />
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <Skeleton className="h-52 rounded-2xl" />
-            <Skeleton className="h-52 rounded-2xl" />
-          </div>
-        </>
-      )}
+    <div className={`space-y-6 p-6 -m-6 ${gb} min-h-screen`}>
+      <div className="h-16 rounded-2xl bg-white dark:bg-zinc-900/50 shadow-sm ring-1 ring-slate-200/50 dark:ring-zinc-800/30 animate-pulse" />
+      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
+        {[...Array(6)].map((_, i) => <StatCardSkeleton key={i} isDark={isDark} />)}
+      </div>
     </div>
   );
 
@@ -204,30 +199,50 @@ export default function DashboardPage() {
     value: parseFloat(sem.ip) || 0,
   }));
 
-  return (
-    <div className="space-y-6 relative">
-      {/* Subtle background pattern */}
-      <div className="fixed inset-0 pointer-events-none opacity-[0.03] dark:opacity-[0.04]" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, rgb(0,0,0) 1px, transparent 0)', backgroundSize: '24px 24px' }} />
+  function StatCard({ icon: Icon, label, value, extra, accent }: { icon: any; label: string; value: any; extra?: string; accent: string }) {
+    const map: Record<string, string> = {
+      indigo: isDark ? 'bg-indigo-500/10 text-indigo-400' : 'bg-indigo-50 text-indigo-600',
+      emerald: isDark ? 'bg-emerald-500/10 text-emerald-400' : 'bg-emerald-50 text-emerald-600',
+      amber: isDark ? 'bg-amber-500/10 text-amber-400' : 'bg-amber-50 text-amber-600',
+      rose: isDark ? 'bg-rose-500/10 text-rose-400' : 'bg-rose-50 text-rose-600',
+      cyan: isDark ? 'bg-cyan-500/10 text-cyan-400' : 'bg-cyan-50 text-cyan-600',
+      purple: isDark ? 'bg-purple-500/10 text-purple-400' : 'bg-purple-50 text-purple-600',
+    };
+    const barMap: Record<string, string> = {
+      indigo: 'bg-indigo-500', emerald: 'bg-emerald-500', amber: 'bg-amber-500',
+      rose: 'bg-rose-500', cyan: 'bg-cyan-500', purple: 'bg-purple-500',
+    };
+    return (
+      <div className={`relative rounded-2xl p-4 ${bc} transition-all duration-200 group hover:-translate-y-0.5`}>
+        <div className={`absolute top-0 left-0 w-full h-0.5 ${barMap[accent]} opacity-60`} />
+        <div className={`w-10 h-10 rounded-xl ${map[accent]} flex items-center justify-center mb-3 ring-4 ring-white dark:ring-zinc-900 shadow-sm transition-transform group-hover:scale-110`}>
+          <Icon size={18} />
+        </div>
+        <p className="text-2xl font-extrabold dark:text-white tabular-nums">{value}</p>
+        <p className="text-[11px] text-slate-400 dark:text-zinc-500 mt-0.5 font-medium">{label}</p>
+        {extra && <p className="text-[10px] text-emerald-500 font-medium">{extra}</p>}
+      </div>
+    );
+  }
 
-      <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-600 via-emerald-500 to-teal-500 p-6 text-white shadow-lg shadow-emerald-500/20">
+  return (
+    <motion.div variants={containerVariants} initial="hidden" animate="visible" className="space-y-5">
+      {/* Greeting header */}
+      <motion.div variants={itemVariants} className={`relative overflow-hidden rounded-2xl ${isDark ? 'bg-gradient-to-br from-emerald-600 via-emerald-500 to-teal-500' : 'bg-gradient-to-br from-emerald-600 via-emerald-500 to-teal-500'} p-5 text-white shadow-lg shadow-emerald-500/20`}>
         <div className="absolute -top-6 -right-6 w-32 h-32 bg-white/10 rounded-full blur-2xl" />
         <div className="absolute -bottom-8 -left-8 w-40 h-40 bg-emerald-400/20 rounded-full blur-3xl" />
-        <div className="absolute top-4 right-20 w-2 h-2 bg-white/30 rounded-full" />
-        <div className="absolute bottom-6 right-12 w-3 h-3 bg-white/20 rounded-full" />
-        <div className="absolute -top-20 -left-20 w-64 h-64 bg-emerald-400/10 rounded-full blur-[80px]" />
-        <div className="absolute -bottom-16 right-1/4 w-48 h-48 bg-teal-400/10 rounded-full blur-[60px]" />
         <div className="absolute inset-0 opacity-[0.04]" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)', backgroundSize: '32px 32px' }} />
         <div className="relative flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div>
-            <div className="flex items-center gap-2.5 mb-1">
-              <h1 className="text-2xl font-bold font-display tracking-tight">{greeting},</h1>
-              <span className="text-2xl font-bold font-display text-emerald-100">{user?.nama?.split(' ')[0]}</span>
+            <div className="flex items-center gap-2.5 mb-0.5">
+              <Gauge size={22} className="text-emerald-100/80" />
+              <div>
+                <h1 className="text-xl font-bold tracking-tight">{greeting}, <span className="text-emerald-100">{user?.nama?.split(' ')[0]}</span></h1>
+                <p className="text-xs text-emerald-100/80">{isMahasiswa ? 'Portal Mahasiswa' : 'Ringkasan Data Kampus'}</p>
+              </div>
             </div>
-            <p className="text-sm text-emerald-100/80">
-              {isMahasiswa ? 'Selamat datang di portal mahasiswa' : 'Berikut ringkasan data kampus hari ini'}
-            </p>
           </div>
-          <div className="flex items-center gap-3 text-xs text-emerald-100/70">
+          <div className="flex items-center gap-2 text-xs text-emerald-100/70">
             <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/10 backdrop-blur-sm border border-white/10">
               <BellRing size={13} />
               <span className="tabular-nums">
@@ -240,14 +255,15 @@ export default function DashboardPage() {
             </div>
           </div>
         </div>
-      </div>
+      </motion.div>
 
       {isMahasiswa ? (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
-            <div className="md:col-span-1 glass-card rounded-2xl p-4">
+          {/* Profile + Stats */}
+          <motion.div variants={itemVariants} className="grid grid-cols-1 md:grid-cols-4 gap-3">
+            <div className={`md:col-span-1 rounded-2xl p-4 ${bc}`}>
               <div className="flex items-center gap-3 mb-3">
-                <div className="w-10 h-10 rounded-xl bg-emerald-50 dark:bg-emerald-900/20 flex items-center justify-center text-emerald-500">
+                <div className={`w-10 h-10 rounded-xl ${isDark ? 'bg-emerald-500/10' : 'bg-emerald-50'} flex items-center justify-center ${isDark ? 'text-emerald-400' : 'text-emerald-600'}`}>
                   <User size={18} />
                 </div>
                 <div>
@@ -266,31 +282,19 @@ export default function DashboardPage() {
             </div>
 
             <div className="md:col-span-3 grid grid-cols-2 sm:grid-cols-4 gap-3">
-              {[
-                { label: 'Semester', value: mhs.semester || '-', icon: GraduationCap, color: 'text-indigo-500', bg: 'bg-indigo-50 dark:bg-indigo-900/20', bar: 'bg-indigo-500' },
-                { label: 'IPK', value: ipk || '-', icon: TrendingUp, color: 'text-emerald-500', bg: 'bg-emerald-50 dark:bg-emerald-900/20', bar: 'bg-emerald-500' },
-                { label: 'SKS Tempuh', value: totalSks || '-', icon: BookOpen, color: 'text-amber-500', bg: 'bg-amber-50 dark:bg-amber-900/20', bar: 'bg-amber-500' },
-                { label: 'Tagihan', value: tagihanPending, extra: `${tagihanLunas} lunas`, icon: Wallet, color: 'text-rose-500', bg: 'bg-rose-50 dark:bg-rose-900/20', bar: 'bg-rose-500' },
-              ].map((card, idx) => (
-                <div key={card.label} className={`relative glass-card rounded-2xl p-4 hover:shadow-md hover:-translate-y-0.5 transition-all duration-200 overflow-hidden group animate-stagger-${idx + 1}`}>
-                  <div className={`absolute top-0 left-0 w-full h-0.5 ${card.bar} opacity-60`} />
-                  <div className="absolute -bottom-2 -right-2 w-16 h-16 rounded-full bg-gradient-to-br from-transparent to-current opacity-[0.03] dark:opacity-[0.06]" />
-                  <div className={`w-10 h-10 rounded-xl ${card.bg} flex items-center justify-center ${card.color} mb-3 ring-4 ring-white dark:ring-zinc-900 shadow-sm transition-transform duration-300 group-hover:scale-110`}>
-                    <card.icon size={18} />
-                  </div>
-                  <p className="text-2xl font-extrabold dark:text-white tabular-nums">{card.value}</p>
-                  <p className="text-[11px] text-slate-400 dark:text-zinc-500 mt-0.5 font-medium">{card.label}</p>
-                  {card.extra && <p className="text-[10px] text-emerald-500 font-medium">{card.extra}</p>}
-                </div>
-              ))}
+              <StatCard icon={GraduationCap} label="Semester" value={mhs.semester || '-'} accent="indigo" />
+              <StatCard icon={TrendingUp} label="IPK" value={ipk || '-'} accent="emerald" />
+              <StatCard icon={BookOpen} label="SKS Tempuh" value={totalSks || '-'} accent="amber" />
+              <StatCard icon={Wallet} label="Tagihan" value={tagihanPending} extra={`${tagihanLunas} lunas`} accent="rose" />
             </div>
-          </div>
+          </motion.div>
 
-          <div className="glass-card rounded-2xl p-5">
+          {/* Quick Actions */}
+          <motion.div variants={itemVariants} className={`rounded-2xl p-5 ${bc}`}>
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
                 <Sparkles size={16} className="text-emerald-500" />
-                <h2 className="text-sm font-bold font-display dark:text-white">Aksi Cepat</h2>
+                <h2 className="text-sm font-bold dark:text-white">Aksi Cepat</h2>
               </div>
               <span className="text-[10px] text-slate-400">Shortcut</span>
             </div>
@@ -298,24 +302,25 @@ export default function DashboardPage() {
               {mhsQuickActions.map((action) => (
                 <button key={action.label} onClick={() => navigate(action.path)}
                   className="group relative overflow-hidden rounded-xl p-3 text-white text-left transition-all hover:-translate-y-0.5 hover:shadow-lg active:scale-[0.98]"
-                  style={{ background: `linear-gradient(135deg, ${action.color.replace('from-', '').split(' to-')[0]}, ${action.color.replace('from-', '').split(' to-')[1]})` }}>
+                  style={{ background: `linear-gradient(135deg, ${action.gradient.split(' to-')[0].replace('from-', '')}, ${action.gradient.split(' to-')[1]})` }}>
                   <div className="absolute top-0 right-0 w-16 h-16 bg-white/10 rounded-full blur-xl -translate-y-1/2 translate-x-1/2" />
                   <action.icon size={18} className="mb-2 opacity-90" />
                   <p className="text-xs font-bold">{action.label}</p>
                 </button>
               ))}
             </div>
-          </div>
+          </motion.div>
 
+          {/* Tagihan + KHS */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <div className="glass-card rounded-2xl p-5">
+            <motion.div variants={itemVariants} className={`rounded-2xl p-5 ${bc}`}>
               <div className="flex items-center gap-2 mb-4">
                 <Receipt size={15} className="text-emerald-500" />
-                <h2 className="text-sm font-bold font-display dark:text-white">Tagihan Terkini</h2>
+                <h2 className="text-sm font-bold dark:text-white">Tagihan Terkini</h2>
               </div>
               {tagihanMe.length === 0 ? (
                 <div className="flex flex-col items-center py-8 text-slate-400">
-                  <div className="w-14 h-14 rounded-2xl bg-slate-100 dark:bg-zinc-800/50 flex items-center justify-center mb-3">
+                  <div className={`w-14 h-14 rounded-2xl ${isDark ? 'bg-zinc-800/50' : 'bg-slate-100'} flex items-center justify-center mb-3`}>
                     <CheckCircle size={24} className="text-emerald-400" />
                   </div>
                   <p className="text-sm font-semibold text-slate-500 dark:text-zinc-400">Tidak Ada Tagihan</p>
@@ -346,16 +351,16 @@ export default function DashboardPage() {
                   )}
                 </div>
               )}
-            </div>
+            </motion.div>
 
-            <div className="glass-card rounded-2xl p-5">
+            <motion.div variants={itemVariants} className={`rounded-2xl p-5 ${bc}`}>
               <div className="flex items-center gap-2 mb-4">
                 <BarChart3 size={15} className="text-emerald-500" />
-                <h2 className="text-sm font-bold font-display dark:text-white">Ringkasan Akademik</h2>
+                <h2 className="text-sm font-bold dark:text-white">Ringkasan Akademik</h2>
               </div>
               {!khsData?.semesters?.length ? (
                 <div className="flex flex-col items-center py-8 text-slate-400">
-                  <div className="w-14 h-14 rounded-2xl bg-slate-100 dark:bg-zinc-800/50 flex items-center justify-center mb-3">
+                  <div className={`w-14 h-14 rounded-2xl ${isDark ? 'bg-zinc-800/50' : 'bg-slate-100'} flex items-center justify-center mb-3`}>
                     <GraduationCap size={24} className="text-slate-300 dark:text-zinc-600" />
                   </div>
                   <p className="text-sm font-semibold text-slate-500 dark:text-zinc-400">Belum Ada Data KHS</p>
@@ -364,8 +369,8 @@ export default function DashboardPage() {
               ) : (
                 <>
                   {ipData.length > 1 && (
-                    <div className="mb-4 p-3 rounded-xl bg-slate-50 dark:bg-zinc-800/30">
-                      <p className="text-[10px] font-semibold text-slate-400 mb-2 uppercase tracking-wider">Trend IP per Semester</p>
+                    <div className={`mb-4 p-3 rounded-xl ${isDark ? 'bg-zinc-800/30' : 'bg-slate-50'}`}>
+                      <p className="text-[10px] font-semibold text-slate-400 dark:text-zinc-400 mb-2 uppercase tracking-wider">Trend IP per Semester</p>
                       <MiniBarChart data={ipData} />
                     </div>
                   )}
@@ -387,40 +392,36 @@ export default function DashboardPage() {
                   </div>
                 </>
               )}
-            </div>
+            </motion.div>
           </div>
         </>
       ) : (
         <>
-          <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
+          {/* Stats Cards */}
+          <motion.div variants={itemVariants} className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3">
             {[
-              { label: 'Mahasiswa', value: stats?.mahasiswa ?? 0, icon: Users, color: 'text-indigo-500', bg: 'bg-indigo-50 dark:bg-indigo-900/20', bar: 'bg-indigo-500' },
-              { label: 'Dosen', value: stats?.dosen ?? 0, icon: UserCheck, color: 'text-emerald-500', bg: 'bg-emerald-50 dark:bg-emerald-900/20', bar: 'bg-emerald-500' },
-              { label: 'Prodi', value: stats?.prodi ?? 0, icon: School, color: 'text-cyan-500', bg: 'bg-cyan-50 dark:bg-cyan-900/20', bar: 'bg-cyan-500' },
-              { label: 'Mata Kuliah', value: stats?.matakuliah ?? 0, icon: BookMarked, color: 'text-amber-500', bg: 'bg-amber-50 dark:bg-amber-900/20', bar: 'bg-amber-500' },
-              { label: 'Tagihan', value: stats?.tagihan ?? 0, icon: DollarSign, color: 'text-rose-500', bg: 'bg-rose-50 dark:bg-rose-900/20', bar: 'bg-rose-500' },
-              { label: 'Alumni', value: stats?.alumni ?? 0, icon: GraduationCap, color: 'text-purple-500', bg: 'bg-purple-50 dark:bg-purple-900/20', bar: 'bg-purple-500' },
-            ].map((card, idx) => (
-              <div key={card.label} className={`relative group glass-card rounded-2xl p-4 hover:shadow-lg hover:-translate-y-1 transition-all duration-200 cursor-pointer overflow-hidden animate-stagger-${idx + 1}`} onClick={() => navigate(card.label.toLowerCase().replace(/\s+/g, '-'))}>
-                <div className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${adminGradientMap[card.label] || 'from-slate-500/5'} opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
-                <div className={`absolute top-0 left-0 w-full h-0.5 ${card.bar} opacity-0 group-hover:opacity-100 transition-opacity duration-300`} />
-                <div className="absolute -bottom-3 -right-3 w-20 h-20 rounded-full bg-gradient-to-br from-transparent to-current opacity-[0.02] dark:opacity-[0.04] group-hover:opacity-[0.06] transition-opacity" />
-                <div className="relative">
-                  <div className={`w-10 h-10 rounded-xl ${card.bg} flex items-center justify-center ${card.color} mb-3 ring-4 ring-white dark:ring-zinc-900 shadow-sm transition-transform duration-300 group-hover:scale-110 group-hover:rotate-3`}>
-                    <card.icon size={18} />
-                  </div>
-                  <p className="text-2xl font-extrabold dark:text-white tabular-nums">{card.value.toLocaleString()}</p>
-                  <p className="text-[11px] text-slate-400 dark:text-zinc-500 mt-0.5 font-medium">{card.label}</p>
-                </div>
-              </div>
+              { label: 'Mahasiswa', value: stats?.mahasiswa ?? 0, icon: Users, accent: 'indigo' },
+              { label: 'Dosen', value: stats?.dosen ?? 0, icon: UserCheck, accent: 'emerald' },
+              { label: 'Prodi', value: stats?.prodi ?? 0, icon: School, accent: 'cyan' },
+              { label: 'Mata Kuliah', value: stats?.matakuliah ?? 0, icon: BookMarked, accent: 'amber' },
+              { label: 'Tagihan', value: stats?.tagihan ?? 0, icon: DollarSign, accent: 'rose' },
+              { label: 'Alumni', value: stats?.alumni ?? 0, icon: GraduationCap, accent: 'purple' },
+            ].map((card) => (
+              <motion.div key={card.label} variants={itemVariants}
+                className={`relative rounded-2xl p-4 ${bc} cursor-pointer transition-all duration-200 group hover:-translate-y-0.5 overflow-hidden`}
+                onClick={() => navigate(card.label.toLowerCase().replace(/\s+/g, '-'))}>
+                <div className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${isDark ? `from-${card.accent}-500/5` : `from-${card.accent}-500/5`} opacity-0 group-hover:opacity-100 transition-opacity`} />
+                <StatCard icon={card.icon} label={card.label} value={card.value.toLocaleString()} accent={card.accent} />
+              </motion.div>
             ))}
-          </div>
+          </motion.div>
 
-          <div className="glass-card rounded-2xl p-5 animate-stagger-1">
+          {/* Quick Actions */}
+          <motion.div variants={itemVariants} className={`rounded-2xl p-5 ${bc}`}>
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
-                <Sparkles size={16} className="text-emerald-500" />
-                <h2 className="text-sm font-bold font-display dark:text-white">Aksi Cepat</h2>
+                <Zap size={16} className="text-emerald-500" />
+                <h2 className="text-sm font-bold dark:text-white">Aksi Cepat</h2>
               </div>
               <span className="text-[10px] text-slate-400">Shortcut</span>
             </div>
@@ -428,23 +429,24 @@ export default function DashboardPage() {
               {adminQuickActions.map((action) => (
                 <button key={action.label} onClick={() => navigate(action.path)}
                   className="group relative overflow-hidden rounded-xl p-3 text-white text-left transition-all hover:-translate-y-0.5 hover:shadow-lg active:scale-[0.98]"
-                  style={{ background: `linear-gradient(135deg, ${action.color.replace('from-', '').split(' to-')[0]}, ${action.color.replace('from-', '').split(' to-')[1]})` }}>
+                  style={{ background: `linear-gradient(135deg, ${action.gradient.split(' to-')[0].replace('from-', '')}, ${action.gradient.split(' to-')[1]})` }}>
                   <div className="absolute top-0 right-0 w-16 h-16 bg-white/10 rounded-full blur-xl -translate-y-1/2 translate-x-1/2" />
                   <action.icon size={18} className="mb-2 opacity-90" />
                   <p className="text-xs font-bold">{action.label}</p>
                 </button>
               ))}
             </div>
-          </div>
+          </motion.div>
 
-          <div className="glass-card rounded-2xl p-5 animate-stagger-2">
+          {/* Aktivitas */}
+          <motion.div variants={itemVariants} className={`rounded-2xl p-5 ${bc}`}>
             <div className="flex items-center gap-2 mb-4">
-              <Clock size={15} className="text-emerald-500" />
-              <h2 className="text-sm font-bold font-display dark:text-white">Aktivitas Terkini</h2>
+              <Activity size={15} className="text-emerald-500" />
+              <h2 className="text-sm font-bold dark:text-white">Aktivitas Terkini</h2>
             </div>
             {aktivitas.length === 0 ? (
               <div className="flex flex-col items-center py-8 text-slate-400">
-                <div className="w-14 h-14 rounded-2xl bg-slate-100 dark:bg-zinc-800/50 flex items-center justify-center mb-3">
+                <div className={`w-14 h-14 rounded-2xl ${isDark ? 'bg-zinc-800/50' : 'bg-slate-100'} flex items-center justify-center mb-3`}>
                   <BellRing size={24} className="text-slate-300 dark:text-zinc-600" />
                 </div>
                 <p className="text-sm font-semibold text-slate-500 dark:text-zinc-400">Belum Ada Aktivitas</p>
@@ -463,15 +465,15 @@ export default function DashboardPage() {
                 ))}
               </div>
             )}
-          </div>
+          </motion.div>
 
+          {/* Ringkasan Akademik + Modul */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            <div className="glass-card rounded-2xl p-5">
+            <motion.div variants={itemVariants} className={`rounded-2xl p-5 ${bc} relative`}>
               <div className="flex items-center gap-2 mb-4">
-                <TrendingUp size={15} className="text-emerald-500" />
-                <h2 className="text-sm font-bold font-display dark:text-white">Ringkasan Akademik</h2>
+                <Target size={15} className="text-emerald-500" />
+                <h2 className="text-sm font-bold dark:text-white">Ringkasan Akademik</h2>
               </div>
-              <div className="absolute -top-4 -right-4 w-24 h-24 bg-gradient-to-br from-emerald-500/5 to-transparent rounded-full blur-2xl pointer-events-none" />
               <div className="space-y-3">
                 {[
                   { label: 'Mahasiswa Aktif', value: stats?.mahasiswa ?? 0, total: (stats?.mahasiswa + (stats?.alumni || 0)) || 1, color: 'bg-indigo-500' },
@@ -491,42 +493,47 @@ export default function DashboardPage() {
               <button onClick={() => navigate('laporan')} className="mt-4 flex items-center gap-1.5 text-xs font-semibold text-emerald-500 hover:text-emerald-400 transition-colors">
                 Lihat Laporan Lengkap <ArrowRight size={13} />
               </button>
-            </div>
+            </motion.div>
 
-            <div className="glass-card rounded-2xl p-5 relative">
-              <div className="absolute -bottom-4 -left-4 w-24 h-24 bg-gradient-to-tr from-indigo-500/5 to-transparent rounded-full blur-2xl pointer-events-none" />
+            <motion.div variants={itemVariants} className={`rounded-2xl p-5 ${bc} relative`}>
               <div className="flex items-center gap-2 mb-4">
-                <Library size={15} className="text-emerald-500" />
-                <h2 className="text-sm font-bold font-display dark:text-white">Modul Terintegrasi</h2>
+                <Globe size={15} className="text-emerald-500" />
+                <h2 className="text-sm font-bold dark:text-white">Modul Terintegrasi</h2>
               </div>
               <div className="grid grid-cols-2 gap-2">
                 {[
-                  { label: 'Perpustakaan', path: 'perpustakaan', icon: Library, color: 'text-amber-500', bg: 'bg-amber-50 dark:bg-amber-900/20', bar: 'bg-amber-500' },
-                  { label: 'PPDB', path: 'ppdb', icon: Users, color: 'text-indigo-500', bg: 'bg-indigo-50 dark:bg-indigo-900/20', bar: 'bg-indigo-500' },
-                  { label: 'Keuangan', path: 'tagihan', icon: DollarSign, color: 'text-rose-500', bg: 'bg-rose-50 dark:bg-rose-900/20', bar: 'bg-rose-500' },
-                  { label: 'EDOM', path: 'edom', icon: BellRing, color: 'text-purple-500', bg: 'bg-purple-50 dark:bg-purple-900/20', bar: 'bg-purple-500' },
-                  { label: 'Akreditasi', path: 'akreditasi', icon: BookOpen, color: 'text-cyan-500', bg: 'bg-cyan-50 dark:bg-cyan-900/20', bar: 'bg-cyan-500' },
-                  { label: 'Integrasi LMS', path: 'integrasi-lms', icon: TrendingUp, color: 'text-emerald-500', bg: 'bg-emerald-50 dark:bg-emerald-900/20', bar: 'bg-emerald-500' },
-                ].map((mod) => (
-                  <button key={mod.label} onClick={() => navigate(mod.path)}
-                    className="group relative overflow-hidden rounded-xl p-2.5 text-left transition-all hover:-translate-y-0.5 hover:shadow-md active:scale-[0.98] bg-white dark:bg-zinc-900/50 ring-1 ring-slate-200/50 dark:ring-zinc-800/30 hover:ring-2"
-                    style={{ ['--hover-color' as string]: mod.bar.replace('bg-', 'rgb(var(--color-') }}
-                  >
-                    <div className={`absolute inset-0 rounded-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-r ${mod.bar.replace('bg-', 'from-')}/10 via-transparent to-transparent`} />
-                    <div className="absolute top-0 left-0 w-full h-0.5 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-r from-transparent via-current to-transparent" style={{ color: mod.bar.replace('bg-', '') }} />
-                    <div className="relative flex items-center gap-2.5">
-                      <div className={`w-8 h-8 rounded-lg ${mod.bg} flex items-center justify-center ${mod.color} transition-transform duration-300 group-hover:scale-110`}>
-                        <mod.icon size={15} />
+                  { label: 'Perpustakaan', path: 'perpustakaan', icon: Library, accent: 'amber' },
+                  { label: 'PPDB', path: 'ppdb', icon: Users, accent: 'indigo' },
+                  { label: 'Keuangan', path: 'tagihan', icon: DollarSign, accent: 'rose' },
+                  { label: 'EDOM', path: 'edom', icon: BellRing, accent: 'purple' },
+                  { label: 'Akreditasi', path: 'akreditasi', icon: BookOpen, accent: 'cyan' },
+                  { label: 'Integrasi LMS', path: 'integrasi-lms', icon: TrendingUp, accent: 'emerald' },
+                ].map((mod) => {
+                  const accentMap: Record<string, string> = {
+                    amber: isDark ? 'bg-amber-500/10 text-amber-400' : 'bg-amber-50 text-amber-600',
+                    indigo: isDark ? 'bg-indigo-500/10 text-indigo-400' : 'bg-indigo-50 text-indigo-600',
+                    rose: isDark ? 'bg-rose-500/10 text-rose-400' : 'bg-rose-50 text-rose-600',
+                    purple: isDark ? 'bg-purple-500/10 text-purple-400' : 'bg-purple-50 text-purple-600',
+                    cyan: isDark ? 'bg-cyan-500/10 text-cyan-400' : 'bg-cyan-50 text-cyan-600',
+                    emerald: isDark ? 'bg-emerald-500/10 text-emerald-400' : 'bg-emerald-50 text-emerald-600',
+                  };
+                  return (
+                    <button key={mod.label} onClick={() => navigate(mod.path)}
+                      className={`group relative overflow-hidden rounded-xl p-2.5 text-left transition-all hover:-translate-y-0.5 hover:shadow-md active:scale-[0.98] ${isDark ? 'bg-zinc-900/50 ring-1 ring-zinc-800/30' : 'bg-white ring-1 ring-slate-200/50'} hover:ring-2`}>
+                      <div className="relative flex items-center gap-2.5">
+                        <div className={`w-8 h-8 rounded-lg ${accentMap[mod.accent]} flex items-center justify-center transition-transform duration-300 group-hover:scale-110`}>
+                          <mod.icon size={15} />
+                        </div>
+                        <span className="text-xs font-semibold dark:text-white">{mod.label}</span>
                       </div>
-                      <span className="text-xs font-semibold dark:text-white">{mod.label}</span>
-                    </div>
-                  </button>
-                ))}
+                    </button>
+                  );
+                })}
               </div>
-            </div>
+            </motion.div>
           </div>
         </>
       )}
-    </div>
+    </motion.div>
   );
 }
