@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink, useLocation, Link, useNavigate } from 'react-router-dom';
 import {
   LayoutDashboard, GraduationCap, Presentation, Wallet, Ellipsis, Share2, Sparkles,
   BarChart3, Settings, LogOut, X, Users, Plus, type LucideIcon,
@@ -55,6 +55,7 @@ function initialAvatar(nama?: string) {
 export default function Sidebar({ open, onClose }: SidebarProps) {
   const { user, logout } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   const role = user?.role || 'mahasiswa';
   const isVendor = role === 'vendor_super_admin';
 
@@ -118,6 +119,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
                   } else {
                     setActiveSection(i);
                     setActiveSectionId(item.label);
+                    if (item.path) navigate(`${basePath}/${item.path}`);
                   }
                 }}
                 className={`w-9 h-9 rounded-xl flex items-center justify-center transition-all ${
@@ -201,48 +203,43 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
                         <p className="text-[9px] font-bold text-gray-400 dark:text-zinc-500 tracking-widest px-3 mb-1 uppercase">{item.label}</p>
                         {item.children.map((sub: any) => {
                           const SubIcon = iconMap[sub.icon] || LayoutDashboard;
+                          const subPath = sub.path ? `${basePath}/${sub.path}` : '#';
+                          const isSubActive = sub.path ? location.pathname === `${basePath}/${sub.path}` : false;
                           return (
-                            <NavLink
+                            <Link
                               key={sub.path || sub.label}
-                              to={sub.path ? `${basePath}/${sub.path}` : '#'}
-                              end
+                              to={subPath}
                               onClick={onClose}
-                              className={({ isActive }) =>
-                                `w-full text-left px-3 py-2 rounded-lg text-[12px] mb-0.5 transition-all flex items-center gap-2 ${
-                                  isActive
-                                    ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-semibold border-l-4 border-emerald-500 dark:border-emerald-400'
-                                    : 'text-gray-500 dark:text-zinc-400 hover:bg-gray-100 dark:hover:bg-zinc-800 hover:text-gray-800 dark:hover:text-zinc-200'
-                                }`
-                              }
+                              className={`w-full text-left px-3 py-2 rounded-lg text-[12px] mb-0.5 transition-all flex items-center gap-2 ${
+                                isSubActive
+                                  ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-semibold border-l-4 border-emerald-500 dark:border-emerald-400'
+                                  : 'text-gray-500 dark:text-zinc-400 hover:bg-gray-100 dark:hover:bg-zinc-800 hover:text-gray-800 dark:hover:text-zinc-200'
+                              }`}
                             >
                               <SubIcon size={13} />
                               {sub.label}
-                            </NavLink>
+                            </Link>
                           );
                         })}
                       </div>
                     );
                   }
-                  const isLeafActive = item._isDirect
-                    ? location.pathname.endsWith(item.path || '')
-                    : location.pathname.endsWith(item.path || '');
+                  const itemPath = item.path ? `${basePath}/${item.path}` : '#';
+                  const isActive = item.path ? location.pathname === itemPath : false;
                   return (
-                    <NavLink
+                    <Link
                       key={item.path || item.label}
-                      to={item.path ? `${basePath}/${item.path}` : '#'}
-                      end
+                      to={itemPath}
                       onClick={onClose}
-                      className={({ isActive }) =>
-                        `w-full text-left px-3 py-2 rounded-lg text-[12px] mb-0.5 transition-all flex items-center gap-2 ${
-                          isActive
-                            ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-semibold border-l-4 border-emerald-500 dark:border-emerald-400'
-                            : 'text-gray-500 dark:text-zinc-400 hover:bg-gray-100 dark:hover:bg-zinc-800 hover:text-gray-800 dark:hover:text-zinc-200'
-                        }`
-                      }
+                      className={`w-full text-left px-3 py-2 rounded-lg text-[12px] mb-0.5 transition-all flex items-center gap-2 ${
+                        isActive
+                          ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 font-semibold border-l-4 border-emerald-500 dark:border-emerald-400'
+                          : 'text-gray-500 dark:text-zinc-400 hover:bg-gray-100 dark:hover:bg-zinc-800 hover:text-gray-800 dark:hover:text-zinc-200'
+                      }`}
                     >
                       <Icon size={13} />
                       {item.label}
-                    </NavLink>
+                    </Link>
                   );
                 })}
               </div>
