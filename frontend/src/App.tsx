@@ -98,9 +98,16 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
 }
 
 function RoleGuard({ children, roles }: { children: React.ReactNode; roles: Role[] }) {
-  const { user } = useAuth();
+  const { user, loading } = useAuth();
   const location = useLocation();
-  if (!user || !canAccess(user.role, roles)) {
+  if (loading) return <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-zinc-950"><div className="w-5 h-5 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" /></div>;
+  if (!user) {
+    const slug = location.pathname.split('/')[2] || localStorage.getItem('aone_tenant_slug');
+    if (slug) return <Navigate to={`/kampus/${slug}/dashboard`} replace />;
+    return <Navigate to="/login" replace />;
+  }
+  if (!canAccess(user.role, roles)) {
+    console.warn('[RoleGuard] Access denied:', { role: user.role, required: roles, path: location.pathname });
     const slug = location.pathname.split('/')[2] || localStorage.getItem('aone_tenant_slug');
     if (slug) return <Navigate to={`/kampus/${slug}/dashboard`} replace />;
     return <Navigate to="/login" replace />;
