@@ -59,6 +59,8 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
   const isVendor = role === 'vendor_super_admin';
 
   const filteredMenus = isVendor ? [] : filterMenusByRole(SIDEBAR_MENUS, user?.role);
+  const slug = location.pathname.split('/')[2] || user?.tenantSlug || '';
+  const basePath = `/kampus/${slug}`;
   const [activeSection, setActiveSection] = useState(0);
   const [activeSectionId, setActiveSectionId] = useState('Dashboard');
 
@@ -202,7 +204,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
                           return (
                             <NavLink
                               key={sub.path || sub.label}
-                              to={sub.path || '#'}
+                              to={sub.path ? `${basePath}/${sub.path}` : '#'}
                               end
                               onClick={onClose}
                               className={({ isActive }) =>
@@ -227,7 +229,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
                   return (
                     <NavLink
                       key={item.path || item.label}
-                      to={item.path || '#'}
+                      to={item.path ? `${basePath}/${item.path}` : '#'}
                       end
                       onClick={onClose}
                       className={({ isActive }) =>
