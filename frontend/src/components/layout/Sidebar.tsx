@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
 import {
   LayoutDashboard, GraduationCap, Presentation, Wallet, Ellipsis, Share2, Sparkles,
@@ -55,7 +55,10 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
   const role = user?.role || 'mahasiswa';
   const isVendor = role === 'vendor_super_admin';
 
-  const filteredMenus = isVendor ? [] : filterMenusByRole(SIDEBAR_MENUS, user?.role);
+  const filteredMenus = useMemo(
+    () => isVendor ? [] : filterMenusByRole(SIDEBAR_MENUS, user?.role),
+    [isVendor, user?.role]
+  );
   const slug = location.pathname.split('/')[2] || user?.tenantSlug || '';
   const basePath = `/kampus/${slug}`;
 
@@ -71,7 +74,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
 
   const pathSegment = location.pathname.split('/').pop() || 'dashboard';
 
-  // Sync expanded section on navigation
+  // Sync expanded section on navigation  (filteredMenus is memoized, stable reference)
   useEffect(() => {
     const section = filteredMenus.find(m => {
       if (m.path === pathSegment) return true;
@@ -121,7 +124,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto overflow-x-hidden px-3 pb-4 space-y-0.5">
+      <nav className="flex-1 overflow-y-auto overflow-x-hidden px-3 pb-4 space-y-0.5" style={{ scrollbarGutter: 'stable' }}>
         {navMenus.map((item: any) => {
           const Icon = isVendor ? item.icon : (iconMap[item.icon] || LayoutDashboard);
           const hasChildren = !isVendor && item.children?.length > 0;
@@ -131,7 +134,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
 
           return (
             <div key={item.label}>
-              <button
+              <button type="button"
                 onClick={() => {
                   if (isVendor) {
                     window.location.href = item.path;
