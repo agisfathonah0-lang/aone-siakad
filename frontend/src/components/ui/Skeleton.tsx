@@ -4,6 +4,9 @@ interface SkeletonProps {
 
 export default function Skeleton({ className = '' }: SkeletonProps) {
   return (
-    <div className={`animate-shimmer rounded-xl bg-gradient-to-r from-slate-200 via-slate-100 to-slate-200 dark:from-zinc-800 dark:via-zinc-700 dark:to-zinc-800 bg-[length:400%_100%] ${className}`} />
+    <div className={`animate-shimmer rounded-xl ${className}`} style={{
+      backgroundImage: 'linear-gradient(90deg, var(--card) 0%, var(--muted) 50%, var(--card) 100%)',
+      backgroundSize: '400% 100%',
+    }} />
   );
 }

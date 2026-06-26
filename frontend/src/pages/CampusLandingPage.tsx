@@ -240,7 +240,7 @@ function CampusLandingPage({ slug }: { slug: string }) {
                 {landingPage.showPPDB && (
                   <motion.div whileHover={{ scale: 1.05, y: -2 }} whileTap={{ scale: 0.98 }}
                     className="group px-12 py-6 rounded-full font-black uppercase tracking-[0.15em] text-xs shadow-xl flex items-center gap-3 transition-all" style={{ backgroundColor: c, boxShadow: `0 20px 50px ${c}40` }}>
-                    <Link to={`/kampus/${slug}/ppdb`} className="flex items-center gap-3 text-white no-underline">
+                    <Link to={`/kampus/${slug}/ppdb/daftar`} className="flex items-center gap-3 text-white no-underline">
                       Daftar Sekarang <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                     </Link>
                   </motion.div>
@@ -718,7 +718,7 @@ function CampusLandingPage({ slug }: { slug: string }) {
                     <p className="font-bold text-lg">Computer Based Test</p>
                   </div>
                 </div>
-                <Link to={`/kampus/${slug}/ppdb`}
+                <Link to={`/kampus/${slug}/ppdb/daftar`}
                   className="w-full py-4 rounded-[2rem] font-black uppercase tracking-widest text-xs transition-all flex items-center justify-center gap-3 text-white shadow-xl" style={{ backgroundColor: c, boxShadow: `0 20px 50px ${c}40` }}>
                   Download Katalog Lengkap (PDF) <ArrowRight size={16} />
                 </Link>
@@ -736,7 +736,7 @@ function CampusLandingPage({ slug }: { slug: string }) {
             <h2 className="text-5xl md:text-7xl font-black tracking-tighter text-white leading-[0.9]">Your Journey<br />Starts Today.</h2>
             <div className="flex flex-col sm:flex-row justify-center gap-4 mt-12">
               {landingPage.showPPDB && (
-                <Link to={`/kampus/${slug}/ppdb`} className="group px-12 py-6 rounded-full font-black uppercase tracking-[0.15em] text-xs text-white shadow-xl flex items-center justify-center gap-3 transition-all hover:scale-105 active:scale-95" style={{ backgroundColor: c, boxShadow: `0 20px 50px ${c}40` }}>
+                <Link to={`/kampus/${slug}/ppdb/daftar`} className="group px-12 py-6 rounded-full font-black uppercase tracking-[0.15em] text-xs text-white shadow-xl flex items-center justify-center gap-3 transition-all hover:scale-105 active:scale-95" style={{ backgroundColor: c, boxShadow: `0 20px 50px ${c}40` }}>
                   Daftar Sekarang <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
                 </Link>
               )}

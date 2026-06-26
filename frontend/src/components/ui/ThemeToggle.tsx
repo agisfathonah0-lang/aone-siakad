@@ -7,7 +7,10 @@ export default function ThemeToggle() {
   return (
     <button
       onClick={toggleTheme}
-      className="relative w-10 h-10 flex items-center justify-center rounded-xl text-slate-400 hover:text-primary-500 dark:hover:text-primary-400 hover:bg-slate-100 dark:hover:bg-zinc-800 transition-all duration-300"
+      className="relative w-10 h-10 flex items-center justify-center rounded-xl transition-all duration-300"
+      style={{ color: 'var(--muted-foreground)' }}
+      onMouseEnter={e => (e.currentTarget.style.background = 'var(--muted)')}
+      onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
       aria-label="Toggle theme"
     >
       <div className="relative w-5 h-5">

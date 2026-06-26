@@ -1,56 +1,114 @@
 import { useState } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import { useAuth } from '../../context/AuthContext';
-import { Search, Bell, Settings, Menu } from 'lucide-react';
+import { Bell, Search, Menu } from 'lucide-react';
 
 function initialAvatar(nama?: string) {
   if (!nama) return '?';
   return nama.split(' ').map(s => s[0]).slice(0, 2).join('').toUpperCase();
 }
 
+const pageTitles: Record<string, string> = {
+  dashboard: 'Dashboard',
+  mahasiswa: 'Data Mahasiswa', dosen: 'Data Dosen', prodi: 'Program Studi',
+  users: 'Users', 'mata-kuliah': 'Mata Kuliah', jadwal: 'Jadwal', krs: 'KRS',
+  nilai: 'Nilai', khs: 'KHS', absensi: 'Absensi', kurikulum: 'Kurikulum',
+  rps: 'RPS', bap: 'BAP', 'absensi-dosen': 'Absensi Dosen', 'cetak-pdf': 'Cetak PDF',
+  transkrip: 'Transkrip', pkl: 'PKL', sidang: 'Sidang', kkn: 'KKN', seminar: 'Seminar',
+  perwalian: 'Perwalian', edom: 'EDOM', beasiswa: 'Beasiswa',
+  tagihan: 'Tagihan', pembayaran: 'Pembayaran', 'riwayat-pembayaran': 'Riwayat Pembayaran',
+  surat: 'Surat', perpustakaan: 'Perpustakaan', akreditasi: 'Akreditasi',
+  berita: 'Berita', kalender: 'Kalender', notifikasi: 'Notifikasi', cctv: 'CCTV',
+  cms: 'CMS Landing', ppdb: 'PPDB', ojs: 'OJS', pddikti: 'PDDIKTI',
+  alumni: 'Alumni', 'integrasi-lms': 'Integrasi LMS', 'landing-page': 'Landing Page',
+  ai: 'AI Chatbot', laporan: 'Laporan', pengaturan: 'Pengaturan',
+};
+
 export default function AppLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const { user } = useAuth();
+  const location = useLocation();
+  const pathSegment = location.pathname.split('/').pop() || 'dashboard';
+  const pageTitle = pageTitles[pathSegment] || 'Dashboard';
+
+  const today = new Date();
+  const dateStr = today.toLocaleDateString('id-ID', {
+    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+  });
 
   return (
-    <div className="flex h-screen overflow-hidden bg-gradient-to-br from-slate-50 to-emerald-50/30 dark:from-zinc-950 dark:to-zinc-900">
+    <div className="min-h-screen flex" style={{ background: 'var(--background)', fontFamily: 'var(--font-sans)' }}>
       <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-      <div className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        {/* Topbar */}
-        <header className="bg-white dark:bg-zinc-900 border-b border-gray-200 dark:border-zinc-800 px-4 py-2.5 flex items-center gap-3 shrink-0">
-          <button className="lg:hidden text-gray-500 hover:text-gray-700 dark:text-zinc-400 dark:hover:text-zinc-200" onClick={() => setSidebarOpen(true)}>
-            <Menu size={18} />
-          </button>
 
-          {/* Search */}
-          <div className="flex-1 flex justify-center">
-            <div className="flex items-center gap-2 bg-gray-100 dark:bg-zinc-800 rounded-lg px-3 py-1.5 w-full max-w-xs">
-              <Search size={13} className="text-gray-400 dark:text-zinc-500 shrink-0" />
-              <input type="text" placeholder="Cari item..." className="bg-transparent text-[13px] outline-none text-gray-600 dark:text-zinc-300 placeholder:text-gray-400 dark:placeholder:text-zinc-500 w-full" />
-              <span className="bg-gray-200 dark:bg-zinc-700 text-gray-500 dark:text-zinc-400 text-[10px] px-1.5 py-0.5 rounded font-mono hidden sm:block">⌘K</span>
+      <main className="flex-1 flex flex-col min-h-screen" style={{ marginLeft: 0 }}>
+        {/* Sticky Topbar */}
+        <header
+          className="sticky top-0 z-10 border-b"
+          style={{ background: 'var(--background)', borderColor: 'var(--border)', backdropFilter: 'blur(8px)' }}
+        >
+          <div className="flex items-center justify-between px-8 h-16">
+            <div className="flex items-center gap-3">
+              <button
+                className="lg:hidden w-8 h-8 flex items-center justify-center rounded-lg transition-colors"
+                style={{ color: 'var(--muted-foreground)' }}
+                onClick={() => setSidebarOpen(true)}
+              >
+                <Menu size={16} />
+              </button>
+              <div>
+                <h1 className="text-base font-semibold tracking-tight" style={{ fontFamily: 'var(--font-display)', color: 'var(--foreground)' }}>
+                  {pageTitle}
+                </h1>
+                <p className="text-xs" style={{ color: 'var(--muted-foreground)' }}>{dateStr}</p>
+              </div>
             </div>
-          </div>
 
-          <div className="flex items-center gap-1.5">
-            <button className="relative w-8 h-8 flex items-center justify-center text-gray-500 dark:text-zinc-400 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-lg transition-colors">
-              <Bell size={16} />
-              <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-red-500 rounded-full" />
-            </button>
-            <button className="w-8 h-8 flex items-center justify-center text-gray-500 dark:text-zinc-400 hover:bg-gray-100 dark:hover:bg-zinc-800 rounded-lg transition-colors">
-              <Settings size={16} />
-            </button>
-            <div className="w-7 h-7 rounded-full bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center text-white text-[10px] font-bold cursor-pointer ml-1 shrink-0">
-              {initialAvatar(user?.nama)}
+            <div className="flex items-center gap-3">
+              {/* Search */}
+              <div className="relative hidden sm:block">
+                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2" style={{ color: 'var(--muted-foreground)' }} />
+                <input
+                  placeholder="Cari menu atau fitur..."
+                  className="pl-8 pr-4 py-2 text-xs rounded-lg border focus:outline-none focus:ring-2 transition-all placeholder:"
+                  style={{
+                    background: 'var(--card)',
+                    borderColor: 'var(--border)',
+                    color: 'var(--foreground)',
+                    width: 256,
+                  }}
+                  onFocus={e => { e.currentTarget.style.borderColor = 'var(--primary)'; e.currentTarget.style.boxShadow = '0 0 0 2px rgba(37,99,235,0.15)'; }}
+                  onBlur={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.boxShadow = 'none'; }}
+                />
+              </div>
+
+              {/* Notifications */}
+              <button
+                className="relative w-9 h-9 rounded-lg border flex items-center justify-center transition-colors"
+                style={{ background: 'var(--card)', borderColor: 'var(--border)' }}
+                onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(37,99,235,0.3)'; }}
+                onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; }}
+              >
+                <Bell size={15} style={{ color: 'var(--muted-foreground)' }} />
+                <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full" style={{ background: '#EF4444' }} />
+              </button>
+
+              {/* Avatar */}
+              <div
+                className="w-8 h-8 rounded-full flex items-center justify-center text-white text-[10px] font-bold shrink-0 cursor-pointer"
+                style={{ background: 'var(--primary)' }}
+              >
+                {initialAvatar(user?.nama)}
+              </div>
             </div>
           </div>
         </header>
 
-        {/* Main content */}
-        <main className="flex-1 overflow-y-auto">
+        {/* Content */}
+        <div className="flex-1 p-8" style={{ background: 'var(--background)' }}>
           <Outlet />
-        </main>
-      </div>
+        </div>
+      </main>
     </div>
   );
 }

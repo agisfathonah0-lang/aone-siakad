@@ -7,18 +7,13 @@ interface CardProps {
   padding?: 'sm' | 'md' | 'lg';
 }
 
-const paddingClasses = {
-  sm: 'p-4',
-  md: 'p-5',
-  lg: 'p-6',
-};
+const paddingClasses = { sm: 'p-4', md: 'p-5', lg: 'p-6' };
 
 export default function Card({ children, className = '', hover = false, padding = 'md' }: CardProps) {
-  const base = 'bg-white dark:bg-zinc-900 rounded-2xl border border-slate-200 dark:border-zinc-800 shadow-sm transition-all duration-300';
-  const hoverClass = hover ? 'hover:-translate-y-0.5 hover:shadow-lg' : '';
-
+  const hoverClass = hover ? 'hover:shadow-md transition-shadow' : '';
   return (
-    <div className={`${base} ${hoverClass} ${paddingClasses[padding]} ${className}`}>
+    <div className={`rounded-xl border ${hoverClass} ${paddingClasses[padding]} ${className}`}
+      style={{ background: 'var(--card)', borderColor: 'var(--border)' }}>
       {children}
     </div>
   );

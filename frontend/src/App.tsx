@@ -81,7 +81,7 @@ import { get } from './api/client';
 function AuthGuard({ children }: { children: React.ReactNode }) {
   const { user, loading } = useAuth();
   const location = useLocation();
-  if (loading) return <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-zinc-950"><Loader2 className="w-6 h-6 animate-spin text-emerald-500" /></div>;
+  if (loading) return <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--background)' }}><Loader2 className="w-6 h-6 animate-spin" style={{ color: 'var(--primary)' }} /></div>;
   if (!user) {
     if (location.pathname.startsWith('/vendor')) {
       return <Navigate to="/vendor/login" replace />;
@@ -100,7 +100,7 @@ function AuthGuard({ children }: { children: React.ReactNode }) {
 function RoleGuard({ children, roles }: { children: React.ReactNode; roles: Role[] }) {
   const { user, loading } = useAuth();
   const location = useLocation();
-  if (loading) return <div className="min-h-screen flex items-center justify-center bg-slate-50 dark:bg-zinc-950"><div className="w-5 h-5 border-2 border-emerald-500 border-t-transparent rounded-full animate-spin" /></div>;
+  if (loading) return <div className="min-h-screen flex items-center justify-center" style={{ background: 'var(--background)' }}><div className="w-5 h-5 rounded-full animate-spin" style={{ border: '2px solid var(--muted)', borderTopColor: 'var(--primary)' }} /></div>;
   if (!user) {
     const slug = location.pathname.split('/')[2] || localStorage.getItem('aone_tenant_slug');
     if (slug) return <Navigate to={`/kampus/${slug}/dashboard`} replace />;
@@ -173,7 +173,7 @@ function AppRoutes() {
 
       <Route path="/kampus/:slug">
         <Route index element={<CampusLandingPage />} />
-        <Route path="ppdb" element={<CampusPPDBPage />} />
+        <Route path="ppdb/daftar" element={<CampusPPDBPage />} />
         <Route element={<AuthGuard><AppLayout /></AuthGuard>}>
           <Route path="dashboard" element={<DashboardPage />} />
           <Route path="prodi" element={<RoleGuard roles={['super_admin','rektor','admin','dekan','akademik','kaprodi']}><ProdiPage /></RoleGuard>} />
