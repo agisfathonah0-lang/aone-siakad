@@ -41,7 +41,7 @@ export default function AppLayout() {
     <div className="min-h-screen flex" style={{ background: 'var(--background)', fontFamily: 'var(--font-sans)' }}>
       <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-      <main className="flex-1 flex flex-col min-h-screen" style={{ marginLeft: 0 }}>
+      <main className="flex-1 flex flex-col min-h-screen lg:ml-[240px]">
         {/* Sticky Topbar */}
         <header
           className="sticky top-0 z-10 border-b"
