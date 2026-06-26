@@ -2,6 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import useSEO from '../hooks/useSEO';
 import SplashScreen from '../components/ui/SplashScreen';
+import FloatingChatbot from '../components/ui/FloatingChatbot';
 import {
   LayoutDashboard, Users, UserCheck, Building2, UserCog, BookOpen, CalendarDays,
   ClipboardCheck, Award, ClipboardList, BookTemplate, FileText, ClipboardSignature,
@@ -320,14 +321,16 @@ export default function LandingPage() {
         <div className="absolute top-0 right-0 w-px h-full bg-gradient-to-b from-transparent via-emerald-400/20 to-transparent" />
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10 w-full">
           <div className="max-w-3xl">
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-xs font-bold mb-6 animate-fade-up">
+            <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-white/10 backdrop-blur-md border border-white/15 text-emerald-300 text-xs font-bold mb-6 animate-fade-up shadow-lg shadow-emerald-500/5">
               <Sparkles size={12} /> Platform SIAKAD No.1 di Indonesia
             </div>
-            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black font-display tracking-tight text-white leading-[1.05] mb-4">
-              SIAKAD{' '}
+            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black font-display tracking-tight leading-[1.05] mb-4">
+              <span className="bg-gradient-to-r from-white via-emerald-200 to-emerald-400 bg-clip-text text-transparent">
+                SIAKAD
+              </span>{' '}
               <span className="relative inline-block">
                 <span className="text-emerald-400">{taglines[taglineIdx]}</span>
-                <span className="absolute -bottom-1 left-0 w-full h-1 bg-emerald-400/30 rounded-full" />
+                <span className="absolute -bottom-1 left-0 w-full h-1 bg-gradient-to-r from-emerald-400/40 to-emerald-400/10 rounded-full" />
               </span>
             </h1>
             <p className="text-lg sm:text-xl text-slate-300 leading-relaxed max-w-2xl mb-8 animate-fade-up-delay-1">
@@ -351,7 +354,10 @@ export default function LandingPage() {
         </div>
       </section>
 
-      <section id="fitur" ref={fiturRef} className="py-24 relative bg-white section-hidden">
+      <section id="fitur" ref={fiturRef} className="py-24 relative bg-white section-hidden overflow-hidden">
+        <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: 'radial-gradient(circle at 1px 1px, rgba(16,185,129,0.5) 1px, transparent 0)', backgroundSize: '24px 24px' }} />
+        <div className="absolute top-0 right-0 w-[300px] h-[300px] bg-emerald-500/5 rounded-full blur-[100px]" />
+        <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-teal-500/5 rounded-full blur-[120px]" />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto mb-16 space-y-4">
             <span className="text-emerald-600 text-sm font-bold font-mono tracking-widest uppercase">Fitur Lengkap</span>
@@ -392,7 +398,10 @@ export default function LandingPage() {
       </section>
 
       {/* Dashboard Screenshots */}
-      <section ref={demoRef} className="py-24 relative bg-slate-50 section-hidden">
+      <section ref={demoRef} className="py-24 relative bg-slate-50 section-hidden overflow-hidden">
+        <div className="absolute inset-0 opacity-[0.04]" style={{ backgroundImage: 'linear-gradient(rgba(16,185,129,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(16,185,129,0.08) 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
+        <div className="absolute top-1/3 -left-20 w-[300px] h-[300px] bg-emerald-500/10 rounded-full blur-[120px]" />
+        <div className="absolute bottom-1/3 -right-20 w-[250px] h-[250px] bg-teal-500/10 rounded-full blur-[100px]" />
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto mb-16 space-y-4">
             <span className="text-emerald-600 text-sm font-bold font-mono tracking-widest uppercase">Demo Dashboard</span>
@@ -601,6 +610,8 @@ export default function LandingPage() {
           </div>
         </div>
       </footer>
+
+      <FloatingChatbot />
     </div>
     </>
   );
