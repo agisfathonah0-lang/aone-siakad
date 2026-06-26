@@ -3,6 +3,7 @@ import { Outlet, useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import { useAuth } from '../../context/AuthContext';
 import { Bell, Search, Menu } from 'lucide-react';
+import ThemeToggle from '../ui/ThemeToggle';
 
 function initialAvatar(nama?: string) {
   if (!nama) return '?';
@@ -92,6 +93,9 @@ export default function AppLayout() {
                 <Bell size={15} style={{ color: 'var(--muted-foreground)' }} />
                 <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full" style={{ background: '#EF4444' }} />
               </button>
+
+              {/* Theme Toggle */}
+              <ThemeToggle />
 
               {/* Avatar */}
               <div

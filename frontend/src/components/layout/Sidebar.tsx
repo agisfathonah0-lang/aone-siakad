@@ -59,15 +59,27 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
   const slug = location.pathname.split('/')[2] || user?.tenantSlug || '';
   const basePath = `/kampus/${slug}`;
 
-  const [expandedSection, setExpandedSection] = useState<string>('Dashboard');
+  const [expandedSection, setExpandedSection] = useState<string>(() => {
+    const segment = location.pathname.split('/').pop() || 'dashboard';
+    const menus = filterMenusByRole(SIDEBAR_MENUS, user?.role);
+    const section = menus.find(m => {
+      if (m.path === segment) return true;
+      return m.children?.some((c: any) => c.path === segment || c.children?.some((s: any) => s.path === segment));
+    });
+    return section?.label || '';
+  });
+
   const pathSegment = location.pathname.split('/').pop() || 'dashboard';
 
+  // Sync expanded section on navigation
   useEffect(() => {
     const section = filteredMenus.find(m => {
       if (m.path === pathSegment) return true;
       return m.children?.some((c: any) => c.path === pathSegment || c.children?.some((s: any) => s.path === pathSegment));
     });
-    if (section) setExpandedSection(section.label);
+    if (section && expandedSection !== section.label) {
+      setExpandedSection(section.label);
+    }
   }, [pathSegment, filteredMenus]);
 
   const navMenus = isVendor ? vendorItems : filteredMenus;
