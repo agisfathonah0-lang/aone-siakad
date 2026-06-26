@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate, Link } from 'react-router-dom';
 import {
   LayoutDashboard, GraduationCap, Presentation, Wallet, Ellipsis, Share2, Sparkles,
   BarChart3, Settings, LogOut, Users, ChevronRight,
@@ -52,6 +52,7 @@ function isAnyChildActive(children: any[], basePath: string, pathname: string): 
 export default function Sidebar({ open, onClose }: SidebarProps) {
   const { user, logout } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   const role = user?.role || 'mahasiswa';
   const isVendor = role === 'vendor_super_admin';
 
@@ -137,11 +138,11 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
               <button type="button"
                 onClick={() => {
                   if (isVendor) {
-                    window.location.href = item.path;
+                    navigate(item.path);
                   } else if (hasChildren) {
                     setExpandedSection(isOpen ? '' : item.label);
                   } else if (item.path) {
-                    window.location.href = `${basePath}/${item.path}`;
+                    navigate(`${basePath}/${item.path}`);
                     onClose();
                   }
                 }}
@@ -162,55 +163,66 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
               </button>
 
               {/* Children */}
-              {hasChildren && isOpen && (
-                <div className="ml-2 mt-0.5 space-y-0.5 border-l pl-2" style={{ borderColor: 'var(--sidebar-border)' }}>
-                  {item.children.map((child: any) => {
-                    if (child.children) {
+              {hasChildren && (
+                <div
+                  className="ml-2 border-l overflow-hidden transition-all duration-200"
+                  style={{
+                    borderColor: 'var(--sidebar-border)',
+                    maxHeight: isOpen ? 2000 : 0,
+                    opacity: isOpen ? 1 : 0,
+                  }}
+                >
+                  <div className="pt-0.5 pb-0.5 pl-2 space-y-0.5">
+                    {item.children.map((child: any) => {
+                      if (child.children) {
+                        return (
+                          <div key={child.label}>
+                            <p className="px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider" style={{ color: 'rgba(148,163,184,0.4)' }}>
+                              {child.label}
+                            </p>
+                            {child.children.map((sub: any) => {
+                              const subActive = isChildActive(sub.path, basePath, location.pathname);
+                              const SubIcon = iconMap[sub.icon] || LayoutDashboard;
+                              return (
+                                <Link
+                                  key={sub.path}
+                                  to={`${basePath}/${sub.path}`}
+                                  onClick={onClose}
+                                  className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs transition-colors duration-150"
+                                  style={{
+                                    color: subActive ? 'white' : 'var(--sidebar-foreground)',
+                                    background: subActive ? 'var(--sidebar-primary)' : 'transparent',
+                                    opacity: subActive ? 1 : 0.75,
+                                  }}
+                                >
+                                  <SubIcon size={14} style={{ opacity: subActive ? 1 : 0.6 }} />
+                                  <span>{sub.label}</span>
+                                </Link>
+                              );
+                            })}
+                          </div>
+                        );
+                      }
+                      const childActive = isChildActive(child.path, basePath, location.pathname);
+                      const ChildIcon = iconMap[child.icon] || LayoutDashboard;
                       return (
-                        <div key={child.label}>
-                          <p className="px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wider" style={{ color: 'rgba(148,163,184,0.4)' }}>
-                            {child.label}
-                          </p>
-                          {child.children.map((sub: any) => {
-                            const subActive = isChildActive(sub.path, basePath, location.pathname);
-                            return (
-                              <a
-                                key={sub.path}
-                                href={`${basePath}/${sub.path}`}
-                                onClick={onClose}
-                                className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs transition-colors duration-150"
-                                style={{
-                                  color: subActive ? 'white' : 'var(--sidebar-foreground)',
-                                  background: subActive ? 'var(--sidebar-primary)' : 'transparent',
-                                  opacity: subActive ? 1 : 0.75,
-                                }}
-                              >
-                                <span className="w-1 h-1 rounded-full" style={{ background: subActive ? 'white' : 'var(--sidebar-foreground)', opacity: subActive ? 1 : 0.4 }} />
-                                <span>{sub.label}</span>
-                              </a>
-                            );
-                          })}
-                        </div>
+                        <Link
+                          key={child.path}
+                          to={`${basePath}/${child.path}`}
+                          onClick={onClose}
+                          className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs transition-colors duration-150"
+                          style={{
+                            color: childActive ? 'white' : 'var(--sidebar-foreground)',
+                            background: childActive ? 'var(--sidebar-primary)' : 'transparent',
+                            opacity: childActive ? 1 : 0.75,
+                          }}
+                        >
+                          <ChildIcon size={14} style={{ opacity: childActive ? 1 : 0.6 }} />
+                          <span>{child.label}</span>
+                        </Link>
                       );
-                    }
-                    const childActive = isChildActive(child.path, basePath, location.pathname);
-                    return (
-                      <a
-                        key={child.path}
-                        href={`${basePath}/${child.path}`}
-                        onClick={onClose}
-                        className="flex items-center gap-2.5 px-3 py-2 rounded-lg text-xs transition-colors duration-150"
-                        style={{
-                          color: childActive ? 'white' : 'var(--sidebar-foreground)',
-                          background: childActive ? 'var(--sidebar-primary)' : 'transparent',
-                          opacity: childActive ? 1 : 0.75,
-                        }}
-                      >
-                        <span className="w-1 h-1 rounded-full" style={{ background: childActive ? 'white' : 'var(--sidebar-foreground)', opacity: childActive ? 1 : 0.4 }} />
-                        <span>{child.label}</span>
-                      </a>
-                    );
-                  })}
+                    })}
+                  </div>
                 </div>
               )}
             </div>
