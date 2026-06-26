@@ -218,10 +218,12 @@ export default function LandingPage() {
   const testimoniRef = useRef<HTMLElement>(null);
   const hargaRef = useRef<HTMLElement>(null);
   const ctaRef = useRef<HTMLElement>(null);
+  const demoRef = useRef<HTMLElement>(null);
   useReveal(fiturRef);
   useReveal(testimoniRef);
   useReveal(hargaRef);
   useReveal(ctaRef);
+  useReveal(demoRef);
 
   const taglines = ['Modern', 'Terintegrasi', 'All-in-One', 'Digital'];
 
@@ -390,7 +392,7 @@ export default function LandingPage() {
       </section>
 
       {/* Dashboard Screenshots */}
-      <section className="py-24 relative bg-slate-50 section-hidden">
+      <section ref={demoRef} className="py-24 relative bg-slate-50 section-hidden">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center max-w-3xl mx-auto mb-16 space-y-4">
             <span className="text-emerald-600 text-sm font-bold font-mono tracking-widest uppercase">Demo Dashboard</span>
