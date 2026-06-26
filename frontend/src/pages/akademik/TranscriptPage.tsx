@@ -37,7 +37,7 @@ export default function TranscriptPage() {
     setSearching(true);
     try {
       const d = await get<any>(`/akademik/mahasiswa?q=${searchMhs}&limit=10`);
-      setMhsList(d.rows || []);
+      setMhsList(d?.rows || []);
     } finally { setSearching(false); }
   }
 
@@ -46,7 +46,7 @@ export default function TranscriptPage() {
     setLoading(true);
     try {
       const d = await get<any>(`/akademik/krs/transcript/${m.id}`);
-      setTranscript(d.rows || []);
+      setTranscript(d?.rows || []);
       setIpk(d.ipk || 0);
       setTotalSks(d.totalSks || 0);
     } finally { setLoading(false); }

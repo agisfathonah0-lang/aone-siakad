@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { get, post, put, del as apiDel } from '../../api/client';
+import api, { get, post, put, del as apiDel } from '../../api/client';
 import Modal from '../../components/ui/Modal';
 import FileUpload from '../../components/ui/FileUpload';
 import { Cctv, Plus, Loader2, Pencil, Trash2, Camera, Play, ExternalLink, RefreshCw, Wifi, WifiOff } from 'lucide-react';
@@ -8,6 +8,20 @@ interface Camera {
   id: string; name: string; tenant_id: string; tenant_name?: string;
   rtsp_url: string; snapshot_url: string; location: string;
   status: string; created_at: string;
+}
+
+function AuthImage({ src, alt, className }: { src: string; alt: string; className?: string }) {
+  const [url, setUrl] = useState<string | null>(null);
+  const [err, setErr] = useState(false);
+  useEffect(() => {
+    if (!src) { setErr(true); return; }
+    let cancelled = false;
+    api.get(src, { responseType: 'blob' }).then(r => { if (!cancelled) setUrl(URL.createObjectURL(r.data)); }).catch(() => { if (!cancelled) setErr(true); });
+    return () => { cancelled = true; };
+  }, [src]);
+  if (err) return null;
+  if (!url) return <div className="w-full h-full flex items-center justify-center"><Loader2 size={24} className="animate-spin" style={{ color: 'var(--muted-foreground)' }} /></div>;
+  return <img src={url} alt={alt} className={className} />;
 }
 
 export default function CctvPage() {
@@ -96,8 +110,7 @@ function CameraCard({ camera, onEdit, onDelete, onView }: { camera: Camera; onEd
       {/* Snapshot Preview */}
       <div className="relative h-40 bg-zinc-900 overflow-hidden">
         {camera.snapshot_url ? (
-          <img src={camera.snapshot_url} alt={camera.name} className="w-full h-full object-cover"
-            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; (e.target as HTMLImageElement).parentElement!.querySelector('.fallback')?.classList.remove('hidden'); }} />
+          <AuthImage src={camera.snapshot_url} alt={camera.name} className="w-full h-full object-cover" />
         ) : null}
         <div className={`fallback ${camera.snapshot_url ? 'hidden' : ''} absolute inset-0 flex items-center justify-center`}>
           <Camera size={32} className="text-zinc-700" />
@@ -134,11 +147,8 @@ function CameraCard({ camera, onEdit, onDelete, onView }: { camera: Camera; onEd
 
 function LiveView({ camera }: { camera: Camera }) {
   const [refresh, setRefresh] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const imgRef = useRef<HTMLImageElement>(null);
 
   useEffect(() => {
-    setLoading(true);
     const timer = setInterval(() => {
       setRefresh(r => r + 1);
     }, 3000);
@@ -149,15 +159,12 @@ function LiveView({ camera }: { camera: Camera }) {
     <div className="space-y-3">
       <div className="relative bg-zinc-900 rounded-xl overflow-hidden" style={{ minHeight: 300 }}>
         {camera.snapshot_url ? (
-          <img ref={imgRef} key={refresh} src={`${camera.snapshot_url}${camera.snapshot_url.includes('?') ? '&' : '?'}_t=${Date.now()}`}
-            alt={camera.name} className="w-full h-auto object-contain"
-            onLoad={() => setLoading(false)} onError={() => setLoading(false)} />
+          <AuthImage key={refresh} src={`${camera.snapshot_url}${camera.snapshot_url.includes('?') ? '&' : '?'}_t=${Date.now()}`} alt={camera.name} className="w-full h-auto object-contain" />
         ) : (
           <div className="flex items-center justify-center" style={{ minHeight: 300 }}>
             <Camera size={48} className="text-zinc-700" />
           </div>
         )}
-        {loading && <div className="absolute inset-0 flex items-center justify-center bg-zinc-900/60"><Loader2 className="w-6 h-6 animate-spin text-emerald-500" /></div>}
         <div className="absolute bottom-2 right-2 flex items-center gap-2">
           <span className="px-2 py-0.5 rounded-md bg-black/60 text-[9px] text-emerald-400 flex items-center gap-1"><RefreshCw size={9} /> Live</span>
         </div>

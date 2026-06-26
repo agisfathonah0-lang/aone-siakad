@@ -39,7 +39,7 @@ export default function AIPage() {
     setSearchParams(id === 'chat' ? {} : { tab: id }, { replace: true });
   }
 
-  const pctUsed = usage ? Math.round((usage.daily.used / usage.daily.limit) * 100) : 0;
+  const pctUsed = usage?.daily?.used != null && usage?.daily?.limit ? Math.round((usage.daily.used / usage.daily.limit) * 100) : 0;
 
   return (
     <div className="space-y-4">

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { get, post } from '../../api/client';
+import api, { get, post } from '../../api/client';
 import { toast } from '../../context/ToastContext';
 import { Loader2, Camera, Play, ExternalLink, RefreshCw, Wifi, WifiOff, StopCircle, Video } from 'lucide-react';
 import Hls from 'hls.js';
@@ -8,6 +8,20 @@ interface Camera {
   id: string; name: string; location: string;
   rtsp_url: string; snapshot_url: string; status: string;
   stream_supported?: boolean;
+}
+
+function AuthImage({ src, alt, className }: { src: string; alt: string; className?: string }) {
+  const [url, setUrl] = useState<string | null>(null);
+  const [err, setErr] = useState(false);
+  useEffect(() => {
+    if (!src) { setErr(true); return; }
+    let cancelled = false;
+    api.get(src, { responseType: 'blob' }).then(r => { if (!cancelled) setUrl(URL.createObjectURL(r.data)); }).catch(() => { if (!cancelled) setErr(true); });
+    return () => { cancelled = true; };
+  }, [src]);
+  if (err) return null;
+  if (!url) return <div className="w-full h-full flex items-center justify-center"><Loader2 size={24} className="animate-spin" style={{ color: 'var(--muted-foreground)' }} /></div>;
+  return <img src={url} alt={alt} className={className} />;
 }
 
 export default function CctvPage() {
@@ -64,7 +78,7 @@ function CameraCard({ camera, onView }: { camera: Camera; onView: () => void }) 
     <div className="bg-white dark:bg-zinc-900/50 rounded-xl overflow-hidden shadow-sm ring-1 ring-slate-200/50 dark:ring-zinc-800/30 hover:shadow-md transition-all group cursor-pointer" onClick={onView}>
       <div className="relative h-40 bg-zinc-900 overflow-hidden">
         {camera.snapshot_url && !imgError ? (
-          <img src={camera.snapshot_url} alt={camera.name} className="w-full h-full object-cover" onError={() => setImgError(true)} />
+          <AuthImage src={camera.snapshot_url} alt={camera.name} className="w-full h-full object-cover" />
         ) : (
           <div className="absolute inset-0 flex items-center justify-center"><Camera size={32} className="text-zinc-700" /></div>
         )}

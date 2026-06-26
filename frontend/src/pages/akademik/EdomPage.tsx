@@ -361,6 +361,9 @@ function IsiEvaluasiTab() {
           setJadwalList(jadwalArr);
 
           const filledRes = await get<EdomJawaban[]>(`/akademik/edom/jawaban/${jadwalArr[0]?.id || 'x'}/${mhs.mahasiswa_id}`).catch(() => []);
+          if (Array.isArray(filledRes) && filledRes.length > 0) {
+            setAlreadyFilled(prev => new Set(prev).add(jadwalArr[0].id));
+          }
         }
       } catch {}
       finally { setLoading(false); }

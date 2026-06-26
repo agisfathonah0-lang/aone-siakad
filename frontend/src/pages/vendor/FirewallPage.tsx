@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { get, post } from '../../api/client';
+import { toast } from '../../context/ToastContext';
 import Modal from '../../components/ui/Modal';
 import { Search, Loader2, Shield, ShieldOff, Plus } from 'lucide-react';
 
@@ -23,24 +24,19 @@ export default function FirewallPage() {
   useEffect(() => { Promise.all([loadLogs(), loadBlocked()]).finally(() => setLoading(false)); }, []);
 
   async function loadLogs() {
-    try { const d = await get<FirewallLog[]>('/vendor/firewall/logs'); setLogs(Array.isArray(d) ? d : []); } catch {}
+    try { const d = await get<FirewallLog[]>('/vendor/firewall/logs'); setLogs(Array.isArray(d) ? d : []); } catch (err: any) { toast(err?.response?.data?.message || err?.message || 'Gagal memuat log', 'error'); }
   }
   async function loadBlocked() {
-    try { const d = await get<BlockedIp[]>('/vendor/firewall/blocked-ips'); setBlocked(Array.isArray(d) ? d : []); } catch {}
+    try { const d = await get<BlockedIp[]>('/vendor/firewall/blocked-ips'); setBlocked(Array.isArray(d) ? d : []); } catch (err: any) { toast(err?.response?.data?.message || err?.message || 'Gagal memuat daftar blokir', 'error'); }
   }
   async function unblock(id: string) {
     const item = blocked.find(b => b.id === id);
     if (!item) return;
-    await post('/vendor/firewall/unblock-ip', { ip: item.ip });
-    loadBlocked();
+    try { await post('/vendor/firewall/unblock-ip', { ip: item.ip }); toast('IP berhasil di-unblock', 'success'); loadBlocked(); } catch (err: any) { toast(err?.response?.data?.message || err?.message || 'Gagal unblock IP', 'error'); }
   }
   async function handleBlock(e: React.FormEvent) {
     e.preventDefault();
-    await post('/vendor/firewall/block-ip', { ip: blockForm.ip, reason: blockForm.reason || undefined });
-    setBlockModal(false);
-    setBlockForm({ ip: '', reason: '' });
-    loadBlocked();
-    loadLogs();
+    try { await post('/vendor/firewall/block-ip', { ip: blockForm.ip, reason: blockForm.reason || undefined }); setBlockModal(false); setBlockForm({ ip: '', reason: '' }); toast('IP berhasil diblokir', 'success'); loadBlocked(); loadLogs(); } catch (err: any) { toast(err?.response?.data?.message || err?.message || 'Gagal memblokir IP', 'error'); }
   }
 
   const filteredLogs = logs.filter(l => l.ip?.includes(search) || l.path?.includes(search));

@@ -47,7 +47,7 @@ export default function AbsensiPage() {
     setLoading(true); setError('');
     try {
       const res = await get<Absensi[]>('/akademik/absensi');
-      let filtered = res;
+      let filtered = res ?? [];
       if (jadwalFilter) filtered = filtered.filter(a => a.jadwal_id === jadwalFilter);
       setData(filtered);
       setTotalPages(1);
