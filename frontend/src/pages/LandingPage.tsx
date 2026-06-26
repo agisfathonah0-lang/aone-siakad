@@ -3,30 +3,152 @@ import { useNavigate, Link } from 'react-router-dom';
 import useSEO from '../hooks/useSEO';
 import SplashScreen from '../components/ui/SplashScreen';
 import {
-  GraduationCap, Wallet, Library, Star, Award, Printer, Database, Layout,
-  Sparkles, ArrowRight, Check, Menu, X, Users, Quote, ChevronDown, Clock
+  LayoutDashboard, Users, UserCheck, Building2, UserCog, BookOpen, CalendarDays,
+  ClipboardCheck, Award, ClipboardList, BookTemplate, FileText, ClipboardSignature,
+  Printer, ScrollText, Briefcase, GraduationCap, BookMarked, Presentation,
+  MessageSquare, Star, Trophy, Receipt, CreditCard, ReceiptText,
+  Library, Newspaper, Calendar, Bell, Cctv,
+  Palette, DoorOpen, Globe, Database, Bot, AlertTriangle, BarChart3, Settings,
+  Wallet, Sparkles, ArrowRight, Check, Menu, X, Quote, ChevronDown, Clock,
+  School, Layers,
 } from 'lucide-react';
 
 const featureSlugs: Record<string, string> = {
-  'Manajemen Akademik': 'manajemen-akademik',
-  'Keuangan Terintegrasi': 'keuangan-terintegrasi',
-  'Perpustakaan Digital': 'perpustakaan-digital',
-  'Evaluasi Dosen': 'evaluasi-dosen',
-  'Akreditasi BAN-PT': 'akreditasi-ban-pt',
+  'Dashboard': 'dashboard',
+  'Data Mahasiswa': 'data-mahasiswa',
+  'Data Dosen': 'data-dosen',
+  'Program Studi': 'program-studi',
+  'Manajemen Users': 'manajemen-users',
+  'Mata Kuliah': 'mata-kuliah',
+  'Jadwal Kuliah': 'jadwal-kuliah',
+  'KRS Online': 'krs-online',
+  'Nilai & KHS': 'nilai-khs',
+  'Absensi': 'absensi',
+  'Kurikulum': 'kurikulum',
+  'RPS': 'rps',
+  'BAP': 'bap',
+  'Absensi Dosen': 'absensi-dosen',
   'Cetak Dokumen': 'cetak-dokumen',
+  'Transkrip Nilai': 'transkrip-nilai',
+  'PKL': 'pkl',
+  'Sidang': 'sidang',
+  'KKN': 'kkn',
+  'Seminar': 'seminar',
+  'Perwalian': 'perwalian',
+  'EDOM': 'edom',
+  'Beasiswa': 'beasiswa',
+  'Tagihan': 'tagihan',
+  'Pembayaran': 'pembayaran',
+  'Riwayat Pembayaran': 'riwayat-pembayaran',
+  'Surat': 'surat',
+  'Perpustakaan Digital': 'perpustakaan-digital',
+  'Akreditasi BAN-PT': 'akreditasi-ban-pt',
+  'Berita': 'berita',
+  'Kalender Akademik': 'kalender-akademik',
+  'Notifikasi': 'notifikasi',
+  'CCTV': 'cctv',
+  'CMS Landing Page': 'cms-landing-page',
+  'PPDB Online': 'ppdb-online',
+  'OJS': 'ojs',
   'Integrasi PDDIKTI': 'integrasi-pddikti',
+  'Alumni': 'alumni',
+  'Integrasi LMS': 'integrasi-lms',
   'Landing Page Builder': 'landing-page-builder',
+  'AI Chatbot': 'ai-chatbot',
+  'Generate RPS AI': 'generate-rps',
+  'Plagiarism Check': 'plagiarism-check',
+  'Analytics': 'analytics',
+  'Laporan': 'laporan',
+  'Pengaturan': 'pengaturan',
 };
 
-const features = [
-  { icon: GraduationCap, title: 'Manajemen Akademik', desc: 'KRS online, KHS digital, jadwal kuliah, transkrip nilai, dan monitoring akademik real-time.', color: 'from-emerald-500/20 to-emerald-600/10' },
-  { icon: Wallet, title: 'Keuangan Terintegrasi', desc: 'Tagihan SPP, pembayaran online, beasiswa, dan laporan keuangan institusi.', color: 'from-indigo-500/20 to-indigo-600/10' },
-  { icon: Library, title: 'Perpustakaan Digital', desc: 'Katalog online, e-book, repositori karya ilmiah, dan manajemen peminjaman.', color: 'from-amber-500/20 to-amber-600/10' },
-  { icon: Star, title: 'Evaluasi Dosen', desc: 'Kuesioner online, analisis mutu pengajaran, dan tindak lanjut hasil evaluasi.', color: 'from-rose-500/20 to-rose-600/10' },
-  { icon: Award, title: 'Akreditasi BAN-PT', desc: 'Dokumen 9 standar, borang akreditasi, dan pemantauan siklus akreditasi.', color: 'from-purple-500/20 to-purple-600/10' },
-  { icon: Printer, title: 'Cetak Dokumen', desc: 'Cetak KHS, transkrip, sertifikat, dan ijazah dengan tanda tangan digital.', color: 'from-cyan-500/20 to-cyan-600/10' },
-  { icon: Database, title: 'Integrasi PDDIKTI', desc: 'Sinkronisasi data mahasiswa, dosen, dan prodi ke PDDIKTI secara otomatis.', color: 'from-teal-500/20 to-teal-600/10' },
-  { icon: Layout, title: 'Landing Page Builder', desc: 'Buat website kampus sendiri dengan drag & drop builder tanpa coding.', color: 'from-orange-500/20 to-orange-600/10' },
+const featureCategories = [
+  {
+    label: 'Dashboard',
+    items: [
+      { icon: LayoutDashboard, title: 'Dashboard', desc: 'Ringkasan data akademik, statistik real-time, grafik KHS, aktivitas mahasiswa, dan notifikasi penting dalam satu layar.', slug: 'dashboard' },
+    ],
+  },
+  {
+    label: 'Manajemen Akademik',
+    items: [
+      { icon: Users, title: 'Data Mahasiswa', desc: 'Kelola data lengkap mahasiswa, riwayat akademik, dokumen, dan status aktif studi.', slug: 'data-mahasiswa' },
+      { icon: UserCheck, title: 'Data Dosen', desc: 'Database dosen dengan riwayat mengajar, penelitian, pengabdian, dan BKD.', slug: 'data-dosen' },
+      { icon: Building2, title: 'Program Studi', desc: 'Manajemen prodi, fakultas, jenjang, akreditasi, dan kurikulum.', slug: 'program-studi' },
+      { icon: UserCog, title: 'Users & Roles', desc: 'Atur hak akses pengguna dengan role-based permission yang fleksibel.', slug: 'manajemen-users' },
+      { icon: BookOpen, title: 'Mata Kuliah', desc: 'Kelola data mata kuliah, silabus, bobot SKS, dan dosen pengampu.', slug: 'mata-kuliah' },
+      { icon: CalendarDays, title: 'Jadwal Kuliah', desc: 'Atur jadwal perkuliahan, ruangan, dosen, dengan deteksi bentrok otomatis.', slug: 'jadwal-kuliah' },
+      { icon: ClipboardCheck, title: 'KRS Online', desc: 'Pengisian KRS online, validasi prasyarat, approval dosen wali, dan cetak KRS.', slug: 'krs-online' },
+      { icon: Award, title: 'Nilai & KHS', desc: 'Input nilai, rekapitulasi IP/IPK, transkrip, dan cetak KHS digital.', slug: 'nilai-khs' },
+      { icon: ClipboardList, title: 'Absensi', desc: 'Rekap kehadiran mahasiswa per pertemuan dengan laporan otomatis.', slug: 'absensi' },
+      { icon: BookTemplate, title: 'Kurikulum', desc: 'Susun kurikulum, struktur MK per semester, dan pemetaan CPL-CPMK.', slug: 'kurikulum' },
+      { icon: FileText, title: 'RPS', desc: 'Buat RPS online, review sejawat, dan cetak RPS terstandar.', slug: 'rps' },
+      { icon: ClipboardSignature, title: 'BAP', desc: 'Berita Acara Perkuliahan digital, lengkap dengan materi dan kehadiran.', slug: 'bap' },
+      { icon: ClipboardCheck, title: 'Absensi Dosen', desc: 'Monitoring kehadiran dosen mengajar per jadwal.', slug: 'absensi-dosen' },
+      { icon: Printer, title: 'Cetak Dokumen', desc: 'Cetak KHS, transkrip, sertifikat, ijazah dengan tanda tangan digital.', slug: 'cetak-dokumen' },
+      { icon: ScrollText, title: 'Transkrip Nilai', desc: 'Transkrip akademik lengkap, siap cetak, dan terintegrasi PDDIKTI.', slug: 'transkrip-nilai' },
+      { icon: Briefcase, title: 'PKL', desc: 'Kelola Praktik Kerja Lapangan, dari pendaftaran hingga penilaian.', slug: 'pkl' },
+      { icon: GraduationCap, title: 'Sidang', desc: 'Jadwal sidang, penguji, nilai sidang, dan kelulusan.', slug: 'sidang' },
+      { icon: BookMarked, title: 'KKN', desc: 'Manajemen Kuliah Kerja Nyata, lokasi, kelompok, dan penilaian.', slug: 'kkn' },
+      { icon: Presentation, title: 'Seminar', desc: 'Kelola seminar proposal dan hasil, jadwal, dan revisi.', slug: 'seminar' },
+    ],
+  },
+  {
+    label: 'Perkuliahan',
+    items: [
+      { icon: MessageSquare, title: 'Perwalian', desc: 'Dosen wali memantau akademik, approve KRS, dan konsultasi mahasiswa.', slug: 'perwalian' },
+      { icon: Star, title: 'EDOM', desc: 'Evaluasi Dosen oleh Mahasiswa, kuesioner online, dan laporan mutu.', slug: 'edom' },
+      { icon: Trophy, title: 'Beasiswa', desc: 'Manajemen beasiswa, seleksi penerima, dan monitoring penerima.', slug: 'beasiswa' },
+    ],
+  },
+  {
+    label: 'Keuangan',
+    items: [
+      { icon: Receipt, title: 'Tagihan', desc: 'Atur tagihan SPP, biaya kuliah tunggal, dan komponen biaya lainnya.', slug: 'tagihan' },
+      { icon: CreditCard, title: 'Pembayaran', desc: 'Pembayaran online multi-gateway, VA, kartu kredit, dan konfirmasi otomatis.', slug: 'pembayaran' },
+      { icon: ReceiptText, title: 'Riwayat Pembayaran', desc: 'Riwayat pembayaran lengkap, histori, dan cetak bukti bayar.', slug: 'riwayat-pembayaran' },
+    ],
+  },
+  {
+    label: 'Layanan & Fasilitas',
+    items: [
+      { icon: FileText, title: 'Surat', desc: 'Ajukan surat keterangan aktif, rekomendasi, izin, dan lainnya secara online.', slug: 'surat' },
+      { icon: Library, title: 'Perpustakaan Digital', desc: 'Katalog online, e-book, repositori, dan manajemen peminjaman.', slug: 'perpustakaan-digital' },
+      { icon: Award, title: 'Akreditasi', desc: '9 standar BAN-PT, borang akreditasi, dan pemantauan siklus.', slug: 'akreditasi-ban-pt' },
+      { icon: Newspaper, title: 'Berita', desc: 'Publikasi berita kampus, pengumuman, dan agenda.', slug: 'berita' },
+      { icon: Calendar, title: 'Kalender Akademik', desc: 'Kalender akademik interaktif dengan semua agenda penting.', slug: 'kalender-akademik' },
+      { icon: Bell, title: 'Notifikasi', desc: 'Sistem notifikasi real-time untuk pengumuman, tagihan, dan jadwal.', slug: 'notifikasi' },
+      { icon: Cctv, title: 'CCTV', desc: 'Monitoring CCTV kampus melalui dashboard terintegrasi.', slug: 'cctv' },
+    ],
+  },
+  {
+    label: 'Integrasi & Platform',
+    items: [
+      { icon: Palette, title: 'CMS Landing Page', desc: 'Kelola konten website kampus dengan CMS terintegrasi.', slug: 'cms-landing-page' },
+      { icon: DoorOpen, title: 'PPDB Online', desc: 'Penerimaan mahasiswa baru online, dari pendaftaran hingga daftar ulang.', slug: 'ppdb-online' },
+      { icon: BookOpen, title: 'OJS', desc: 'Open Journal System untuk pengelolaan jurnal ilmiah kampus.', slug: 'ojs' },
+      { icon: Database, title: 'PDDIKTI', desc: 'Sinkronisasi otomatis data ke PDDIKTI real-time.', slug: 'integrasi-pddikti' },
+      { icon: Users, title: 'Alumni', desc: 'Database alumni, tracer study, dan jejaring alumni.', slug: 'alumni' },
+      { icon: Globe, title: 'Integrasi LMS', desc: 'Integrasi dengan LMS populer seperti Moodle, Google Classroom.', slug: 'integrasi-lms' },
+      { icon: Layers, title: 'Landing Page Builder', desc: 'Buat website kampus sendiri dengan drag & drop builder tanpa coding.', slug: 'landing-page-builder' },
+    ],
+  },
+  {
+    label: 'Fitur AI',
+    items: [
+      { icon: Bot, title: 'AI Chatbot', desc: 'Asisten AI untuk menjawab pertanyaan akademik mahasiswa secara real-time.', slug: 'ai-chatbot' },
+      { icon: BookOpen, title: 'Generate RPS', desc: 'Buat RPS otomatis dengan bantuan AI berdasarkan template dan CPMK.', slug: 'generate-rps' },
+      { icon: AlertTriangle, title: 'Plagiarism Check', desc: 'Cek plagiarisme dokumen akademik dengan database terintegrasi.', slug: 'plagiarism-check' },
+      { icon: BarChart3, title: 'Analytics', desc: 'Analytics akademik, tren nilai, prediksi kelulusan, dan rekomendasi.', slug: 'analytics' },
+    ],
+  },
+  {
+    label: 'Laporan & Pengaturan',
+    items: [
+      { icon: BarChart3, title: 'Laporan', desc: 'Laporan akademik, keuangan, dan akreditasi dengan export PDF/Excel.', slug: 'laporan' },
+      { icon: Settings, title: 'Pengaturan', desc: 'Konfigurasi sistem, role, template, dan preferensi kampus.', slug: 'pengaturan' },
+    ],
+  },
 ];
 
 const testimonials = [
@@ -232,21 +354,74 @@ export default function LandingPage() {
           <div className="text-center max-w-3xl mx-auto mb-16 space-y-4">
             <span className="text-emerald-600 text-sm font-bold font-mono tracking-widest uppercase">Fitur Lengkap</span>
             <h2 className="text-4xl sm:text-5xl font-black font-display tracking-tight text-slate-900">Semua Kebutuhan Akademik dalam Satu Platform</h2>
-            <p className="text-lg text-slate-500">Dari manajemen akademik hingga akreditasi, AONE SIAKAD menyediakan modul lengkap untuk institusi Anda.</p>
+            <p className="text-lg text-slate-500">{featureCategories.flatMap(c => c.items).length}+ modul terintegrasi untuk mendukung seluruh operasional perguruan tinggi.</p>
           </div>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-            {features.map((f, i) => (
-              <Link key={i} to={`/fitur/${featureSlugs[f.title] || f.title.toLowerCase().replace(/\s+/g, '-')}`} className="group relative p-6 rounded-2xl bg-white border border-slate-200 hover:border-emerald-300 transition-all duration-300 hover:-translate-y-1 hover:shadow-lg hover:shadow-emerald-500/10 animate-fade-up" style={{ animationDelay: `${i * 0.1}s`, animationFillMode: 'both' }}>
-                <div className={`absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity bg-gradient-to-br ${f.color}`} />
-                <div className="relative z-10">
-                  <div className="w-12 h-12 rounded-xl bg-emerald-50 border border-emerald-100 flex items-center justify-center mb-4 group-hover:bg-emerald-100 transition-colors">
-                    <f.icon className="w-6 h-6 text-emerald-600" />
-                  </div>
-                  <h3 className="text-lg font-bold font-display text-slate-900 mb-2">{f.title}</h3>
-                  <p className="text-sm text-slate-500 leading-relaxed">{f.desc}</p>
+
+          {featureCategories.map((cat, ci) => (
+            <div key={cat.label} className="mb-12 last:mb-0">
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-1 h-6 rounded-full bg-emerald-500" />
+                <h3 className="text-xl font-bold font-display text-slate-900">{cat.label}</h3>
+                <span className="text-xs text-slate-400 font-medium">({cat.items.length} modul)</span>
+              </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                {cat.items.map((f, i) => (
+                  <Link
+                    key={f.title}
+                    to={`/fitur/${featureSlugs[f.title]}`}
+                    className="group relative p-4 rounded-xl bg-white border border-slate-200 hover:border-emerald-300 transition-all duration-300 hover:-translate-y-0.5 hover:shadow-md animate-fade-up"
+                    style={{ animationDelay: `${(ci * cat.items.length + i) * 0.03}s`, animationFillMode: 'both' }}
+                  >
+                    <div className="flex items-start gap-3">
+                      <div className="w-9 h-9 rounded-lg bg-emerald-50 border border-emerald-100 flex items-center justify-center shrink-0 group-hover:bg-emerald-100 transition-colors">
+                        <f.icon className="w-4.5 h-4.5 text-emerald-600" style={{ width: 18, height: 18 }} />
+                      </div>
+                      <div className="min-w-0">
+                        <h4 className="text-sm font-bold text-slate-900 mb-0.5">{f.title}</h4>
+                        <p className="text-[11px] text-slate-500 leading-relaxed line-clamp-2">{f.desc}</p>
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Dashboard Screenshots */}
+      <section className="py-24 relative bg-slate-50 section-hidden">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center max-w-3xl mx-auto mb-16 space-y-4">
+            <span className="text-emerald-600 text-sm font-bold font-mono tracking-widest uppercase">Demo Dashboard</span>
+            <h2 className="text-4xl sm:text-5xl font-black font-display tracking-tight text-slate-900">Lihat Tampilan Dashboard SIAKAD</h2>
+            <p className="text-lg text-slate-500">Interface modern, responsif, dan mudah digunakan di semua perangkat.</p>
+          </div>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 max-w-5xl mx-auto">
+            <div className="group relative animate-fade-up" style={{ animationFillMode: 'both' }}>
+              <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/10 to-emerald-600/5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity" />
+              <div className="relative rounded-2xl border border-slate-200 overflow-hidden shadow-xl bg-white">
+                <div className="aspect-[16/10] bg-slate-100 overflow-hidden">
+                  <img src="/images/ss.png" alt="Dashboard SIAKAD - Overview" className="w-full h-full object-cover object-top" />
                 </div>
-              </Link>
-            ))}
+                <div className="p-4 border-t border-slate-100">
+                  <p className="text-sm font-bold text-slate-900">Dashboard Overview</p>
+                  <p className="text-xs text-slate-500 mt-0.5">Ringkasan statistik, grafik, dan aktivitas real-time</p>
+                </div>
+              </div>
+            </div>
+            <div className="group relative animate-fade-up" style={{ animationFillMode: 'both', animationDelay: '0.15s' }}>
+              <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/10 to-emerald-600/5 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity" />
+              <div className="relative rounded-2xl border border-slate-200 overflow-hidden shadow-xl bg-white">
+                <div className="aspect-[16/10] bg-slate-100 overflow-hidden">
+                  <img src="/images/ss2.png" alt="Dashboard SIAKAD - Akademik" className="w-full h-full object-cover object-top" />
+                </div>
+                <div className="p-4 border-t border-slate-100">
+                  <p className="text-sm font-bold text-slate-900">Manajemen Akademik</p>
+                  <p className="text-xs text-slate-500 mt-0.5">Data mahasiswa, dosen, jadwal, dan KHS terintegrasi</p>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -370,7 +545,7 @@ export default function LandingPage() {
             <button onClick={() => navigate('/register')} className="px-8 py-4 bg-white text-emerald-700 rounded-2xl text-base font-bold shadow-xl hover:scale-105 transition-all inline-flex items-center gap-2">
               Ajukan Demo Gratis <ArrowRight className="w-5 h-5" />
             </button>
-            <Link to="/fitur/manajemen-akademik" className="px-8 py-4 bg-white/10 backdrop-blur-sm border border-white/20 text-white rounded-2xl text-base font-semibold hover:bg-white/20 transition inline-flex items-center gap-2">
+            <Link to="/fitur/data-mahasiswa" className="px-8 py-4 bg-white/10 backdrop-blur-sm border border-white/20 text-white rounded-2xl text-base font-semibold hover:bg-white/20 transition inline-flex items-center gap-2">
               Pelajari Fitur
             </Link>
           </div>
@@ -390,17 +565,17 @@ export default function LandingPage() {
               <p className="text-sm text-slate-400 leading-relaxed">Platform SIAKAD all-in-one untuk universitas Indonesia. Dipercaya 100+ kampus mitra di seluruh Indonesia.</p>
             </div>
             <div>
-              <h4 className="text-sm font-bold text-slate-300 mb-4">Fitur</h4>
+              <h4 className="text-sm font-bold text-slate-300 mb-4">Akademik</h4>
               <ul className="space-y-2">
-                {features.slice(0, 4).map((f) => (
+                {featureCategories[1].items.slice(0, 7).map((f) => (
                   <li key={f.title}><Link to={`/fitur/${featureSlugs[f.title]}`} className="text-sm text-slate-400 hover:text-emerald-400 transition">{f.title}</Link></li>
                 ))}
               </ul>
             </div>
             <div>
-              <h4 className="text-sm font-bold text-slate-300 mb-4">Fitur</h4>
+              <h4 className="text-sm font-bold text-slate-300 mb-4">Layanan</h4>
               <ul className="space-y-2">
-                {features.slice(4).map((f) => (
+                {featureCategories[4].items.slice(0, 6).map((f) => (
                   <li key={f.title}><Link to={`/fitur/${featureSlugs[f.title]}`} className="text-sm text-slate-400 hover:text-emerald-400 transition">{f.title}</Link></li>
                 ))}
               </ul>
@@ -410,7 +585,7 @@ export default function LandingPage() {
               <ul className="space-y-2">
                 <li><Link to="/testimoni" className="text-sm text-slate-400 hover:text-emerald-400 transition">Testimoni</Link></li>
                 <li><Link to="/harga" className="text-sm text-slate-400 hover:text-emerald-400 transition">Harga</Link></li>
-                <li><Link to="/fitur/manajemen-akademik" className="text-sm text-slate-400 hover:text-emerald-400 transition">Fitur</Link></li>
+                <li><Link to="/fitur/data-mahasiswa" className="text-sm text-slate-400 hover:text-emerald-400 transition">Fitur</Link></li>
                 <li><Link to="/login?tenant=demo" className="text-sm text-slate-400 hover:text-emerald-400 transition">Demo</Link></li>
               </ul>
             </div>
