@@ -10,7 +10,7 @@ import {
   Library, Newspaper, Calendar, Bell, Cctv,
   Palette, DoorOpen, Globe, Database, Bot, AlertTriangle, BarChart3, Settings,
   Wallet, Sparkles, ArrowRight, Check, Menu, X, Quote, ChevronDown, Clock,
-  School, Layers,
+  School, Layers, MessageCircle,
 } from 'lucide-react';
 
 const featureSlugs: Record<string, string> = {
@@ -547,6 +547,9 @@ export default function LandingPage() {
             <button onClick={() => navigate('/register')} className="px-8 py-4 bg-white text-emerald-700 rounded-2xl text-base font-bold shadow-xl hover:scale-105 transition-all inline-flex items-center gap-2">
               Ajukan Demo Gratis <ArrowRight className="w-5 h-5" />
             </button>
+            <a href="https://wa.me/6285222473457" target="_blank" rel="noopener noreferrer" className="px-8 py-4 bg-emerald-500 text-white rounded-2xl text-base font-bold shadow-xl hover:scale-105 hover:bg-emerald-400 transition-all inline-flex items-center gap-2">
+              <MessageCircle className="w-5 h-5" /> Hubungi WA
+            </a>
             <Link to="/fitur/data-mahasiswa" className="px-8 py-4 bg-white/10 backdrop-blur-sm border border-white/20 text-white rounded-2xl text-base font-semibold hover:bg-white/20 transition inline-flex items-center gap-2">
               Pelajari Fitur
             </Link>
@@ -583,8 +586,9 @@ export default function LandingPage() {
               </ul>
             </div>
             <div>
-              <h4 className="text-sm font-bold text-slate-300 mb-4">Tautan</h4>
+              <h4 className="text-sm font-bold text-slate-300 mb-4">Kontak</h4>
               <ul className="space-y-2">
+                <li><a href="https://wa.me/6285222473457" target="_blank" rel="noopener noreferrer" className="text-sm text-slate-400 hover:text-emerald-400 transition inline-flex items-center gap-2"><MessageCircle className="w-4 h-4" /> WhatsApp</a></li>
                 <li><Link to="/testimoni" className="text-sm text-slate-400 hover:text-emerald-400 transition">Testimoni</Link></li>
                 <li><Link to="/harga" className="text-sm text-slate-400 hover:text-emerald-400 transition">Harga</Link></li>
                 <li><Link to="/fitur/data-mahasiswa" className="text-sm text-slate-400 hover:text-emerald-400 transition">Fitur</Link></li>
