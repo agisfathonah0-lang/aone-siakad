@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { getPaginated, get, post, put, del as apiDel } from '../../api/client';
 import { toast } from '../../context/ToastContext';
+import { confirm } from '../../context/ConfirmContext';
 import { useAuth } from '../../context/AuthContext';
 import DataTable from '../../components/ui/DataTable';
 import Modal from '../../components/ui/Modal';
@@ -136,7 +137,7 @@ export default function PKLPage() {
   }
 
   async function deleteRow(id: string) {
-    if (!confirm('Hapus data PKL ini?')) return;
+    if (!(await confirm('Hapus data PKL ini?'))) return;
     try { await apiDel(`/akademik/pkl/${id}`); fetchData(); }
     catch (err: any) { toast(err.response?.data?.message || err.message, 'error'); }
   }
@@ -220,7 +221,7 @@ export default function PKLPage() {
   }
 
   async function deleteLogbook(id: string) {
-    if (!confirm('Hapus entry logbook ini?')) return;
+    if (!(await confirm('Hapus entry logbook ini?'))) return;
     try {
       await apiDel(`/akademik/pkl/logbook/${id}`);
       const res = await get<PKLLogbook[]>(`/akademik/pkl/${selectedPkl}/logbook`);

@@ -4,6 +4,7 @@ import DataTable from '../../components/ui/DataTable';
 import Modal from '../../components/ui/Modal';
 import { Plus, Search, Edit, Trash2, Eye, EyeOff, CheckCircle, XCircle } from 'lucide-react';
 import FileUpload from '../../components/ui/FileUpload';
+import { confirm } from '../../context/ConfirmContext';
 
 interface Berita {
   id: string;
@@ -66,7 +67,7 @@ export default function BeritaPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Hapus berita ini?')) return;
+    if (!(await confirm('Hapus berita ini?'))) return;
     await del(`/akademik/berita/${id}`);
     fetch();
   };

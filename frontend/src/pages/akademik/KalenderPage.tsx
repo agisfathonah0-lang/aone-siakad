@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { get, post, put, del as apiDel } from '../../api/client';
 import Modal from '../../components/ui/Modal';
 import { Plus, X, ChevronLeft, ChevronRight, Loader2, Trash2 } from 'lucide-react';
+import { confirm } from '../../context/ConfirmContext';
 
 interface Event {
   id: string;
@@ -44,7 +45,7 @@ export default function KalenderPage() {
   }
 
   async function remove(id: string) {
-    if (!confirm('Hapus acara ini?')) return;
+    if (!(await confirm('Hapus acara ini?'))) return;
     await apiDel(`/akademik/kalender/${id}`);
     load();
   }

@@ -3,6 +3,7 @@ import { get, put, post as apiPost } from '../../api/client';
 import DataTable from '../../components/ui/DataTable';
 import Modal from '../../components/ui/Modal';
 import { Search, Pencil, Key, ToggleRight, ToggleLeft, Plus, Mail, Shield, UserPlus, Sparkles, Users } from 'lucide-react';
+import { confirm } from '../../context/ConfirmContext';
 
 interface CampusUser {
   id: string;
@@ -98,7 +99,7 @@ export default function UsersPage() {
   }
 
   async function resetPassword(id: string) {
-    if (!confirm('Reset password user ini ke 123456?')) return;
+    if (!(await confirm('Reset password user ini ke 123456?'))) return;
     await apiPost(`/akademik/users/${id}/reset-password`, {});
     load();
   }

@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { get, getPaginated, post, put, del } from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
 import { toast } from '../../context/ToastContext';
+import { confirm } from '../../context/ConfirmContext';
 import type { AbsensiDosen, Dosen } from '../../types';
 import DataTable from '../../components/ui/DataTable';
 import Modal from '../../components/ui/Modal';
@@ -148,7 +149,7 @@ export default function AbsensiDosenPage() {
   };
 
   const remove = async (id: string) => {
-    if (!confirm('Hapus absensi ini?')) return;
+    if (!(await confirm('Hapus absensi ini?'))) return;
     try {
       await del('/akademik/absensi-dosen/' + id);
       fetchData();

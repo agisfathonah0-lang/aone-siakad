@@ -119,7 +119,7 @@ router.post(
 );
 
 router.put(
-  '/:nidn',
+  '/:id',
   authenticate,
   requireRole(Role.ADMIN, Role.AKADEMIK),
   async (req: Request, res: Response, next: NextFunction) => {
@@ -128,8 +128,8 @@ router.put(
       const { nama, program_studi_id, is_dosen_wali, nik, tempat_lahir, tanggal_lahir, jenis_kelamin, alamat, no_hp } = req.body;
 
       const { rows: existing } = await query(
-        `SELECT id, user_id FROM ${s}.dosen WHERE nidn = $1`,
-        [req.params.nidn]
+        `SELECT id, user_id FROM ${s}.dosen WHERE id = $1`,
+        [req.params.id]
       );
       if (existing.length === 0) throw new AppError(404, 'Dosen tidak ditemukan');
 
@@ -154,15 +154,15 @@ router.put(
 );
 
 router.delete(
-  '/:nidn',
+  '/:id',
   authenticate,
   requireRole(Role.ADMIN),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const s = schema(req);
       const { rows } = await query(
-        `DELETE FROM ${s}.dosen WHERE nidn = $1 RETURNING id, user_id`,
-        [req.params.nidn]
+        `DELETE FROM ${s}.dosen WHERE id = $1 RETURNING id, user_id`,
+        [req.params.id]
       );
       if (rows.length === 0) throw new AppError(404, 'Dosen tidak ditemukan');
       await query(`DELETE FROM ${s}.users WHERE id = $1`, [rows[0].user_id]);

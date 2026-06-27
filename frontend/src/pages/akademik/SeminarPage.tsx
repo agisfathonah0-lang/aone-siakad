@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { getPaginated, post, put, del } from '../../api/client';
 import { toast } from '../../context/ToastContext';
+import { confirm } from '../../context/ConfirmContext';
 import DataTable from '../../components/ui/DataTable';
 import Modal from '../../components/ui/Modal';
 import Badge from '../../components/ui/Badge';
@@ -140,7 +141,7 @@ export default function SeminarPage() {
   }
 
   async function deleteRow(id: string) {
-    if (!confirm('Hapus data seminar ini?')) return;
+    if (!(await confirm('Hapus data seminar ini?'))) return;
     try { await del(`/akademik/seminar/${id}`); fetchData(); }
     catch (err: any) { toast(err.response?.data?.message || err.message, 'error'); }
   }
@@ -177,7 +178,7 @@ export default function SeminarPage() {
 
   async function removePeserta(pesertaId: string) {
     if (!selectedSeminar) return;
-    if (!confirm('Hapus peserta ini?')) return;
+    if (!(await confirm('Hapus peserta ini?'))) return;
     try {
       await del(`/akademik/seminar/${selectedSeminar.id}/peserta/${pesertaId}`);
       setPesertaList(p => p.filter(x => x.id !== pesertaId));

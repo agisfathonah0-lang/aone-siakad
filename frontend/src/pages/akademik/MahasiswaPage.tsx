@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { toast } from '../../context/ToastContext';
+import { confirm } from '../../context/ConfirmContext';
 import { Link } from 'react-router-dom';
 import { get, getPaginated, post, put, del as apiDel } from '../../api/client';
 import type { Mahasiswa } from '../../types';
@@ -78,7 +79,7 @@ export default function MahasiswaPage() {
   };
 
   const remove = async (id: string) => {
-    if (!confirm('Hapus mahasiswa ini?')) return;
+    if (!(await confirm('Hapus mahasiswa ini?'))) return;
     try {
       await apiDel(`/akademik/mahasiswa/${id}`);
       fetchData();

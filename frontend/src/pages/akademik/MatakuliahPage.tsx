@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { toast } from '../../context/ToastContext';
+import { confirm } from '../../context/ConfirmContext';
 import { getPaginated, post, put, del } from '../../api/client';
 import type { MataKuliah } from '../../types';
 import DataTable from '../../components/ui/DataTable';
@@ -56,7 +57,7 @@ export default function MatakuliahPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Yakin ingin menghapus mata kuliah ini?')) return;
+    if (!(await confirm('Yakin ingin menghapus mata kuliah ini?'))) return;
     try { await del(`/akademik/mata-kuliah/${id}`); fetchData(); }
     catch (err: any) { toast(err.response?.data?.message || err.message, 'error'); }
   };

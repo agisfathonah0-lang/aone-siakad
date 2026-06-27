@@ -3,6 +3,7 @@ import api, { get, post, put, del as apiDel } from '../../api/client';
 import Modal from '../../components/ui/Modal';
 import FileUpload from '../../components/ui/FileUpload';
 import { Cctv, Plus, Loader2, Pencil, Trash2, Camera, Play, ExternalLink, RefreshCw, Wifi, WifiOff } from 'lucide-react';
+import { confirm } from '../../context/ConfirmContext';
 
 interface Camera {
   id: string; name: string; tenant_id: string; tenant_name?: string;
@@ -54,7 +55,7 @@ export default function CctvPage() {
   }
 
   async function remove(id: string) {
-    if (!confirm('Hapus kamera ini?')) return;
+    if (!(await confirm('Hapus kamera ini?'))) return;
     await apiDel(`/vendor/cctv/${id}`);
     load();
   }

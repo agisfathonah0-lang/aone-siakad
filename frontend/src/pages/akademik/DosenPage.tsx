@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { toast } from '../../context/ToastContext';
+import { confirm } from '../../context/ConfirmContext';
 import { getPaginated, post, put, del } from '../../api/client';
 import type { Dosen } from '../../types';
 import DataTable from '../../components/ui/DataTable';
@@ -56,7 +57,7 @@ export default function DosenPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Yakin ingin menghapus data dosen ini?')) return;
+    if (!(await confirm('Yakin ingin menghapus data dosen ini?'))) return;
     try { await del(`/akademik/dosen/${id}`); fetchData(); }
     catch (err: any) { toast(err.response?.data?.message || err.message, 'error'); }
   };

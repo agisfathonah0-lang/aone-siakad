@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { get, getPaginated, post, put, del as apiDel } from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
 import { toast } from '../../context/ToastContext';
+import { confirm } from '../../context/ConfirmContext';
 import type { Buku, AnggotaPerpustakaan, PeminjamanBuku, Mahasiswa } from '../../types';
 import DataTable from '../../components/ui/DataTable';
 import Modal from '../../components/ui/Modal';
@@ -298,7 +299,7 @@ function BukuSection() {
   };
 
   const remove = async (id: string) => {
-    if (!confirm('Hapus buku ini?')) return;
+    if (!(await confirm('Hapus buku ini?'))) return;
     try {
       await apiDel(`/akademik/perpustakaan/buku/${id}`);
       fetchData();
@@ -413,7 +414,7 @@ function AnggotaSection() {
   };
 
   const remove = async (id: string) => {
-    if (!confirm('Hapus anggota ini?')) return;
+    if (!(await confirm('Hapus anggota ini?'))) return;
     try {
       await apiDel(`/akademik/perpustakaan/anggota/${id}`);
       fetchData();
@@ -688,7 +689,7 @@ function EbookSection() {
   };
 
   const remove = async (id: string) => {
-    if (!confirm('Hapus e-book ini?')) return;
+    if (!(await confirm('Hapus e-book ini?'))) return;
     try {
       await apiDel(`/akademik/perpustakaan/ebook/${id}`);
       fetchData();
@@ -851,7 +852,7 @@ function RepositoriSection() {
   };
 
   const remove = async (id: string) => {
-    if (!confirm('Hapus karya ini?')) return;
+    if (!(await confirm('Hapus karya ini?'))) return;
     try {
       await apiDel(`/akademik/perpustakaan/repositori/${id}`);
       fetchData();

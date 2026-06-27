@@ -3,6 +3,7 @@ import { get, post, put, del as apiDel } from '../../api/client';
 import DataTable from '../../components/ui/DataTable';
 import Modal from '../../components/ui/Modal';
 import { Plus, Pencil, Trash2, Search } from 'lucide-react';
+import { confirm } from '../../context/ConfirmContext';
 
 interface Prodi {
   id: string;
@@ -46,7 +47,7 @@ export default function ProdiPage() {
   }
 
   async function remove(id: string) {
-    if (!confirm('Hapus program studi ini?')) return;
+    if (!(await confirm('Hapus program studi ini?'))) return;
     await apiDel(`/akademik/prodi/${id}`);
     load();
   }

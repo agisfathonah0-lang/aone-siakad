@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { ToastProvider } from './context/ToastContext';
+import { ConfirmProvider } from './context/ConfirmContext';
 import AppLayout from './components/layout/AppLayout';
 import LandingPage from './pages/LandingPage';
 import CampusLandingPage from './pages/CampusLandingPage';
@@ -254,7 +255,9 @@ export default function App() {
   return (
     <AuthProvider>
       <ToastProvider>
-        <AppRoutes />
+        <ConfirmProvider>
+          <AppRoutes />
+        </ConfirmProvider>
       </ToastProvider>
     </AuthProvider>
   );

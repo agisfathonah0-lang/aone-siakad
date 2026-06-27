@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { get, getPaginated, post, put, del as apiDel } from '../../api/client';
 import { toast } from '../../context/ToastContext';
+import { confirm } from '../../context/ConfirmContext';
 import type { Sidang } from '../../types';
 import DataTable from '../../components/ui/DataTable';
 import Modal from '../../components/ui/Modal';
@@ -104,7 +105,7 @@ export default function SidangPage() {
   };
 
   const remove = async (id: string) => {
-    if (!confirm('Hapus data sidang ini?')) return;
+    if (!(await confirm('Hapus data sidang ini?'))) return;
     try { await apiDel(`/akademik/sidang/${id}`); fetchData(); }
     catch (err: any) { toast(err.response?.data?.message || err.message, 'error'); }
   };

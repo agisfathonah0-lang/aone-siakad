@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { getPaginated, post, put, del } from '../../api/client';
 import { toast } from '../../context/ToastContext';
+import { confirm } from '../../context/ConfirmContext';
 import type { Jadwal } from '../../types';
 import DataTable from '../../components/ui/DataTable';
 import Modal from '../../components/ui/Modal';
@@ -79,7 +80,7 @@ export default function JadwalPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Yakin ingin menghapus jadwal ini?')) return;
+    if (!(await confirm('Yakin ingin menghapus jadwal ini?'))) return;
     try { await del(`/akademik/jadwal/${id}`); fetchData(); }
     catch (err: any) { toast(err.response?.data?.message || err.message, 'error'); }
   };

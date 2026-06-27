@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { getPaginated, get, post, put, del as apiDel } from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
 import { toast } from '../../context/ToastContext';
+import { confirm } from '../../context/ConfirmContext';
 import DataTable from '../../components/ui/DataTable';
 import Modal from '../../components/ui/Modal';
 import Badge from '../../components/ui/Badge';
@@ -122,7 +123,7 @@ export default function KKNPage() {
   }
 
   async function deleteRow(id: string) {
-    if (!confirm('Hapus data KKN ini?')) return;
+    if (!(await confirm('Hapus data KKN ini?'))) return;
     try { await apiDel(`/akademik/kkn/${id}`); fetchData(); }
     catch (err: any) { toast(err.response?.data?.message || err.message, 'error'); }
   }
@@ -204,7 +205,7 @@ export default function KKNPage() {
   }
 
   async function deleteLogbook(id: string) {
-    if (!confirm('Hapus entry logbook ini?')) return;
+    if (!(await confirm('Hapus entry logbook ini?'))) return;
     try {
       await apiDel(`/akademik/kkn/logbook/${id}`);
       const res = await get<KKNLogbook[]>(`/akademik/kkn/${selectedKkn}/logbook`);
@@ -283,7 +284,7 @@ export default function KKNPage() {
   }
 
   async function deleteKelompok(id: string) {
-    if (!confirm('Hapus kelompok ini?')) return;
+    if (!(await confirm('Hapus kelompok ini?'))) return;
     try { await apiDel(`/akademik/kkn-kelompok/${id}`); fetchKelompok(); }
     catch (err: any) { toast(err.response?.data?.message || err.message, 'error'); }
   }
@@ -315,7 +316,7 @@ export default function KKNPage() {
   }
 
   async function removeAnggota(anggotaId: string) {
-    if (!confirm('Hapus anggota ini?')) return;
+    if (!(await confirm('Hapus anggota ini?'))) return;
     if (!kelompokDetail) return;
     try {
       await apiDel(`/akademik/kkn-kelompok/${kelompokDetail.id}/anggota/${anggotaId}`);

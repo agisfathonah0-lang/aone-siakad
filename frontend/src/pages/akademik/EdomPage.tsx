@@ -7,6 +7,7 @@ import Modal from '../../components/ui/Modal';
 import Badge from '../../components/ui/Badge';
 import { Plus, Pencil, Trash2, CheckCircle, Calendar, Star, Send, ClipboardCheck, BarChart3, Users, Search, Loader2 } from 'lucide-react';
 import { toast } from '../../context/ToastContext';
+import { confirm } from '../../context/ConfirmContext';
 
 const aspekList = ['Pengajaran', 'Materi', 'Sikap', 'Komunikasi', 'Penugasan'];
 const aspekColors: Record<string, string> = { Pengajaran: 'info', Materi: 'success', Sikap: 'warning', Komunikasi: 'info', Penugasan: 'default' };
@@ -91,7 +92,7 @@ function KuisionerTab() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Yakin ingin menghapus pertanyaan ini?')) return;
+    if (!(await confirm('Yakin ingin menghapus pertanyaan ini?'))) return;
     try { await del(`/akademik/edom/kuisioner/${id}`); fetchData(); }
     catch (err: any) { toast(err.response?.data?.message || err.message, 'error'); }
   };
@@ -193,7 +194,7 @@ function PeriodeTab() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Yakin ingin menghapus periode ini?')) return;
+    if (!(await confirm('Yakin ingin menghapus periode ini?'))) return;
     try { await del(`/akademik/edom/periode/${id}`); fetchData(); }
     catch (err: any) { toast(err.response?.data?.message || err.message, 'error'); }
   };
@@ -228,7 +229,7 @@ function PeriodeTab() {
   };
 
   const removeJadwal = async (id: string) => {
-    if (!confirm('Yakin ingin menghapus jadwal ini dari periode?')) return;
+    if (!(await confirm('Yakin ingin menghapus jadwal ini dari periode?'))) return;
     try {
       await del(`/akademik/edom/jadwal/${id}`);
       setJadwalList((prev) => prev.filter((j) => j.id !== id));

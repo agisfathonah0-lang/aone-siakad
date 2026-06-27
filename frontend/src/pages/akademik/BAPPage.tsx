@@ -4,6 +4,7 @@ import DataTable from '../../components/ui/DataTable';
 import Modal from '../../components/ui/Modal';
 import { Plus, RefreshCw, Pencil, Trash2, ClipboardList } from 'lucide-react';
 import { toast } from '../../context/ToastContext';
+import { confirm } from '../../context/ConfirmContext';
 
 interface BAP {
   id: string;
@@ -126,7 +127,7 @@ export default function BAPPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Yakin ingin menghapus BAP ini?')) return;
+    if (!(await confirm('Yakin ingin menghapus BAP ini?'))) return;
     try {
       await del(`/akademik/bap/${id}`);
       fetchData();

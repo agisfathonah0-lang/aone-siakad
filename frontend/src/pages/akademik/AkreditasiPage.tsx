@@ -7,6 +7,7 @@ import { Plus, Pencil, Trash2, Award, Eye, Upload, ListChecks, RefreshCw } from 
 import type { Akreditasi, StandarAkreditasi, DokumenAkreditasi } from '../../types';
 import FileUpload from '../../components/ui/FileUpload';
 import { toast } from '../../context/ToastContext';
+import { confirm } from '../../context/ConfirmContext';
 
 const peringkatColors: Record<string, string> = {
   Unggul: 'success',
@@ -151,7 +152,7 @@ function AkreditasiTab() {
   };
 
   const remove = async (id: string) => {
-    if (!confirm('Yakin ingin menghapus akreditasi ini?')) return;
+    if (!(await confirm('Yakin ingin menghapus akreditasi ini?'))) return;
     try {
       await del(`/akademik/akreditasi/${id}`);
       fetchData();
@@ -215,7 +216,7 @@ function AkreditasiTab() {
   };
 
   const removeDokumen = async (id: string) => {
-    if (!confirm('Hapus dokumen ini?')) return;
+    if (!(await confirm('Hapus dokumen ini?'))) return;
     if (!selected) return;
     try {
       await del(`/akademik/akreditasi/dokumen/${id}`);

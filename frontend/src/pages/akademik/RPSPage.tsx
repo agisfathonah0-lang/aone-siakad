@@ -4,6 +4,7 @@ import DataTable from '../../components/ui/DataTable';
 import Modal from '../../components/ui/Modal';
 import { Plus, RefreshCw, Pencil, Trash2, BookOpen } from 'lucide-react';
 import { toast } from '../../context/ToastContext';
+import { confirm } from '../../context/ConfirmContext';
 
 interface RPS {
   id: string;
@@ -107,7 +108,7 @@ export default function RPSPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Yakin ingin menghapus RPS ini?')) return;
+    if (!(await confirm('Yakin ingin menghapus RPS ini?'))) return;
     try {
       await del(`/akademik/rps/${id}`);
       fetchData();

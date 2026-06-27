@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { get, post, put, del as apiDel } from '../../api/client';
 import { toast } from '../../context/ToastContext';
+import { confirm } from '../../context/ConfirmContext';
 import { useAuth } from '../../context/AuthContext';
 import DataTable from '../../components/ui/DataTable';
 import Modal from '../../components/ui/Modal';
@@ -107,7 +108,7 @@ export default function SuratPage() {
   }
 
   async function deleteMasuk(id: string) {
-    if (!confirm('Hapus surat masuk ini?')) return;
+    if (!(await confirm('Hapus surat masuk ini?'))) return;
     try { await apiDel(`/akademik/surat/masuk/${id}`); loadMasuk(); }
     catch (err: any) { toast(err.response?.data?.message || err.message, 'error'); }
   }
@@ -126,7 +127,7 @@ export default function SuratPage() {
   }
 
   async function deleteDisposisi(id: string) {
-    if (!confirm('Hapus disposisi ini?')) return;
+    if (!(await confirm('Hapus disposisi ini?'))) return;
     try {
       await apiDel(`/akademik/surat/disposisi/${id}`);
       if (masukDetail) {
@@ -202,7 +203,7 @@ export default function SuratPage() {
   }
 
   async function deleteKeluar(id: string) {
-    if (!confirm('Hapus surat keluar ini?')) return;
+    if (!(await confirm('Hapus surat keluar ini?'))) return;
     try { await apiDel(`/akademik/surat/keluar/${id}`); loadKeluar(); }
     catch (err: any) { toast(err.response?.data?.message || err.message, 'error'); }
   }
@@ -314,7 +315,7 @@ export default function SuratPage() {
   }
 
   async function deleteKategori(id: string) {
-    if (!confirm('Hapus kategori ini?')) return;
+    if (!(await confirm('Hapus kategori ini?'))) return;
     try { await apiDel(`/akademik/surat/kategori/${id}`); loadKategori(); }
     catch (err: any) { toast(err.response?.data?.message || err.message, 'error'); }
   }

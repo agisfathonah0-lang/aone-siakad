@@ -5,6 +5,7 @@ import Modal from '../../components/ui/Modal';
 import Badge from '../../components/ui/Badge';
 import { Plus, RefreshCw, Pencil, Trash2, Eye, BookOpen, Search } from 'lucide-react';
 import { toast } from '../../context/ToastContext';
+import { confirm } from '../../context/ConfirmContext';
 
 interface Kurikulum {
   id: string;
@@ -124,7 +125,7 @@ export default function KurikulumPage() {
   };
 
   const remove = async (id: string) => {
-    if (!confirm('Yakin ingin menghapus kurikulum ini?')) return;
+    if (!(await confirm('Yakin ingin menghapus kurikulum ini?'))) return;
     try {
       await del(`/akademik/kurikulum/${id}`);
       fetchData();
@@ -159,7 +160,7 @@ export default function KurikulumPage() {
   };
 
   const removeMataKuliah = async (mkKode: string) => {
-    if (!confirm('Hapus mata kuliah dari kurikulum ini?')) return;
+    if (!(await confirm('Hapus mata kuliah dari kurikulum ini?'))) return;
     if (!selected) return;
     const mk = mkOptions.find(m => m.kode === mkKode);
     if (!mk) return toast('Mata kuliah tidak ditemukan', 'warning');

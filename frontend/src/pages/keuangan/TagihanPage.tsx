@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { getPaginated, post, put, del, get } from '../../api/client';
 import { toast } from '../../context/ToastContext';
+import { confirm } from '../../context/ConfirmContext';
 import type { Tagihan, Pembayaran, Mahasiswa } from '../../types';
 import DataTable from '../../components/ui/DataTable';
 import Modal from '../../components/ui/Modal';
@@ -53,7 +54,7 @@ export default function TagihanPage() {
   };
 
   const handleDelete = async (id: string) => {
-    if (!confirm('Hapus tagihan ini?')) return;
+    if (!(await confirm('Hapus tagihan ini?'))) return;
     try { await del(`/keuangan/tagihan/${id}`); fetchData(); }
     catch (err: any) { toast(err.response?.data?.message || err.message, 'error'); }
   };
