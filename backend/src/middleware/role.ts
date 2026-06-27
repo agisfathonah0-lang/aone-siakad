@@ -28,19 +28,24 @@ export function requireRole(...roles: Role[]) {
       throw new AppError(401, 'Harus login terlebih dahulu');
     }
 
-    const effectiveRole = mapRole(req.user.role);
+    const allRoles = (req.user.roles?.length ? req.user.roles : [req.user.role]).map(r => mapRole(r as string));
 
-    if (effectiveRole === Role.SUPER_ADMIN) {
+    if (allRoles.includes(Role.SUPER_ADMIN)) {
       return next();
     }
 
-    const userLevel = roleHierarchy[effectiveRole] ?? 0;
-    const requiredLevel = Math.max(...roles.map((r) => roleHierarchy[r] ?? 0));
-
-    if (userLevel < requiredLevel && !roles.includes(effectiveRole)) {
-      throw new AppError(403, 'Anda tidak memiliki akses ke resource ini');
+    const hasRole = allRoles.some(r => roles.includes(r));
+    if (hasRole) {
+      return next();
     }
 
-    next();
+    const maxUserLevel = Math.max(...allRoles.map(r => roleHierarchy[r] ?? 0));
+    const requiredLevel = Math.max(...roles.map((r) => roleHierarchy[r] ?? 0));
+
+    if (maxUserLevel >= requiredLevel) {
+      return next();
+    }
+
+    throw new AppError(403, 'Anda tidak memiliki akses ke resource ini');
   };
 }

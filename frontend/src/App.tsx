@@ -25,6 +25,7 @@ import KalenderPage from './pages/akademik/KalenderPage';
 import NotifikasiPage from './pages/akademik/NotifikasiPage';
 import ChatKelasPage from './pages/chat/ChatKelasPage';
 import BeritaPage from './pages/akademik/BeritaPage';
+import PengumumanPage from './pages/akademik/PengumumanPage';
 import MahasiswaPage from './pages/akademik/MahasiswaPage';
 import MahasiswaDetailPage from './pages/akademik/MahasiswaDetailPage';
 import DosenPage from './pages/akademik/DosenPage';
@@ -75,7 +76,7 @@ import VendorLandingBuilder from './pages/vendor/VendorLandingBuilder';
 import VendorUsersPage from './pages/vendor/VendorUsersPage';
 import TenantDetailPage from './pages/vendor/TenantDetailPage';
 import { Loader2 } from 'lucide-react';
-import { canAccess } from './utils/roles';
+import { canAccess, canAccessAny } from './utils/roles';
 import type { Role } from './types';
 import { get } from './api/client';
 
@@ -107,8 +108,9 @@ function RoleGuard({ children, roles }: { children: React.ReactNode; roles: Role
     if (slug) return <Navigate to={`/kampus/${slug}/dashboard`} replace />;
     return <Navigate to="/login" replace />;
   }
-  if (!canAccess(user.role, roles)) {
-    console.warn('[RoleGuard] Access denied:', { role: user.role, required: roles, path: location.pathname });
+  const userRoles: Role[] = user.roles?.length ? user.roles : [user.role];
+  if (!canAccessAny(userRoles, roles)) {
+    console.warn('[RoleGuard] Access denied:', { roles: userRoles, required: roles, path: location.pathname });
     const slug = location.pathname.split('/')[2] || localStorage.getItem('aone_tenant_slug');
     if (slug) return <Navigate to={`/kampus/${slug}/dashboard`} replace />;
     return <Navigate to="/login" replace />;
@@ -188,7 +190,8 @@ function AppRoutes() {
           <Route path="notifikasi" element={<RoleGuard roles={['super_admin','rektor','admin','dekan','akademik','kaprodi','dosen','mahasiswa']}><NotifikasiPage /></RoleGuard>} />
           <Route path="chat-kelas" element={<RoleGuard roles={['super_admin','rektor','admin','dekan','akademik','kaprodi','dosen','mahasiswa']}><ChatKelasPage /></RoleGuard>} />
           <Route path="cctv" element={<RoleGuard roles={['super_admin','rektor','admin','dekan','akademik','kaprodi']}><CampusCctvPage /></RoleGuard>} />
-          <Route path="berita" element={<RoleGuard roles={['super_admin','rektor','admin','dekan','akademik','kaprodi']}><BeritaPage /></RoleGuard>} />
+          <Route path="berita" element={<RoleGuard roles={['super_admin','rektor','admin','dekan','akademik','kaprodi','humas']}><BeritaPage /></RoleGuard>} />
+          <Route path="pengumuman" element={<RoleGuard roles={['super_admin','rektor','admin','dekan','akademik','kaprodi','humas']}><PengumumanPage /></RoleGuard>} />
           <Route path="mahasiswa" element={<RoleGuard roles={['super_admin','admin','akademik','dosen']}><MahasiswaPage /></RoleGuard>} />
           <Route path="mahasiswa/:nim" element={<RoleGuard roles={['super_admin','admin','akademik','dosen']}><MahasiswaDetailPage /></RoleGuard>} />
           <Route path="dosen" element={<RoleGuard roles={['super_admin','rektor','admin','dekan','akademik','kaprodi']}><DosenPage /></RoleGuard>} />

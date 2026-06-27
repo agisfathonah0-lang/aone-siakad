@@ -7,11 +7,12 @@ import {
   ScrollText, ClipboardList, BookTemplate, FileText, ClipboardSignature, Printer,
   Briefcase, BookMarked, MessageSquare, Star, Trophy, Receipt, CreditCard,
   ReceiptText, Library, Newspaper, Calendar, Bell, Cctv, Palette,
-  DoorOpen, List, Globe, Layout, Bot, AlertTriangle, Database, BookMarked as BookMarkedIcon,
+  DoorOpen, List, Globe, Layout, Bot, AlertTriangle, Database, BookMarked as BookMarkedIcon, Megaphone,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
-import { filterMenusByRole, SIDEBAR_MENUS } from '../../utils/roles';
+import { filterMenusByRoles, SIDEBAR_MENUS } from '../../utils/roles';
 import type { LucideIcon } from 'lucide-react';
+import type { Role } from '../../types';
 
 const iconMap: Record<string, LucideIcon> = {
   LayoutDashboard, GraduationCap, Presentation, Wallet, EllipsisHorizontal: Ellipsis,
@@ -20,7 +21,7 @@ const iconMap: Record<string, LucideIcon> = {
   ScrollText, ClipboardList, BookTemplate, FileText, ClipboardSignature,
   Printer, Briefcase, BookMarked, MessageSquare, Star, Trophy, Receipt, CreditCard,
   ReceiptText, Library, Newspaper, Calendar, Bell, Cctv, Palette,
-  DoorOpen, List, Globe, Layout, Bot, AlertTriangle, Database,
+  DoorOpen, List, Globe, Layout, Bot, AlertTriangle, Database, Megaphone,
 };
 
 interface SidebarProps { open: boolean; onClose: () => void }
@@ -49,23 +50,32 @@ function isAnyChildActive(children: any[], basePath: string, pathname: string): 
   });
 }
 
+const roleLabels: Record<string, string> = {
+  super_admin: 'Super Admin', rektor: 'Rektor', admin: 'Admin', dekan: 'Dekan',
+  akademik: 'Akademik', kaprodi: 'Kaprodi', keuangan: 'Keuangan', humas: 'Humas',
+  pustakawan: 'Pustakawan', dosen: 'Dosen', mahasiswa: 'Mahasiswa',
+  calon_mahasiswa: 'Calon Mhs', alumni: 'Alumni',
+};
+
 export default function Sidebar({ open, onClose }: SidebarProps) {
-  const { user, logout } = useAuth();
+  const { user, logout, setActiveRole } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const role = user?.role || 'mahasiswa';
+  const allRoles: Role[] = user?.roles?.length ? user.roles : [role];
   const isVendor = role === 'vendor_super_admin';
+  const [showRoleSwitcher, setShowRoleSwitcher] = useState(false);
 
   const filteredMenus = useMemo(
-    () => isVendor ? [] : filterMenusByRole(SIDEBAR_MENUS, user?.role),
-    [isVendor, user?.role]
+    () => isVendor ? [] : filterMenusByRoles(SIDEBAR_MENUS, allRoles),
+    [isVendor, allRoles.join(',')]
   );
   const slug = location.pathname.split('/')[2] || user?.tenantSlug || '';
   const basePath = `/kampus/${slug}`;
 
   const [expandedSection, setExpandedSection] = useState<string>(() => {
     const segment = location.pathname.split('/').pop() || 'dashboard';
-    const menus = filterMenusByRole(SIDEBAR_MENUS, user?.role);
+    const menus = filterMenusByRoles(SIDEBAR_MENUS, allRoles);
     const section = menus.find(m => {
       if (m.path === segment) return true;
       return m.children?.some((c: any) => c.path === segment || c.children?.some((s: any) => s.path === segment));
@@ -231,16 +241,19 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
       </nav>
 
       {/* Bottom: User profile */}
-      <div className="mx-3 mb-3 p-2.5 rounded-xl" style={{ background: 'var(--sidebar-accent)' }}>
+      <div className="mx-3 mb-3 p-2.5 rounded-xl relative" style={{ background: 'var(--sidebar-accent)' }}>
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-[10px] font-bold shrink-0" style={{ background: 'var(--sidebar-primary)' }}>
+          <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-[10px] font-bold shrink-0 cursor-pointer" style={{ background: 'var(--sidebar-primary)' }} onClick={() => allRoles.length > 1 && setShowRoleSwitcher(v => !v)}>
             {initialAvatar(user?.nama)}
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-white text-xs font-semibold truncate">{user?.nama || 'User'}</p>
-            <p className="text-[10px] truncate capitalize" style={{ color: 'var(--sidebar-foreground)', opacity: 0.6 }}>
-              {user?.role?.replace('_', ' ') || ''}
-            </p>
+            <button onClick={() => allRoles.length > 1 && setShowRoleSwitcher(v => !v)}
+              className="text-[10px] truncate capitalize flex items-center gap-1 hover:opacity-80 transition-opacity"
+              style={{ color: 'var(--sidebar-foreground)', opacity: 0.6 }}>
+              {roleLabels[role] || role?.replace('_', ' ') || ''}
+              {allRoles.length > 1 && <ChevronRight size={10} className={`transition-transform ${showRoleSwitcher ? 'rotate-90' : ''}`} />}
+            </button>
           </div>
           <button
             onClick={logout}
@@ -250,6 +263,21 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
             <LogOut size={14} />
           </button>
         </div>
+
+        {/* Role switcher dropdown */}
+        {showRoleSwitcher && allRoles.length > 1 && (
+          <div className="absolute bottom-full left-0 right-0 mb-1 mx-1 p-1 rounded-lg border shadow-lg"
+            style={{ background: 'var(--sidebar)', borderColor: 'var(--sidebar-border)' }}>
+            {allRoles.filter(r => r !== role).map(r => (
+              <button key={r} type="button"
+                onClick={() => { setActiveRole(r); setShowRoleSwitcher(false); }}
+                className="w-full flex items-center gap-2 px-2.5 py-1.5 rounded-md text-xs text-left transition-colors hover:opacity-80"
+                style={{ color: 'var(--sidebar-foreground)' }}>
+                {roleLabels[r] || r?.replace('_', ' ')}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
     </aside>
   );

@@ -13,6 +13,7 @@ export function signAccessToken(payload: {
   sub: string;
   email: string;
   role: string;
+  roles?: string[];
   tenantId: string | null;
   vendorUserId?: string;
 }): string {
@@ -28,6 +29,7 @@ export function signRefreshToken(payload: {
   sub: string;
   email: string;
   role: string;
+  roles?: string[];
   tenantId: string | null;
   vendorUserId?: string;
 }): string {

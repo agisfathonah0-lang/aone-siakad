@@ -9,6 +9,7 @@ export const ROLE_HIERARCHY: Record<Role, number> = {
   akademik: 75,
   kaprodi: 70,
   keuangan: 60,
+  humas: 58,
   pustakawan: 55,
   dosen: 50,
   mahasiswa: 40,
@@ -21,13 +22,18 @@ export function hasRole(userRole: Role | undefined, requiredRoles: Role[]): bool
   return requiredRoles.includes(userRole);
 }
 
+export function canAccess(userRole: Role | undefined, pageRoles: Role[]): boolean {
+  return hasRole(userRole, pageRoles);
+}
+
+export function canAccessAny(userRoles: Role[] | undefined, pageRoles: Role[]): boolean {
+  if (!userRoles?.length) return false;
+  return userRoles.some(r => pageRoles.includes(r));
+}
+
 export function hasMinRole(userRole: Role | undefined, minRole: Role): boolean {
   if (!userRole) return false;
   return (ROLE_HIERARCHY[userRole] || 0) >= (ROLE_HIERARCHY[minRole] || 0);
-}
-
-export function canAccess(userRole: Role | undefined, pageRoles: Role[]): boolean {
-  return hasRole(userRole, pageRoles);
 }
 
 export interface MenuItem {
@@ -95,12 +101,13 @@ export const SIDEBAR_MENUS: MenuItem[] = [
   {
     label: 'Lainnya',
     icon: 'EllipsisHorizontal',
-    roles: ['super_admin', 'rektor', 'admin', 'dekan', 'akademik', 'kaprodi', 'dosen', 'mahasiswa'],
+    roles: ['super_admin', 'rektor', 'admin', 'dekan', 'akademik', 'kaprodi', 'dosen', 'mahasiswa', 'humas'],
     children: [
       { label: 'Surat', path: 'surat', icon: 'FileText', roles: ['super_admin', 'rektor', 'admin', 'dekan', 'akademik', 'kaprodi', 'mahasiswa'] },
       { label: 'Perpustakaan', path: 'perpustakaan', icon: 'Library', roles: ['super_admin', 'rektor', 'admin', 'dekan', 'akademik', 'kaprodi', 'pustakawan', 'dosen', 'mahasiswa'] },
       { label: 'Akreditasi', path: 'akreditasi', icon: 'Award', roles: ['super_admin', 'rektor', 'admin', 'dekan', 'akademik', 'kaprodi'] },
-      { label: 'Berita', path: 'berita', icon: 'Newspaper', roles: ['super_admin', 'rektor', 'admin', 'dekan', 'akademik', 'kaprodi'] },
+      { label: 'Berita', path: 'berita', icon: 'Newspaper', roles: ['super_admin', 'rektor', 'admin', 'dekan', 'akademik', 'kaprodi', 'humas'] },
+      { label: 'Pengumuman', path: 'pengumuman', icon: 'Megaphone', roles: ['super_admin', 'rektor', 'admin', 'dekan', 'akademik', 'kaprodi', 'humas'] },
       { label: 'Kalender', path: 'kalender', icon: 'Calendar', roles: ['super_admin', 'rektor', 'admin', 'dekan', 'akademik', 'kaprodi', 'dosen', 'mahasiswa'] },
       { label: 'Notifikasi', path: 'notifikasi', icon: 'Bell', roles: ['super_admin', 'rektor', 'admin', 'dekan', 'akademik', 'kaprodi', 'dosen', 'mahasiswa'] },
       { label: 'Grup Kelas', path: 'chat-kelas', icon: 'MessageSquare', roles: ['super_admin', 'rektor', 'admin', 'dekan', 'akademik', 'kaprodi', 'dosen', 'mahasiswa'] },
@@ -127,7 +134,7 @@ export const SIDEBAR_MENUS: MenuItem[] = [
   {
     label: 'Fitur AI',
     icon: 'Sparkles',
-    roles: ['super_admin', 'rektor', 'admin', 'dekan', 'akademik', 'kaprodi', 'dosen', 'mahasiswa', 'alumni'],
+    roles: ['super_admin', 'rektor', 'admin', 'dekan', 'akademik', 'kaprodi', 'dosen', 'mahasiswa', 'alumni', 'humas'],
     children: [
       { label: 'AI Chatbot', path: 'ai', icon: 'Bot', roles: ['super_admin', 'rektor', 'admin', 'dekan', 'akademik', 'kaprodi', 'dosen', 'mahasiswa', 'alumni'] },
       { label: 'Generate RPS', path: 'ai?tab=rps', icon: 'BookOpen', roles: ['super_admin', 'admin', 'akademik'] },
@@ -150,10 +157,21 @@ export const SIDEBAR_MENUS: MenuItem[] = [
 ];
 
 export function filterMenusByRole(menus: MenuItem[], userRole: Role | undefined): MenuItem[] {
+  const userRoles = [userRole].filter(Boolean) as Role[];
   return menus
-    .filter(m => canAccess(userRole, m.roles))
+    .filter(m => canAccessAny(userRoles, m.roles))
     .map(m => ({
       ...m,
       children: m.children ? filterMenusByRole(m.children, userRole) : undefined,
+    }));
+}
+
+export function filterMenusByRoles(menus: MenuItem[], userRoles: Role[]): MenuItem[] {
+  if (!userRoles?.length) return [];
+  return menus
+    .filter(m => canAccessAny(userRoles, m.roles))
+    .map(m => ({
+      ...m,
+      children: m.children ? filterMenusByRoles(m.children, userRoles) : undefined,
     }));
 }

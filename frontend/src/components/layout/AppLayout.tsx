@@ -21,7 +21,7 @@ const pageTitles: Record<string, string> = {
   perwalian: 'Perwalian', edom: 'EDOM', beasiswa: 'Beasiswa',
   tagihan: 'Tagihan', pembayaran: 'Pembayaran', 'riwayat-pembayaran': 'Riwayat Pembayaran',
   surat: 'Surat', perpustakaan: 'Perpustakaan', akreditasi: 'Akreditasi',
-  berita: 'Berita', kalender: 'Kalender', notifikasi: 'Notifikasi', cctv: 'CCTV',
+  berita: 'Berita', pengumuman: 'Pengumuman', kalender: 'Kalender', notifikasi: 'Notifikasi', cctv: 'CCTV',
   cms: 'CMS Landing', ppdb: 'PPDB', ojs: 'OJS', pddikti: 'PDDIKTI',
   alumni: 'Alumni', 'integrasi-lms': 'Integrasi LMS', 'landing-page': 'Landing Page',
   ai: 'AI Chatbot', 'chat-kelas': 'Grup Kelas', laporan: 'Laporan', pengaturan: 'Pengaturan',

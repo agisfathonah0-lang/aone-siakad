@@ -11,6 +11,7 @@ export enum Role {
   MAHASISWA = 'mahasiswa',
   CALON_MAHASISWA = 'calon_mahasiswa',
   ALUMNI = 'alumni',
+  HUMAS = 'humas',
 }
 
 export enum Paket {

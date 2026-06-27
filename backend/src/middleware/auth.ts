@@ -35,10 +35,12 @@ export function authenticate(req: Request, _res: Response, next: NextFunction): 
       throw new AppError(401, 'Token tidak valid untuk akses ini');
     }
 
+    const allRoles = payload.roles?.filter(Boolean) as string[] | undefined;
     req.user = {
       id: payload.sub,
       email: payload.email,
       role: payload.role as any,
+      roles: allRoles?.length ? (allRoles as any) : [payload.role] as any,
       tenantId: payload.tenantId,
       vendorUserId: payload.vendorUserId,
     };
@@ -69,10 +71,12 @@ export function authenticateVendor(req: Request, _res: Response, next: NextFunct
       throw new AppError(401, 'Token vendor tidak valid');
     }
 
+    const allRoles = payload.roles?.filter(Boolean) as string[] | undefined;
     req.user = {
       id: payload.sub,
       email: payload.email,
       role: payload.role as any,
+      roles: allRoles?.length ? (allRoles as any) : [payload.role] as any,
       tenantId: null,
       vendorUserId: payload.vendorUserId,
     };
@@ -107,10 +111,12 @@ export function optionalAuth(req: Request, _res: Response, next: NextFunction): 
     }
 
     if (payload && payload.type === 'access') {
+      const allRoles = payload.roles?.filter(Boolean) as string[] | undefined;
       req.user = {
         id: payload.sub,
         email: payload.email,
         role: payload.role as any,
+        roles: allRoles?.length ? (allRoles as any) : [payload.role] as any,
         tenantId: payload.tenantId,
         vendorUserId: payload.vendorUserId,
       };

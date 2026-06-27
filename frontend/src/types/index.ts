@@ -18,12 +18,13 @@ export interface PaginatedResponse<T> {
   message?: string;
 }
 
-export type Role = 'vendor_super_admin' | 'super_admin' | 'rektor' | 'admin' | 'dekan' | 'akademik' | 'kaprodi' | 'keuangan' | 'pustakawan' | 'dosen' | 'mahasiswa' | 'calon_mahasiswa' | 'alumni';
+export type Role = 'vendor_super_admin' | 'super_admin' | 'rektor' | 'admin' | 'dekan' | 'akademik' | 'kaprodi' | 'keuangan' | 'pustakawan' | 'dosen' | 'mahasiswa' | 'calon_mahasiswa' | 'alumni' | 'humas';
 
 export interface User {
   id: string;
   email: string;
   role: Role;
+  roles?: Role[];
   nama: string;
   tenantId: string | null;
   vendorUserId?: string;

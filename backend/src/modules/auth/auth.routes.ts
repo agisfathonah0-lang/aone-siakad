@@ -123,7 +123,7 @@ router.post(
 
       const tenant = tenantRows[0];
       const { rows: userRows } = await query(
-        `SELECT id, email, password_hash, nama, role FROM "${tenant.schema_name}".users
+        `SELECT id, email, password_hash, nama, role, roles FROM "${tenant.schema_name}".users
          WHERE email = $1 AND is_active = true`,
         [email]
       );
@@ -138,6 +138,8 @@ router.post(
         throw new AppError(401, 'Email atau password salah');
       }
 
+      const userRoles = user.roles?.filter(Boolean)?.length ? user.roles : [user.role];
+
       await query(
         `UPDATE "${tenant.schema_name}".users SET last_login = NOW() WHERE id = $1`,
         [user.id]
@@ -147,6 +149,7 @@ router.post(
         sub: user.id,
         email: user.email,
         role: user.role,
+        roles: userRoles,
         tenantId: tenant.id,
       });
 
@@ -154,13 +157,14 @@ router.post(
         sub: user.id,
         email: user.email,
         role: user.role,
+        roles: userRoles,
         tenantId: tenant.id,
       });
 
       await storeRefreshToken(user.id, refreshToken, tenant.id);
 
       sendSuccess(res, {
-        user: { id: user.id, email: user.email, nama: user.nama, role: user.role },
+        user: { id: user.id, email: user.email, nama: user.nama, role: user.role, roles: userRoles },
         tenant: { id: tenant.id, slug: tenantSlug },
         accessToken,
         refreshToken,
@@ -252,11 +256,13 @@ router.get('/me', authenticate, async (req: Request, res: Response, next: NextFu
       if (tenantRows.length === 0) throw new AppError(404, 'Tenant tidak ditemukan');
 
       const { rows } = await query(
-        `SELECT id, email, nama, role FROM "${tenantRows[0].schema_name}".users WHERE id = $1`,
+        `SELECT id, email, nama, role, roles FROM "${tenantRows[0].schema_name}".users WHERE id = $1`,
         [req.user.id]
       );
       if (rows.length === 0) throw new AppError(404, 'User tidak ditemukan');
-      sendSuccess(res, { ...rows[0], tenantSlug: tenantRows[0].slug, nama_pt: tenantRows[0].nama_pt, logo_url: tenantRows[0].logo_url });
+      const u = rows[0];
+      u.roles = u.roles?.filter(Boolean)?.length ? u.roles : [u.role];
+      sendSuccess(res, { ...u, tenantSlug: tenantRows[0].slug, nama_pt: tenantRows[0].nama_pt, logo_url: tenantRows[0].logo_url });
       return;
     }
 

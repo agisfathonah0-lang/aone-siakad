@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, useCallback, type ReactNode } from 'react';
-import type { User } from '../types';
+import type { User, Role } from '../types';
 import { post, setTokens, clearTokens, get } from '../api/client';
 
 interface AuthContextType {
@@ -7,6 +7,7 @@ interface AuthContextType {
   loading: boolean;
   login: (email: string, password: string, isVendor?: boolean, tenantSlug?: string) => Promise<void>;
   logout: () => Promise<void>;
+  setActiveRole: (role: Role) => void;
 }
 
 const AuthContext = createContext<AuthContextType>(null!);
@@ -58,8 +59,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [user]);
 
+  const setActiveRole = useCallback((newRole: Role) => {
+    setUser(prev => prev ? { ...prev, role: newRole } : prev);
+  }, []);
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout }}>
+    <AuthContext.Provider value={{ user, loading, login, logout, setActiveRole }}>
       {children}
     </AuthContext.Provider>
   );
