@@ -132,6 +132,12 @@ export const SIDEBAR_MENUS: MenuItem[] = [
     ],
   },
   {
+    label: 'Profil',
+    path: 'profil',
+    icon: 'UserCircle',
+    roles: ['super_admin', 'rektor', 'admin', 'dekan', 'akademik', 'kaprodi', 'keuangan', 'humas', 'pustakawan', 'dosen', 'mahasiswa', 'calon_mahasiswa', 'alumni'],
+  },
+  {
     label: 'Fitur AI',
     icon: 'Sparkles',
     roles: ['super_admin', 'rektor', 'admin', 'dekan', 'akademik', 'kaprodi', 'dosen', 'mahasiswa', 'alumni', 'humas'],

@@ -67,6 +67,7 @@ import TicketsPage from './pages/vendor/TicketsPage';
 import FirewallPage from './pages/vendor/FirewallPage';
 import CctvPage from './pages/vendor/CctvPage';
 import CampusCctvPage from './pages/dashboard/CctvPage';
+import ProfilPage from './pages/akademik/ProfilPage';
 import SettingsPage from './pages/vendor/SettingsPage';
 import VendorPlansPage from './pages/vendor/VendorPlansPage';
 import VendorMonitorPage from './pages/vendor/VendorMonitorPage';
@@ -192,6 +193,7 @@ function AppRoutes() {
           <Route path="cctv" element={<RoleGuard roles={['super_admin','rektor','admin','dekan','akademik','kaprodi']}><CampusCctvPage /></RoleGuard>} />
           <Route path="berita" element={<RoleGuard roles={['super_admin','rektor','admin','dekan','akademik','kaprodi','humas']}><BeritaPage /></RoleGuard>} />
           <Route path="pengumuman" element={<RoleGuard roles={['super_admin','rektor','admin','dekan','akademik','kaprodi','humas']}><PengumumanPage /></RoleGuard>} />
+          <Route path="profil" element={<ProfilPage />} />
           <Route path="mahasiswa" element={<RoleGuard roles={['super_admin','admin','akademik','dosen']}><MahasiswaPage /></RoleGuard>} />
           <Route path="mahasiswa/:nim" element={<RoleGuard roles={['super_admin','admin','akademik','dosen']}><MahasiswaDetailPage /></RoleGuard>} />
           <Route path="dosen" element={<RoleGuard roles={['super_admin','rektor','admin','dekan','akademik','kaprodi']}><DosenPage /></RoleGuard>} />

@@ -24,7 +24,7 @@ const pageTitles: Record<string, string> = {
   berita: 'Berita', pengumuman: 'Pengumuman', kalender: 'Kalender', notifikasi: 'Notifikasi', cctv: 'CCTV',
   cms: 'CMS Landing', ppdb: 'PPDB', ojs: 'OJS', pddikti: 'PDDIKTI',
   alumni: 'Alumni', 'integrasi-lms': 'Integrasi LMS', 'landing-page': 'Landing Page',
-  ai: 'AI Chatbot', 'chat-kelas': 'Grup Kelas', laporan: 'Laporan', pengaturan: 'Pengaturan',
+  ai: 'AI Chatbot', 'chat-kelas': 'Grup Kelas', profil: 'Profil', laporan: 'Laporan', pengaturan: 'Pengaturan',
 };
 
 export default function AppLayout() {

@@ -272,6 +272,91 @@ router.get('/me', authenticate, async (req: Request, res: Response, next: NextFu
   }
 });
 
+// ─── Update Profile ───
+router.put('/me', authenticate, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    if (!req.user || !req.user.tenantId) {
+      throw new AppError(401, 'User context tidak valid');
+    }
+
+    const { nama, email, no_hp, foto_url } = req.body;
+    const { rows: tRows } = await query('SELECT schema_name FROM public.tenants WHERE id = $1', [req.user.tenantId]);
+    if (!tRows.length) throw new AppError(404, 'Tenant tidak ditemukan');
+    const s = tRows[0].schema_name;
+
+    const updates: string[] = [];
+    const params: any[] = [];
+    let idx = 1;
+    if (nama !== undefined) { updates.push(`nama = $${idx++}`); params.push(nama); }
+    if (email !== undefined) { updates.push(`email = $${idx++}`); params.push(email); }
+    if (no_hp !== undefined) { updates.push(`no_hp = $${idx++}`); params.push(no_hp); }
+    if (foto_url !== undefined) { updates.push(`foto_url = $${idx++}`); params.push(foto_url); }
+
+    if (updates.length === 0) {
+      throw new AppError(400, 'Tidak ada data yang diupdate');
+    }
+
+    updates.push(`updated_at = NOW()`);
+    params.push(req.user.id);
+
+    await query(
+      `UPDATE "${s}".users SET ${updates.join(', ')} WHERE id = $${idx}`,
+      params
+    );
+
+    const { rows } = await query(
+      `SELECT id, email, nama, role, roles, no_hp, foto_url FROM "${s}".users WHERE id = $1`,
+      [req.user.id]
+    );
+
+    sendSuccess(res, rows[0], 'Profil berhasil diupdate');
+  } catch (err) {
+    next(err);
+  }
+});
+
+// ─── Change Password ───
+router.put('/me/password', authenticate, async (req: Request, res: Response, next: NextFunction) => {
+  try {
+    if (!req.user || !req.user.tenantId) {
+      throw new AppError(401, 'User context tidak valid');
+    }
+
+    const { password_lama, password_baru } = req.body;
+    if (!password_lama || !password_baru) {
+      throw new AppError(400, 'Password lama dan baru wajib diisi');
+    }
+    if (password_baru.length < 6) {
+      throw new AppError(400, 'Password baru minimal 6 karakter');
+    }
+
+    const { rows: tRows } = await query('SELECT schema_name FROM public.tenants WHERE id = $1', [req.user.tenantId]);
+    if (!tRows.length) throw new AppError(404, 'Tenant tidak ditemukan');
+    const s = tRows[0].schema_name;
+
+    const { rows } = await query(
+      `SELECT password_hash FROM "${s}".users WHERE id = $1`,
+      [req.user.id]
+    );
+    if (!rows.length) throw new AppError(404, 'User tidak ditemukan');
+
+    const valid = await bcrypt.compare(password_lama, rows[0].password_hash);
+    if (!valid) {
+      throw new AppError(400, 'Password lama salah');
+    }
+
+    const hash = await bcrypt.hash(password_baru, 12);
+    await query(
+      `UPDATE "${s}".users SET password_hash = $1, must_change_password = false, updated_at = NOW() WHERE id = $2`,
+      [hash, req.user.id]
+    );
+
+    sendSuccess(res, null, 'Password berhasil diubah');
+  } catch (err) {
+    next(err);
+  }
+});
+
 // ─── Logout ───
 router.post('/logout', authenticate, async (req: Request, res: Response, next: NextFunction) => {
   try {
