@@ -117,12 +117,6 @@ export async function generateKHS(
 
       const { rows: courses } = await query(sql, params);
 
-      if (courses.length === 0) {
-        throw new Error(semester && tahunAkademik
-          ? `Tidak ada data KHS untuk semester ${semester} - ${tahunAkademik}`
-          : 'Tidak ada data KHS');
-      }
-
       const oldSemester = semester && tahunAkademik ? `${semester} - ${tahunAkademik}` : '';
       doc.fontSize(18).font('Helvetica-Bold').text('KARTU HASIL STUDI (KHS)', { align: 'center' });
       if (oldSemester) {
@@ -212,10 +206,6 @@ export async function generateKRS(
         [mahasiswaId, semester, tahunAkademik]
       );
 
-      if (jadwal.length === 0) {
-        throw new Error(`Tidak ada data KRS untuk semester ${semester} - ${tahunAkademik}`);
-      }
-
       doc.fontSize(18).font('Helvetica-Bold').text('KARTU RENCANA STUDI (KRS)', { align: 'center' });
       doc.moveDown(1);
 
@@ -281,10 +271,6 @@ export async function generateTranskrip(schemaName: string, mahasiswaId: string)
          ORDER BY k.tahun_akademik, k.semester`,
         [mahasiswaId]
       );
-
-      if (courses.length === 0) {
-        throw new Error('Tidak ada data transkrip');
-      }
 
       const groups: Record<string, { label: string; courses: any[] }> = {};
       for (const c of courses) {
