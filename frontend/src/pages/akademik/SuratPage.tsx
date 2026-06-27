@@ -9,6 +9,7 @@ import Badge from '../../components/ui/Badge';
 import { Plus, Eye, Pencil, Trash2, Search, Mail, Send, FileOutput, FileText, CheckCircle, XCircle, Clock, FolderOpen } from 'lucide-react';
 import type { SuratKategori, SuratMasuk, SuratKeluar, SuratPengajuan } from '../../types';
 import FileUpload from '../../components/ui/FileUpload';
+import SuratTemplateBuilder from '../../components/ui/SuratTemplateBuilder';
 
 const masukStatusBadge: Record<string, 'success' | 'info' | 'default'> = { diterima: 'success', didisposisikan: 'info', selesai: 'default' };
 const masukStatusLabel: Record<string, string> = { diterima: 'Diterima', didisposisikan: 'Didisposisikan', selesai: 'Selesai' };
@@ -735,8 +736,8 @@ export default function SuratPage() {
             <input value={kategoriForm.deskripsi} onChange={e => setKategoriForm({ ...kategoriForm, deskripsi: e.target.value })} className="input-field text-sm" placeholder="Deskripsi kategori" />
           </div>
           <div>
-            <label className="text-xs font-semibold text-slate-500 dark:text-zinc-400 block mb-1">Template</label>
-            <textarea rows={4} value={kategoriForm.template} onChange={e => setKategoriForm({ ...kategoriForm, template: e.target.value })} className="input-field text-sm" placeholder="Template surat (opsional)" />
+            <label className="text-xs font-semibold text-slate-500 dark:text-zinc-400 block mb-1">Template Surat Builder</label>
+            <SuratTemplateBuilder value={kategoriForm.template} onChange={(v) => setKategoriForm({ ...kategoriForm, template: v })} />
           </div>
           <div className="flex justify-end gap-2 pt-2">
             <button type="button" onClick={() => setKategoriModal(false)} className="btn-secondary text-xs">Batal</button>
