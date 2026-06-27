@@ -66,10 +66,32 @@ export default function TranscriptPage() {
     setLoadingCetak(true);
     try {
       const response = await api.get(`/akademik/cetak/transkrip/${selected.id}`, { responseType: 'blob' });
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      window.open(url, '_blank');
+      const contentType = String(response.headers?.['content-type'] || '');
+      if (!contentType.includes('pdf')) {
+        const text = await response.data.text();
+        const json = JSON.parse(text);
+        toast(json.message || 'Gagal mencetak', 'error');
+        return;
+      }
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'Transkrip.pdf';
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
     } catch (err: any) {
-      toast(err.response?.data?.message || err.message, 'error');
+      let msg = err.message || 'Gagal mencetak';
+      try {
+        if (err.response?.data) {
+          const text = await err.response.data.text();
+          const json = JSON.parse(text);
+          if (json.message) msg = json.message;
+        }
+      } catch {}
+      toast(msg, 'error');
     } finally {
       setLoadingCetak(false);
     }
