@@ -243,8 +243,8 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
       {/* Bottom: User profile */}
       <div className="mx-3 mb-3 p-2.5 rounded-xl relative" style={{ background: 'var(--sidebar-accent)' }}>
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-[10px] font-bold shrink-0 cursor-pointer" style={{ background: 'var(--sidebar-primary)' }} onClick={() => allRoles.length > 1 && setShowRoleSwitcher(v => !v)}>
-            {initialAvatar(user?.nama)}
+          <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-[10px] font-bold shrink-0 cursor-pointer overflow-hidden" style={{ background: 'var(--sidebar-primary)' }} onClick={() => allRoles.length > 1 && setShowRoleSwitcher(v => !v)}>
+            {user?.foto_url ? <img src={user.foto_url} alt="" className="w-full h-full object-cover" /> : initialAvatar(user?.nama)}
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-white text-xs font-semibold truncate">{user?.nama || 'User'}</p>

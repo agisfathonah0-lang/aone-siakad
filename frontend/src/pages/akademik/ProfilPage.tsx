@@ -5,11 +5,11 @@ import { Loader2, Save, Camera, Eye, EyeOff, CheckCircle2, AlertCircle } from 'l
 import api from '../../api/client';
 
 export default function ProfilPage() {
-  const { user, setActiveRole } = useAuth();
+  const { user, updateUser, setActiveRole } = useAuth();
   const [nama, setNama] = useState(user?.nama || '');
   const [email, setEmail] = useState(user?.email || '');
-  const [noHp, setNoHp] = useState('');
-  const [fotoUrl, setFotoUrl] = useState(user?.logo_url || '');
+  const [noHp, setNoHp] = useState(user?.no_hp || '');
+  const [fotoUrl, setFotoUrl] = useState(user?.foto_url || '');
   const [saving, setSaving] = useState(false);
   const [saveMsg, setSaveMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
 
@@ -36,7 +36,7 @@ export default function ProfilPage() {
     try {
       const res = await put<any>('/auth/me', { nama, email, no_hp: noHp || undefined, foto_url: fotoUrl || undefined });
       if (res?.id) {
-        setActiveRole(res.role as any);
+        updateUser({ nama: res.nama, email: res.email, no_hp: res.no_hp, foto_url: res.foto_url, role: res.role, roles: res.roles });
       }
       setSaveMsg({ type: 'success', text: 'Profil berhasil diupdate' });
     } catch (err: any) {

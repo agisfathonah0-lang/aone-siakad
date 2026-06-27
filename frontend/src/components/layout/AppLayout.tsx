@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Outlet, useLocation } from 'react-router-dom';
+import { Outlet, useLocation, Link } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import { useAuth } from '../../context/AuthContext';
 import { Bell, Search, Menu } from 'lucide-react';
@@ -91,12 +91,12 @@ export default function AppLayout() {
               <ThemeToggle />
 
               {/* Avatar */}
-              <div
-                className="w-8 h-8 rounded-full flex items-center justify-center text-white text-[10px] font-bold shrink-0 cursor-pointer"
+              <Link to="profil"
+                className="w-8 h-8 rounded-full flex items-center justify-center text-white text-[10px] font-bold shrink-0 cursor-pointer overflow-hidden"
                 style={{ background: 'var(--primary)' }}
               >
-                {initialAvatar(user?.nama)}
-              </div>
+                {user?.foto_url ? <img src={user.foto_url} alt="" className="w-full h-full object-cover" /> : initialAvatar(user?.nama)}
+              </Link>
             </div>
           </div>
         </header>

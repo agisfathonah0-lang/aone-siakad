@@ -31,6 +31,8 @@ export interface User {
   tenantSlug?: string;
   nama_pt?: string;
   logo_url?: string;
+  foto_url?: string;
+  no_hp?: string;
 }
 
 export interface Mahasiswa {
