@@ -123,7 +123,7 @@ router.post(
 
       const tenant = tenantRows[0];
       const { rows: userRows } = await query(
-        `SELECT id, email, password_hash, nama, role, roles FROM "${tenant.schema_name}".users
+        `SELECT id, email, password_hash, nama, role FROM "${tenant.schema_name}".users
          WHERE email = $1 AND is_active = true`,
         [email]
       );
@@ -138,7 +138,16 @@ router.post(
         throw new AppError(401, 'Email atau password salah');
       }
 
-      const userRoles = user.roles?.filter(Boolean)?.length ? user.roles : [user.role];
+      let userRoles: string[] = [user.role];
+      try {
+        const { rows: rRows } = await query(
+          `SELECT roles FROM "${tenant.schema_name}".users WHERE id = $1`,
+          [user.id]
+        );
+        if (rRows.length && rRows[0].roles?.filter(Boolean)?.length) {
+          userRoles = rRows[0].roles;
+        }
+      } catch { /* column roles mungkin belum ada */ }
 
       await query(
         `UPDATE "${tenant.schema_name}".users SET last_login = NOW() WHERE id = $1`,
@@ -256,12 +265,21 @@ router.get('/me', authenticate, async (req: Request, res: Response, next: NextFu
       if (tenantRows.length === 0) throw new AppError(404, 'Tenant tidak ditemukan');
 
       const { rows } = await query(
-        `SELECT id, email, nama, role, roles FROM "${tenantRows[0].schema_name}".users WHERE id = $1`,
+        `SELECT id, email, nama, role FROM "${tenantRows[0].schema_name}".users WHERE id = $1`,
         [req.user.id]
       );
       if (rows.length === 0) throw new AppError(404, 'User tidak ditemukan');
       const u = rows[0];
-      u.roles = u.roles?.filter(Boolean)?.length ? u.roles : [u.role];
+      (u as any).roles = [u.role];
+      try {
+        const { rows: rRows } = await query(
+          `SELECT roles FROM "${tenantRows[0].schema_name}".users WHERE id = $1`,
+          [req.user.id]
+        );
+        if (rRows.length && rRows[0].roles?.filter(Boolean)?.length) {
+          (u as any).roles = rRows[0].roles;
+        }
+      } catch { /* column roles mungkin belum ada */ }
       sendSuccess(res, { ...u, tenantSlug: tenantRows[0].slug, nama_pt: tenantRows[0].nama_pt, logo_url: tenantRows[0].logo_url });
       return;
     }
@@ -305,11 +323,20 @@ router.put('/me', authenticate, async (req: Request, res: Response, next: NextFu
     );
 
     const { rows } = await query(
-      `SELECT id, email, nama, role, roles, no_hp, foto_url FROM "${s}".users WHERE id = $1`,
+      `SELECT id, email, nama, role, no_hp, foto_url FROM "${s}".users WHERE id = $1`,
       [req.user.id]
     );
 
-    sendSuccess(res, rows[0], 'Profil berhasil diupdate');
+    const result = rows[0];
+    (result as any).roles = [result.role];
+    try {
+      const { rows: rRows } = await query(`SELECT roles FROM "${s}".users WHERE id = $1`, [req.user.id]);
+      if (rRows.length && rRows[0].roles?.filter(Boolean)?.length) {
+        (result as any).roles = rRows[0].roles;
+      }
+    } catch { /* */ }
+
+    sendSuccess(res, result, 'Profil berhasil diupdate');
   } catch (err) {
     next(err);
   }
