@@ -42,10 +42,25 @@ export default function CetakPDFPage() {
     setLoadingCetak(true);
     try {
       const response = await api.get(endpoint, { responseType: 'blob' });
-      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const contentType = response.headers?.['content-type'] || '';
+      if (contentType !== 'application/pdf') {
+        const text = await response.data.text();
+        const json = JSON.parse(text);
+        toast(json.message || 'Gagal mencetak', 'error');
+        return;
+      }
+      const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
       window.open(url, '_blank');
     } catch (err: any) {
-      toast(err.response?.data?.message || err.message, 'error');
+      let msg = err.message || 'Gagal mencetak';
+      try {
+        if (err.response?.data) {
+          const text = await err.response.data.text();
+          const json = JSON.parse(text);
+          if (json.message) msg = json.message;
+        }
+      } catch {}
+      toast(msg, 'error');
     } finally {
       setLoadingCetak(false);
     }
