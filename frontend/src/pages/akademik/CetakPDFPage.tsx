@@ -37,20 +37,27 @@ export default function CetakPDFPage() {
     }
   }, []);
 
-  const handleCetak = async (endpoint: string) => {
+  const handleCetak = async (endpoint: string, filename = 'dokumen.pdf') => {
     if (!selectedMahasiswa) return;
     setLoadingCetak(true);
     try {
       const response = await api.get(endpoint, { responseType: 'blob' });
-      const contentType = response.headers?.['content-type'] || '';
-      if (contentType !== 'application/pdf') {
+      const contentType = String(response.headers?.['content-type'] || '');
+      if (!contentType.includes('pdf')) {
         const text = await response.data.text();
         const json = JSON.parse(text);
         toast(json.message || 'Gagal mencetak', 'error');
         return;
       }
-      const url = window.URL.createObjectURL(new Blob([response.data], { type: 'application/pdf' }));
-      window.open(url, '_blank');
+      const blob = new Blob([response.data], { type: 'application/pdf' });
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = filename;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      window.URL.revokeObjectURL(url);
     } catch (err: any) {
       let msg = err.message || 'Gagal mencetak';
       try {
@@ -137,7 +144,7 @@ export default function CetakPDFPage() {
           </div>
           <div className="flex gap-2">
             <button
-              onClick={() => handleCetak(`/akademik/cetak/khs/${selectedMahasiswa}`)}
+              onClick={() => handleCetak(`/akademik/cetak/khs/${selectedMahasiswa}`, 'KHS_Semua.pdf')}
               disabled={!selectedMahasiswa || loadingCetak}
               className="flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-300 text-white rounded-xl text-sm font-bold transition-all shadow-lg shadow-indigo-500/20"
             >
@@ -145,7 +152,7 @@ export default function CetakPDFPage() {
               {loadingCetak ? 'Mencetak...' : 'Cetak Semua'}
             </button>
             <button
-              onClick={() => handleCetak(`/akademik/cetak/khs/${selectedMahasiswa}?semester=${semester}&tahun_akademik=${tahunAkademik}`)}
+              onClick={() => handleCetak(`/akademik/cetak/khs/${selectedMahasiswa}?semester=${semester}&tahun_akademik=${tahunAkademik}`, `KHS_${semester}_${tahunAkademik}.pdf`)}
               disabled={!selectedMahasiswa || loadingCetak}
               className="flex items-center gap-2 px-4 py-3 bg-emerald-600 hover:bg-emerald-700 disabled:bg-emerald-300 text-white rounded-xl text-sm font-bold transition-all shadow-lg shadow-emerald-500/20"
             >
@@ -175,7 +182,7 @@ export default function CetakPDFPage() {
             </div>
           </div>
           <button
-            onClick={() => handleCetak(`/akademik/cetak/krs/${selectedMahasiswa}?semester=${semester}&tahun_akademik=${tahunAkademik}`)}
+            onClick={() => handleCetak(`/akademik/cetak/krs/${selectedMahasiswa}?semester=${semester}&tahun_akademik=${tahunAkademik}`, `KRS_${semester}_${tahunAkademik}.pdf`)}
             disabled={!selectedMahasiswa || loadingCetak}
             className="flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-300 text-white rounded-xl text-sm font-bold transition-all shadow-lg shadow-indigo-500/20"
           >
@@ -190,7 +197,7 @@ export default function CetakPDFPage() {
           <h2 className="font-bold dark:text-white mb-2">Cetak Transkrip Nilai</h2>
           <p className="text-xs text-slate-400 dark:text-zinc-500 mb-4">Cetak transkrip nilai akademik lengkap</p>
           <button
-            onClick={() => handleCetak(`/akademik/cetak/transkrip/${selectedMahasiswa}`)}
+            onClick={() => handleCetak(`/akademik/cetak/transkrip/${selectedMahasiswa}`, 'Transkrip.pdf')}
             disabled={!selectedMahasiswa || loadingCetak}
             className="flex items-center gap-2 px-6 py-3 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-300 text-white rounded-xl text-sm font-bold transition-all shadow-lg shadow-indigo-500/20"
           >
