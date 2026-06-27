@@ -287,20 +287,31 @@ export default function SuratPage() {
     )},
   ];
 
-  const [kategoriForm, setKategoriForm] = useState({ kode: '', nama: '', deskripsi: '', template: '' });
+  const [kategoriForm, setKategoriForm] = useState({ kode: '', nama: '', deskripsi: '', template: '', template_file_url: '' });
   const [kategoriModal, setKategoriModal] = useState(false);
   const [kategoriEdit, setKategoriEdit] = useState<SuratKategori | null>(null);
+  const [extracting, setExtracting] = useState(false);
 
   function openKategoriCreate() {
     setKategoriEdit(null);
-    setKategoriForm({ kode: '', nama: '', deskripsi: '', template: '' });
+    setKategoriForm({ kode: '', nama: '', deskripsi: '', template: '', template_file_url: '' });
     setKategoriModal(true);
   }
 
   function openKategoriEdit(row: SuratKategori) {
     setKategoriEdit(row);
-    setKategoriForm({ kode: row.kode, nama: row.nama, deskripsi: row.deskripsi || '', template: row.template || '' });
+    setKategoriForm({ kode: row.kode, nama: row.nama, deskripsi: row.deskripsi || '', template: row.template || '', template_file_url: row.template_file_url || '' });
     setKategoriModal(true);
+  }
+
+  async function extractTemplate() {
+    if (!kategoriForm.template_file_url) return;
+    setExtracting(true);
+    try {
+      const res = await post<any>('/akademik/surat/kategori/extract-template', { file_url: kategoriForm.template_file_url });
+      setKategoriForm(prev => ({ ...prev, template: res.text }));
+      toast('Template berhasil diekstrak dari file', 'success');
+    } catch (err: any) { toast(err.response?.data?.message || err.message, 'error'); } finally { setExtracting(false); }
   }
 
   async function saveKategori(e: React.FormEvent) {
@@ -734,6 +745,25 @@ export default function SuratPage() {
           <div>
             <label className="text-xs font-semibold text-slate-500 dark:text-zinc-400 block mb-1">Deskripsi</label>
             <input value={kategoriForm.deskripsi} onChange={e => setKategoriForm({ ...kategoriForm, deskripsi: e.target.value })} className="input-field text-sm" placeholder="Deskripsi kategori" />
+          </div>
+          <div>
+            <label className="text-xs font-semibold text-slate-500 dark:text-zinc-400 block mb-1">File Template (opsional)</label>
+            <div className="flex gap-2 items-start">
+              <div className="flex-1">
+                <FileUpload value={kategoriForm.template_file_url} onChange={(url) => setKategoriForm({ ...kategoriForm, template_file_url: url })} accept=".docx,.pdf" label="Upload file .docx template" />
+              </div>
+              {kategoriForm.template_file_url && (
+                <button type="button" onClick={extractTemplate} disabled={extracting}
+                  className="px-3 py-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-300 text-white rounded-xl text-xs font-bold transition-all shadow-lg shadow-indigo-500/20 whitespace-nowrap mt-6">
+                  {extracting ? 'Mengekstrak...' : 'Ekstrak ke Builder'}
+                </button>
+              )}
+            </div>
+            {kategoriForm.template_file_url && (
+              <p className="text-[10px] mt-1" style={{ color: 'var(--muted-foreground)' }}>
+                Upload file .docx berisi <code className="text-indigo-500 bg-indigo-50 dark:bg-indigo-900/20 px-1 rounded">{'{{variable}}'}</code>, lalu klik "Ekstrak ke Builder" untuk mengisi template di bawah.
+              </p>
+            )}
           </div>
           <div>
             <label className="text-xs font-semibold text-slate-500 dark:text-zinc-400 block mb-1">Template Surat Builder</label>

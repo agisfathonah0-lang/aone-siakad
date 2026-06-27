@@ -1,5 +1,8 @@
 import { Router, Request, Response, NextFunction } from 'express';
 import { body, param } from 'express-validator';
+import { v4 as uuid } from 'uuid';
+import https from 'https';
+import http from 'http';
 import { query } from '../../config/database.js';
 import { validate } from '../../middleware/validator.js';
 import { authenticate } from '../../middleware/auth.js';
@@ -7,6 +10,21 @@ import { requireRole } from '../../middleware/role.js';
 import { sendSuccess, sendPaginated } from '../../middleware/response.js';
 import { AppError } from '../../middleware/errorHandler.js';
 import { Role } from '../../types/enums.js';
+
+async function fetchBuffer(url: string): Promise<Buffer> {
+  return new Promise((resolve, reject) => {
+    const mod = url.startsWith('https') ? https : http;
+    mod.get(url, (res) => {
+      if (res.statusCode !== 200) {
+        reject(new Error(`Gagal download file: ${res.statusCode}`));
+        return;
+      }
+      const chunks: Buffer[] = [];
+      res.on('data', (c: Buffer) => chunks.push(c));
+      res.on('end', () => resolve(Buffer.concat(chunks)));
+    }).on('error', reject);
+  });
+}
 
 const router = Router();
 
@@ -77,11 +95,11 @@ router.post(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const s = schema(req);
-      const { nama, kode, deskripsi, template } = req.body;
+      const { nama, kode, deskripsi, template, template_file_url } = req.body;
       const { rows } = await query(
-        `INSERT INTO ${s}.surat_kategori (nama, kode, deskripsi, template)
-         VALUES ($1, $2, $3, $4) RETURNING *`,
-        [nama, kode, deskripsi || null, template || null]
+        `INSERT INTO ${s}.surat_kategori (nama, kode, deskripsi, template, template_file_url)
+         VALUES ($1, $2, $3, $4, $5) RETURNING *`,
+        [nama, kode, deskripsi || null, template || null, template_file_url || null]
       );
       sendSuccess(res, rows[0], 'Kategori berhasil dibuat', 201);
     } catch (err) {
@@ -97,10 +115,10 @@ router.put(
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const s = schema(req);
-      const { nama, kode, deskripsi, template } = req.body;
+      const { nama, kode, deskripsi, template, template_file_url } = req.body;
       const { rows } = await query(
-        `UPDATE ${s}.surat_kategori SET nama = $1, kode = $2, deskripsi = $3, template = $4 WHERE id = $5 RETURNING *`,
-        [nama, kode, deskripsi || null, template || null, req.params.id]
+        `UPDATE ${s}.surat_kategori SET nama = $1, kode = $2, deskripsi = $3, template = $4, template_file_url = $5 WHERE id = $6 RETURNING *`,
+        [nama, kode, deskripsi || null, template || null, template_file_url || null, req.params.id]
       );
       if (rows.length === 0) throw new AppError(404, 'Kategori tidak ditemukan');
       sendSuccess(res, rows[0], 'Kategori berhasil diupdate');
@@ -802,6 +820,34 @@ router.delete(
       );
       if (rowCount === 0) throw new AppError(404, 'Pengajuan surat tidak ditemukan');
       sendSuccess(res, null, 'Pengajuan surat berhasil dihapus');
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
+// Extract text from uploaded template file (docx)
+router.post(
+  '/kategori/extract-template',
+  authenticate,
+  requireRole(Role.ADMIN, Role.AKADEMIK),
+  [body('file_url').notEmpty().withMessage('URL file wajib diisi'), validate],
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const fileUrl = req.body.file_url;
+      const buffer = await fetchBuffer(fileUrl);
+
+      let text = '';
+      try {
+        const mammoth = require('mammoth');
+        const result = await mammoth.extractRawText({ buffer });
+        text = result.value;
+      } catch {
+        // Not a docx or mammoth failed — try as plain text
+        text = buffer.toString('utf-8');
+      }
+
+      sendSuccess(res, { text }, 'Template berhasil diekstrak');
     } catch (err) {
       next(err);
     }

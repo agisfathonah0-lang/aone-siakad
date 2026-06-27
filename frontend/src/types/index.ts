@@ -476,6 +476,7 @@ export interface SuratKategori {
   kode: string;
   deskripsi?: string;
   template?: string;
+  template_file_url?: string;
 }
 
 export interface SuratMasuk {

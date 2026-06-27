@@ -10,7 +10,7 @@
     "migrate": "tsx src/database/migrate.ts",
     "migrate:create": "tsx src/database/migrate.ts --create",
     "seed": "tsx src/database/seed.ts",
-"seed:content": "tsx src/database/seed-content.ts",
+    "seed:content": "tsx src/database/seed-content.ts",
     "lint": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest"
@@ -28,6 +28,7 @@
     "express-validator": "^7.2.0",
     "ioredis": "^5.4.1",
     "jsonwebtoken": "^9.0.2",
+    "mammoth": "^1.12.0",
     "midtrans-client": "^1.3.1",
     "minio": "^8.0.2",
     "morgan": "^1.10.0",

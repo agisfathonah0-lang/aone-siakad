@@ -368,7 +368,7 @@ export async function generateSuratKeluar(
   return new Promise<Buffer>(async (resolve, reject) => {
     try {
       const { rows: surat } = await query(
-        `SELECT skl.*, sk.nama as kategori_nama, sk.kode as kategori_kode, sk.template
+        `SELECT skl.*, sk.nama as kategori_nama, sk.kode as kategori_kode, sk.template, sk.template_file_url
          FROM ${s(schemaName)}.surat_keluar skl
          LEFT JOIN ${s(schemaName)}.surat_kategori sk ON sk.id = skl.kategori_id
          WHERE skl.id = $1`,
@@ -405,6 +405,29 @@ export async function generateSuratKeluar(
       };
 
       let templateContent = surat[0].template || '';
+
+      // If template file exists, load from file
+      if (surat[0].template_file_url) {
+        try {
+          const https = require('https') as typeof import('https');
+          const http = require('http') as typeof import('http');
+          const mod = surat[0].template_file_url.startsWith('https') ? https : http;
+          const fileBuf = await new Promise<Buffer>((resolve, reject) => {
+            mod.get(surat[0].template_file_url, (response: any) => {
+              if (response.statusCode !== 200) { reject(new Error('Gagal download template')); return; }
+              const chunks: Buffer[] = [];
+              response.on('data', (c: Buffer) => chunks.push(c));
+              response.on('end', () => resolve(Buffer.concat(chunks)));
+            }).on('error', reject);
+          });
+          const mammoth = require('mammoth');
+          const result = await mammoth.convertToHtml({ buffer: fileBuf });
+          templateContent = result.value;
+        } catch (e) {
+          // fallback to text template
+        }
+      }
+
       for (const [key, val] of Object.entries(vars)) {
         templateContent = templateContent.replace(new RegExp(`\\{\\{${key}\\}\\}`, 'g'), val || '');
       }
