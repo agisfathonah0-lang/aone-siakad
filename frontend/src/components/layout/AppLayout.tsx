@@ -4,6 +4,7 @@ import Sidebar from './Sidebar';
 import { useAuth } from '../../context/AuthContext';
 import { Bell, Search, Menu } from 'lucide-react';
 import ThemeToggle from '../ui/ThemeToggle';
+import NotifBell from '../ui/NotifBell';
 
 function initialAvatar(nama?: string) {
   if (!nama) return '?';
@@ -23,7 +24,7 @@ const pageTitles: Record<string, string> = {
   berita: 'Berita', kalender: 'Kalender', notifikasi: 'Notifikasi', cctv: 'CCTV',
   cms: 'CMS Landing', ppdb: 'PPDB', ojs: 'OJS', pddikti: 'PDDIKTI',
   alumni: 'Alumni', 'integrasi-lms': 'Integrasi LMS', 'landing-page': 'Landing Page',
-  ai: 'AI Chatbot', laporan: 'Laporan', pengaturan: 'Pengaturan',
+  ai: 'AI Chatbot', 'chat-kelas': 'Grup Kelas', laporan: 'Laporan', pengaturan: 'Pengaturan',
 };
 
 export default function AppLayout() {
@@ -84,15 +85,7 @@ export default function AppLayout() {
               </div>
 
               {/* Notifications */}
-              <button
-                className="relative w-9 h-9 rounded-lg border flex items-center justify-center transition-colors"
-                style={{ background: 'var(--card)', borderColor: 'var(--border)' }}
-                onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(37,99,235,0.3)'; }}
-                onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; }}
-              >
-                <Bell size={15} style={{ color: 'var(--muted-foreground)' }} />
-                <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full" style={{ background: '#EF4444' }} />
-              </button>
+              <NotifBell />
 
               {/* Theme Toggle */}
               <ThemeToggle />

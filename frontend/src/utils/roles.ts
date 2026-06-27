@@ -103,6 +103,7 @@ export const SIDEBAR_MENUS: MenuItem[] = [
       { label: 'Berita', path: 'berita', icon: 'Newspaper', roles: ['super_admin', 'rektor', 'admin', 'dekan', 'akademik', 'kaprodi'] },
       { label: 'Kalender', path: 'kalender', icon: 'Calendar', roles: ['super_admin', 'rektor', 'admin', 'dekan', 'akademik', 'kaprodi', 'dosen', 'mahasiswa'] },
       { label: 'Notifikasi', path: 'notifikasi', icon: 'Bell', roles: ['super_admin', 'rektor', 'admin', 'dekan', 'akademik', 'kaprodi', 'dosen', 'mahasiswa'] },
+      { label: 'Grup Kelas', path: 'chat-kelas', icon: 'MessageSquare', roles: ['super_admin', 'rektor', 'admin', 'dekan', 'akademik', 'kaprodi', 'dosen', 'mahasiswa'] },
       { label: 'CCTV', path: 'cctv', icon: 'Cctv', roles: ['super_admin', 'rektor', 'admin', 'dekan', 'akademik', 'kaprodi'] },
     ],
   },

@@ -63,6 +63,7 @@ import sidangRoutes from './modules/akademik/sidang.routes.js';
 import kknRoutes from './modules/akademik/kkn.routes.js';
 import seminarRoutes from './modules/akademik/seminar.routes.js';
 import campusCctvRoutes from './modules/akademik/cctv.routes.js';
+import chatRoutes from './modules/akademik/chat.routes.js';
 import publicRoutes from './modules/public/public.routes.js';
 import vendorLandingRoutes from './modules/vendor/landing.routes.js';
 import vendorPlansRoutes from './modules/vendor/plans.routes.js';
@@ -165,6 +166,7 @@ const featureRoutes: [string, any][] = [
   ['/akademik/kkn', kknRoutes],
   ['/akademik/seminar', seminarRoutes],
   ['/campus/cctv', campusCctvRoutes],
+  ['/chat', chatRoutes],
 ];
 
 app.post(`${config.apiPrefix}/keuangan/midtrans/notification`, express.json(), midtransNotificationHandler);
