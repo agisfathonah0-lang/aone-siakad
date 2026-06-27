@@ -3,6 +3,7 @@ import { useAuth } from '../../context/AuthContext';
 import { put } from '../../api/client';
 import { Loader2, Save, Camera, Eye, EyeOff, CheckCircle2, AlertCircle } from 'lucide-react';
 import api from '../../api/client';
+import Img from '../../components/ui/Img';
 
 export default function ProfilPage() {
   const { user, updateUser, setActiveRole } = useAuth();
@@ -111,7 +112,7 @@ export default function ProfilPage() {
           <div className="relative">
             <div className="w-20 h-20 rounded-full overflow-hidden flex items-center justify-center text-white text-xl font-bold" style={{ background: 'var(--primary)' }}>
               {fotoUrl ? (
-                <img src={fotoUrl} alt="" className="w-full h-full object-cover" />
+                <Img src={fotoUrl} className="w-full h-full object-cover" />
               ) : (
                 (user?.nama || '?').charAt(0).toUpperCase()
               )}

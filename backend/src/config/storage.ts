@@ -36,6 +36,20 @@ export async function uploadFile(
   return `${config.storage.publicUrl}/${key}`;
 }
 
+export async function getFileStream(key: string): Promise<{ stream: import('stream').Readable; contentType: string }> {
+  const client = getS3();
+  const response = await client.send(
+    new GetObjectCommand({
+      Bucket: config.storage.bucket,
+      Key: key,
+    }),
+  );
+  return {
+    stream: response.Body as import('stream').Readable,
+    contentType: response.ContentType || 'application/octet-stream',
+  };
+}
+
 export async function deleteFile(key: string): Promise<void> {
   const client = getS3();
   await client.send(

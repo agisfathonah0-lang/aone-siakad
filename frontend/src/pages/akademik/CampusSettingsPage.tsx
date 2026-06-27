@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { get, put } from '../../api/client';
 import { Loader2, Save, CheckCircle2, CreditCard, Eye, EyeOff, Image as ImageIcon } from 'lucide-react';
 import FileUpload from '../../components/ui/FileUpload';
+import Img from '../../components/ui/Img';
 
 export default function CampusSettingsPage() {
   const [settings, setSettings] = useState<Record<string, any>>({});
@@ -66,7 +67,7 @@ export default function CampusSettingsPage() {
         <div className="flex items-center gap-4">
           {tenantInfo.logo_url && (
             <div className="w-16 h-16 rounded-xl overflow-hidden bg-slate-100 dark:bg-zinc-800 shrink-0">
-              <img src={tenantInfo.logo_url} alt="Logo" className="w-full h-full object-cover" />
+              <Img src={tenantInfo.logo_url} className="w-full h-full object-cover" />
             </div>
           )}
           <div className="flex-1">

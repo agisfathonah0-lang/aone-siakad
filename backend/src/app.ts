@@ -122,7 +122,7 @@ app.use(`${config.apiPrefix}/vendor/plans`, vendorPlansRoutes);
 app.use(`${config.apiPrefix}/vendor/users`, vendorUsersRoutes);
 app.use(`${config.apiPrefix}/vendor/audit`, vendorAuditRoutes);
 app.use(`${config.apiPrefix}/vendor/monitor`, vendorMonitorRoutes);
-app.use(`${config.apiPrefix}/upload`, authenticate, uploadRoutes);
+app.use(`${config.apiPrefix}/upload`, uploadRoutes);
 
 app.use(`${config.apiPrefix}/ai`, authenticate, aiRoutes);
 

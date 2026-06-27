@@ -1,6 +1,7 @@
 import { useState, useRef, useCallback } from 'react';
 import { Upload, X, FileText, Image as ImageIcon, Check, Loader2 } from 'lucide-react';
 import api from '../../api/client';
+import Img from './Img';
 
 interface FileUploadProps {
   value: string;
@@ -73,7 +74,7 @@ export default function FileUpload({ value, onChange, accept = 'image/*,.pdf,.do
         <div className="flex items-center gap-3 p-3 rounded-xl bg-zinc-50 dark:bg-zinc-800/50 border border-zinc-200 dark:border-zinc-700">
           {isImage ? (
             <div className="relative w-16 h-16 rounded-lg overflow-hidden flex-shrink-0 bg-zinc-100 dark:bg-zinc-800">
-              <img src={value} alt="" className="w-full h-full object-cover" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+              <Img src={value} className="w-full h-full object-cover" />
             </div>
           ) : (
             <div className="w-12 h-12 rounded-lg bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center flex-shrink-0">

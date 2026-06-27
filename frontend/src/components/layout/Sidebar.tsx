@@ -11,6 +11,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { filterMenusByRoles, SIDEBAR_MENUS } from '../../utils/roles';
+import Img from '../ui/Img';
 import type { LucideIcon } from 'lucide-react';
 import type { Role } from '../../types';
 
@@ -108,7 +109,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0" style={{ background: 'var(--sidebar-primary)' }}>
             {user?.logo_url ? (
-              <img src={user.logo_url} alt="" className="w-full h-full object-contain p-0.5" />
+              <Img src={user.logo_url} className="w-full h-full object-contain p-0.5" />
             ) : (
               <BookMarkedIcon size={15} className="text-white" />
             )}
@@ -244,7 +245,7 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
       <div className="mx-3 mb-3 p-2.5 rounded-xl relative" style={{ background: 'var(--sidebar-accent)' }}>
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-full flex items-center justify-center text-white text-[10px] font-bold shrink-0 cursor-pointer overflow-hidden" style={{ background: 'var(--sidebar-primary)' }} onClick={() => allRoles.length > 1 && setShowRoleSwitcher(v => !v)}>
-            {user?.foto_url ? <img src={user.foto_url} alt="" className="w-full h-full object-cover" /> : initialAvatar(user?.nama)}
+            {user?.foto_url ? <Img src={user.foto_url} className="w-full h-full object-cover" /> : initialAvatar(user?.nama)}
           </div>
           <div className="flex-1 min-w-0">
             <p className="text-white text-xs font-semibold truncate">{user?.nama || 'User'}</p>

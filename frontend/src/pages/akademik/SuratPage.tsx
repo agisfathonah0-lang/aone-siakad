@@ -10,6 +10,7 @@ import { Plus, Eye, Pencil, Trash2, Search, Mail, Send, FileOutput, FileText, Ch
 import type { SuratKategori, SuratMasuk, SuratKeluar, SuratPengajuan } from '../../types';
 import FileUpload from '../../components/ui/FileUpload';
 import SuratTemplateBuilder from '../../components/ui/SuratTemplateBuilder';
+import Img from '../../components/ui/Img';
 
 const masukStatusBadge: Record<string, 'success' | 'info' | 'default'> = { diterima: 'success', didisposisikan: 'info', selesai: 'default' };
 const masukStatusLabel: Record<string, string> = { diterima: 'Diterima', didisposisikan: 'Didisposisikan', selesai: 'Selesai' };
@@ -647,7 +648,7 @@ export default function SuratPage() {
             <style>{`@media print { body * { visibility: hidden; } .print-area, .print-area * { visibility: visible; } .print-area { position: absolute; left: 0; top: 0; width: 100%; padding: 2cm; } .no-print { display: none !important; } }`}</style>
             <div className="print-area">
               <div className="text-center mb-6">
-                {(keluarCetak.tenant?.logo_url || tenantData?.logo_url) && <img src={keluarCetak.tenant?.logo_url || tenantData?.logo_url} alt="Logo" className="h-16 mx-auto mb-2" />}
+                {(keluarCetak.tenant?.logo_url || tenantData?.logo_url) && <Img src={keluarCetak.tenant?.logo_url || tenantData?.logo_url} className="h-16 mx-auto mb-2" />}
                 <p className="font-bold text-lg">{keluarCetak.tenant?.nama_pt || tenantData?.nama_pt || 'KOP SURAT'}</p>
                 {(keluarCetak.tenant?.alamat || tenantData?.alamat) && <p className="text-xs">{keluarCetak.tenant?.alamat || tenantData?.alamat}</p>}
                 {((keluarCetak.tenant?.telepon || tenantData?.telepon) || (keluarCetak.tenant?.email || tenantData?.email) || (keluarCetak.tenant?.website || tenantData?.website)) && (

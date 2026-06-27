@@ -124,4 +124,30 @@ router.post(
   },
 );
 
+// Serve uploaded files through Express proxy (fixes cross-browser image issues)
+import { getFileStream, extractKeyFromUrl } from '../../config/storage.js';
+
+router.get(
+  '/*',
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const key = req.params[0] || req.path.slice(1);
+      if (!key) throw new AppError(400, 'Key tidak valid');
+
+      const { stream, contentType } = await getFileStream(key);
+      res.set({
+        'Content-Type': contentType,
+        'Cache-Control': 'public, max-age=31536000, immutable',
+        'Access-Control-Allow-Origin': '*',
+        'X-Content-Type-Options': 'nosniff',
+      });
+      stream.pipe(res);
+      stream.on('error', () => { res.status(500).end(); });
+    } catch (err: any) {
+      if (err.name === 'NoSuchKey') return next(new AppError(404, 'File tidak ditemukan'));
+      next(err);
+    }
+  }
+);
+
 export default router;
