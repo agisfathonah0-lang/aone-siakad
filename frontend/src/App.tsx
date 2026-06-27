@@ -25,6 +25,8 @@ import LandingSettingsPage from './pages/akademik/LandingSettingsPage';
 import KalenderPage from './pages/akademik/KalenderPage';
 import NotifikasiPage from './pages/akademik/NotifikasiPage';
 import ChatKelasPage from './pages/chat/ChatKelasPage';
+import KelasRoomPage from './pages/akademik/KelasRoomPage';
+import KelasRoomDetailPage from './pages/akademik/KelasRoomDetailPage';
 import BeritaPage from './pages/akademik/BeritaPage';
 import PengumumanPage from './pages/akademik/PengumumanPage';
 import MahasiswaPage from './pages/akademik/MahasiswaPage';
@@ -191,6 +193,8 @@ function AppRoutes() {
           <Route path="kalender" element={<RoleGuard roles={['super_admin','rektor','admin','dekan','akademik','kaprodi','dosen','mahasiswa']}><KalenderPage /></RoleGuard>} />
           <Route path="notifikasi" element={<RoleGuard roles={['super_admin','rektor','admin','dekan','akademik','kaprodi','dosen','mahasiswa']}><NotifikasiPage /></RoleGuard>} />
           <Route path="chat-kelas" element={<RoleGuard roles={['super_admin','rektor','admin','dekan','akademik','kaprodi','dosen','mahasiswa']}><ChatKelasPage /></RoleGuard>} />
+          <Route path="kelas-room" element={<RoleGuard roles={['super_admin','rektor','admin','dekan','akademik','kaprodi','dosen','mahasiswa']}><KelasRoomPage /></RoleGuard>} />
+          <Route path="kelas-room/:id" element={<RoleGuard roles={['super_admin','rektor','admin','dekan','akademik','kaprodi','dosen','mahasiswa']}><KelasRoomDetailPage /></RoleGuard>} />
           <Route path="cctv" element={<RoleGuard roles={['super_admin','rektor','admin','dekan','akademik','kaprodi']}><CampusCctvPage /></RoleGuard>} />
           <Route path="berita" element={<RoleGuard roles={['super_admin','rektor','admin','dekan','akademik','kaprodi','humas']}><BeritaPage /></RoleGuard>} />
           <Route path="pengumuman" element={<RoleGuard roles={['super_admin','rektor','admin','dekan','akademik','kaprodi','humas']}><PengumumanPage /></RoleGuard>} />

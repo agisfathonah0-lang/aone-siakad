@@ -83,6 +83,8 @@ export const SIDEBAR_MENUS: MenuItem[] = [
     icon: 'Presentation',
     roles: ['super_admin', 'rektor', 'admin', 'dekan', 'akademik', 'kaprodi', 'dosen', 'mahasiswa'],
     children: [
+      { label: 'Kelas Room', path: 'kelas-room', icon: 'BookOpen', roles: ['super_admin', 'rektor', 'admin', 'dekan', 'akademik', 'kaprodi', 'dosen', 'mahasiswa'] },
+      { label: 'Grup Kelas', path: 'chat-kelas', icon: 'MessageCircle', roles: ['super_admin', 'rektor', 'admin', 'dekan', 'akademik', 'kaprodi', 'dosen', 'mahasiswa'] },
       { label: 'Perwalian', path: 'perwalian', icon: 'MessageSquare', roles: ['super_admin', 'rektor', 'admin', 'dekan', 'akademik', 'kaprodi', 'dosen', 'mahasiswa'] },
       { label: 'EDOM', path: 'edom', icon: 'Star', roles: ['super_admin', 'rektor', 'admin', 'dekan', 'akademik', 'kaprodi', 'dosen', 'mahasiswa'] },
       { label: 'Beasiswa', path: 'beasiswa', icon: 'Trophy', roles: ['super_admin', 'rektor', 'admin', 'dekan', 'akademik', 'kaprodi', 'mahasiswa'] },
