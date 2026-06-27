@@ -65,6 +65,7 @@ import seminarRoutes from './modules/akademik/seminar.routes.js';
 import campusCctvRoutes from './modules/akademik/cctv.routes.js';
 import chatRoutes from './modules/akademik/chat.routes.js';
 import kelasRoomRoutes from './modules/akademik/kelas-room.routes.js';
+import verifyRoutes from './modules/akademik/verify.routes.js';
 import publicRoutes from './modules/public/public.routes.js';
 import vendorLandingRoutes from './modules/vendor/landing.routes.js';
 import vendorPlansRoutes from './modules/vendor/plans.routes.js';
@@ -172,6 +173,7 @@ const featureRoutes: [string, any][] = [
 ];
 
 app.post(`${config.apiPrefix}/keuangan/midtrans/notification`, express.json(), midtransNotificationHandler);
+app.use(`${config.apiPrefix}/verify`, verifyRoutes);
 
 featureRoutes.forEach(([path, router]) => {
   app.use(`${config.apiPrefix}${path}`, campusGuard, router);

@@ -6,7 +6,7 @@ import { useAuth } from '../../context/AuthContext';
 import DataTable from '../../components/ui/DataTable';
 import Modal from '../../components/ui/Modal';
 import Badge from '../../components/ui/Badge';
-import { Plus, Eye, Pencil, Trash2, Search, Mail, Send, FileOutput, FileText, CheckCircle, XCircle, Clock, FolderOpen } from 'lucide-react';
+import { Plus, Eye, Pencil, Trash2, Search, Mail, Send, FileOutput, FileText, CheckCircle, XCircle, Clock, FolderOpen, Hash } from 'lucide-react';
 import type { SuratKategori, SuratMasuk, SuratKeluar, SuratPengajuan } from '../../types';
 import FileUpload from '../../components/ui/FileUpload';
 import SuratTemplateBuilder from '../../components/ui/SuratTemplateBuilder';
@@ -768,6 +768,29 @@ export default function SuratPage() {
           <div>
             <label className="text-xs font-semibold text-slate-500 dark:text-zinc-400 block mb-1">Template Surat Builder</label>
             <SuratTemplateBuilder value={kategoriForm.template} onChange={(v) => setKategoriForm({ ...kategoriForm, template: v })} />
+            <details className="group text-[10px] mt-2 rounded-xl border p-3" style={{ borderColor: 'var(--border)', background: 'var(--card)' }}>
+              <summary className="cursor-pointer font-semibold flex items-center gap-1.5" style={{ color: 'var(--muted-foreground)' }}>
+                <Hash size={12} /> Panduan Variable / Anchor Tag
+              </summary>
+              <div className="mt-3 space-y-2">
+                <p style={{ color: 'var(--muted-foreground)' }}>Gunakan <code className="text-indigo-500 bg-indigo-50 dark:bg-indigo-900/20 px-1 rounded font-mono">{'{{nama_variable}}'}</code> di dalam template. Saat surat dicetak, tag akan diganti dengan data real.</p>
+                <div className="grid grid-cols-2 gap-x-4 gap-y-1">
+                  <div><p className="font-semibold mt-1" style={{ color: 'var(--foreground)' }}>Data Surat</p><code className="block px-1 py-0.5 rounded text-[9px] font-mono" style={{ background: 'var(--secondary)', color: 'var(--muted-foreground)' }}>{'{{nomor_surat}}'}</code><code className="block px-1 py-0.5 rounded text-[9px] font-mono" style={{ background: 'var(--secondary)', color: 'var(--muted-foreground)' }}>{'{{perihal}}'}</code><code className="block px-1 py-0.5 rounded text-[9px] font-mono" style={{ background: 'var(--secondary)', color: 'var(--muted-foreground)' }}>{'{{tujuan}}'}</code><code className="block px-1 py-0.5 rounded text-[9px] font-mono" style={{ background: 'var(--secondary)', color: 'var(--muted-foreground)' }}>{'{{tanggal_surat}}'}</code></div>
+                  <div><p className="font-semibold mt-1" style={{ color: 'var(--foreground)' }}>Data Mahasiswa</p><code className="block px-1 py-0.5 rounded text-[9px] font-mono" style={{ background: 'var(--secondary)', color: 'var(--muted-foreground)' }}>{'{{nama_mahasiswa}}'}</code><code className="block px-1 py-0.5 rounded text-[9px] font-mono" style={{ background: 'var(--secondary)', color: 'var(--muted-foreground)' }}>{'{{nim}}'}</code><code className="block px-1 py-0.5 rounded text-[9px] font-mono" style={{ background: 'var(--secondary)', color: 'var(--muted-foreground)' }}>{'{{prodi_nama}}'}</code><code className="block px-1 py-0.5 rounded text-[9px] font-mono" style={{ background: 'var(--secondary)', color: 'var(--muted-foreground)' }}>{'{{ipk}}'}</code></div>
+                  <div><p className="font-semibold mt-1" style={{ color: 'var(--foreground)' }}>Data Akademik</p><code className="block px-1 py-0.5 rounded text-[9px] font-mono" style={{ background: 'var(--secondary)', color: 'var(--muted-foreground)' }}>{'{{nama_pt}}'}</code><code className="block px-1 py-0.5 rounded text-[9px] font-mono" style={{ background: 'var(--secondary)', color: 'var(--muted-foreground)' }}>{'{{fakultas_nama}}'}</code><code className="block px-1 py-0.5 rounded text-[9px] font-mono" style={{ background: 'var(--secondary)', color: 'var(--muted-foreground)' }}>{'{{kaprodi_nama}}'}</code><code className="block px-1 py-0.5 rounded text-[9px] font-mono" style={{ background: 'var(--secondary)', color: 'var(--muted-foreground)' }}>{'{{rektor_nama}}'}</code></div>
+                  <div><p className="font-semibold mt-1" style={{ color: 'var(--foreground)' }}>Tanggal & Lainnya</p><code className="block px-1 py-0.5 rounded text-[9px] font-mono" style={{ background: 'var(--secondary)', color: 'var(--muted-foreground)' }}>{'{{tanggal_sekarang}}'}</code><code className="block px-1 py-0.5 rounded text-[9px] font-mono" style={{ background: 'var(--secondary)', color: 'var(--muted-foreground)' }}>{'{{bulan_romawi}}'}</code><code className="block px-1 py-0.5 rounded text-[9px] font-mono" style={{ background: 'var(--secondary)', color: 'var(--muted-foreground)' }}>{'{{tahun_sekarang}}'}</code></div>
+                </div>
+                <p className="mt-2 text-[9px] leading-relaxed" style={{ color: 'var(--muted-foreground)' }}>
+                  <strong>Contoh template:</strong><br/>
+                  <code className="bg-slate-100 dark:bg-zinc-800 px-2 py-1 rounded block mt-0.5 leading-loose font-mono" style={{ color: 'var(--foreground)' }}>
+                    {'<h1>SURAT KETERANGAN AKTIF</h1>\n<b>Nomor:</b> {{nomor_surat}}\n\nDengan ini menyatakan bahwa mahasiswa:\n<b>{{nama_mahasiswa}}</b> ({{nim}})\nProdi {{prodi_nama}}\n\nAdalah mahasiswa aktif semester {{semester}} TA {{tahun_akademik}}.'}
+                  </code>
+                </p>
+                <p style={{ color: 'var(--muted-foreground)' }}>
+                  Atau upload file <strong>.docx</strong> berisi <code className="text-indigo-500 bg-indigo-50 dark:bg-indigo-900/20 px-1 rounded font-mono">{'{{variable}}'}</code>, maka sistem akan mengekstrak teksnya otomatis ke builder di atas.
+                </p>
+              </div>
+            </details>
           </div>
           <div className="flex justify-end gap-2 pt-2">
             <button type="button" onClick={() => setKategoriModal(false)} className="btn-secondary text-xs">Batal</button>

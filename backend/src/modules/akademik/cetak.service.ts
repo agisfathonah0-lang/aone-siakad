@@ -1,10 +1,80 @@
 import PDFDocument from 'pdfkit';
+import crypto from 'crypto';
+import { v4 as uuid } from 'uuid';
 import { query } from '../../config/database.js';
 
 const NILAI_BOBOT: Record<string, number> = {
   A: 4, 'A-': 3.7, 'B+': 3.3, B: 3, 'B-': 2.7,
   'C+': 2.3, C: 2, D: 1, E: 0,
 };
+
+function generateVerificationCode(): string {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let code = '';
+  for (let i = 0; i < 8; i++) code += chars.charAt(Math.floor(Math.random() * chars.length));
+  return code;
+}
+
+export async function createDocumentVerification(
+  schemaName: string,
+  suratId: string,
+  suratType: string,
+  content: string
+): Promise<{ hash: string; verification_code: string }> {
+  const s = `"${schemaName}"`;
+  const { rows: last } = await query(
+    `SELECT hash FROM ${s}.document_verification ORDER BY created_at DESC LIMIT 1`
+  );
+  const prevHash = last.length > 0 ? last[0].hash : '0000000000000000000000000000000000000000000000000000000000000000';
+  const hash = crypto.createHash('sha256').update(content + prevHash).digest('hex');
+  const verificationCode = generateVerificationCode();
+  const id = uuid();
+  await query(
+    `INSERT INTO ${s}.document_verification (id, surat_id, surat_type, hash, prev_hash, verification_code) VALUES ($1, $2, $3, $4, $5, $6)`,
+    [id, suratId, suratType, hash, prevHash, verificationCode]
+  );
+  return { hash, verification_code: verificationCode };
+}
+
+async function embedVerificationQR(
+  doc: PDFKit.PDFDocument,
+  schemaName: string,
+  refId: string,
+  refType: string
+): Promise<void> {
+  try {
+    const s = `"${schemaName}"`;
+    const { rows: dv } = await query(
+      `SELECT verification_code FROM ${s}.document_verification WHERE surat_id = $1 AND surat_type = $2 ORDER BY created_at DESC LIMIT 1`,
+      [refId, refType]
+    );
+    if (dv.length === 0) return;
+
+    const { rows: tenantRows } = await query(
+      `SELECT website FROM public.tenants WHERE schema_name = $1 LIMIT 1`,
+      [schemaName]
+    );
+    const website = tenantRows[0]?.website || 'https://aone-siakad.my.id';
+    const baseUrl = website.startsWith('http') ? website : `https://${website}`;
+    const qr = await import('qrcode');
+    const qrDataUrl = await qr.default.toDataURL(
+      `${baseUrl}/verify/${dv[0].verification_code}`,
+      { width: 150, margin: 1, color: { dark: '#1e293b', light: '#ffffff' } }
+    );
+    const qrBuf = Buffer.from(qrDataUrl.split(',')[1], 'base64');
+
+    doc.moveDown(1);
+    try { doc.moveTo(doc.page.margins.left, doc.y).lineTo(doc.page.width - doc.page.margins.right, doc.y).lineWidth(0.5).stroke('#cccccc'); } catch {}
+    doc.moveDown(0.5);
+    doc.image(qrBuf, doc.page.width - doc.page.margins.right - 75, doc.y, { width: 55, height: 55 });
+    doc.font('Helvetica').fontSize(6);
+    doc.text('Verifikasi dokumen:', doc.page.margins.left, doc.y - 40, { width: doc.page.width - doc.page.margins.left - doc.page.margins.right - 80 });
+    doc.font('Helvetica-Bold').fontSize(6);
+    doc.text(`Kode: ${dv[0].verification_code}`, doc.page.margins.left, doc.y + 2, { width: doc.page.width - doc.page.margins.left - doc.page.margins.right - 80 });
+    doc.font('Helvetica').fontSize(5);
+    doc.text('Scan QR atau kunjungi website untuk verifikasi', doc.page.margins.left, doc.y + 4, { width: doc.page.width - doc.page.margins.left - doc.page.margins.right - 80 });
+  } catch { /* QR code optional */ }
+}
 
 function s(schemaName: string): string {
   return `"${schemaName}"`;
@@ -162,6 +232,7 @@ export async function generateKHS(
       doc.text(`Total SKS: ${totalSks}`, 50, tableY + 10, { continued: true });
       doc.text(`     IPK: ${ipk}`, { align: 'right' });
 
+      await embedVerificationQR(doc, schemaName, mahasiswaId, 'khs');
       doc.end();
     } catch (err) {
       reject(err);
@@ -233,6 +304,7 @@ export async function generateKRS(
 
       drawTable(doc, headers, widths, aligns, tableRows, doc.y);
 
+      await embedVerificationQR(doc, schemaName, mahasiswaId, 'krs');
       doc.end();
     } catch (err) {
       reject(err);
@@ -354,6 +426,7 @@ export async function generateTranskrip(schemaName: string, mahasiswaId: string)
       doc.fontSize(12).font('Helvetica-Bold');
       doc.text(`Total SKS: ${totalSksAll}     IPK: ${finalIpk}`, { align: 'center' });
 
+      await embedVerificationQR(doc, schemaName, mahasiswaId, 'transkrip');
       doc.end();
     } catch (err) {
       reject(err);
@@ -485,6 +558,7 @@ export async function generateSuratKeluar(
       doc.moveDown(3);
       doc.font('Helvetica-Bold').text(surat[0].penandatangan || '(________________)', { align: 'right' });
 
+      await embedVerificationQR(doc, schemaName, suratId, 'keluar');
       doc.end();
     } catch (err) {
       reject(err);

@@ -1,4 +1,5 @@
 import { Router, Request, Response, NextFunction } from 'express';
+import crypto from 'crypto';
 import { body, param } from 'express-validator';
 import { v4 as uuid } from 'uuid';
 import https from 'https';
@@ -10,6 +11,28 @@ import { requireRole } from '../../middleware/role.js';
 import { sendSuccess, sendPaginated } from '../../middleware/response.js';
 import { AppError } from '../../middleware/errorHandler.js';
 import { Role } from '../../types/enums.js';
+
+function generateVerificationCode(): string {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let code = '';
+  for (let i = 0; i < 8; i++) code += chars.charAt(Math.floor(Math.random() * chars.length));
+  return code;
+}
+
+async function createDocumentVerification(s: string, suratId: string, suratType: string, content: string): Promise<{ hash: string; verification_code: string }> {
+  const { rows: last } = await query(
+    `SELECT hash FROM ${s}.document_verification ORDER BY created_at DESC LIMIT 1`
+  );
+  const prevHash = last.length > 0 ? last[0].hash : '0000000000000000000000000000000000000000000000000000000000000000';
+  const hash = crypto.createHash('sha256').update(content + prevHash).digest('hex');
+  const verificationCode = generateVerificationCode();
+  const id = uuid();
+  await query(
+    `INSERT INTO ${s}.document_verification (id, surat_id, surat_type, hash, prev_hash, verification_code) VALUES ($1, $2, $3, $4, $5, $6)`,
+    [id, suratId, suratType, hash, prevHash, verificationCode]
+  );
+  return { hash, verification_code: verificationCode };
+}
 
 async function fetchBuffer(url: string): Promise<Buffer> {
   return new Promise((resolve, reject) => {
@@ -483,7 +506,10 @@ router.post(
          VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING *`,
         [nomor_surat, tanggal_surat || new Date(), tujuan, perihal, lampiran || null, kategori_id || null, file_url || null, status || 'draft', pengirim || null, penandatangan || null, catatan || null, req.user?.id]
       );
-      sendSuccess(res, rows[0], 'Surat keluar berhasil dibuat', 201);
+      const surat = rows[0];
+      const content = `${surat.nomor_surat}|${surat.perihal}|${surat.tujuan}|${surat.tanggal_surat}|${surat.template || ''}`;
+      createDocumentVerification(s, surat.id, 'keluar', content).catch(() => {});
+      sendSuccess(res, surat, 'Surat keluar berhasil dibuat', 201);
     } catch (err) {
       next(err);
     }
@@ -776,6 +802,10 @@ router.put(
           `UPDATE ${s}.surat_pengajuan SET status = $1, nomor_surat = $2, updated_at = NOW() WHERE id = $3 RETURNING *`,
           [status, nomor_surat, req.params.id]
         );
+        // Create blockchain verification for approved surat
+        const p = pengajuan[0];
+        const content = `pengajuan:${p.id}|${nomor_surat}|${p.keperluan}|${p.tujuan}|${p.created_at}`;
+        createDocumentVerification(s, p.id, 'pengajuan', content).catch(() => {});
         sendSuccess(res, rows[0], 'Pengajuan surat selesai diproses');
       } else {
         const { rows } = await query(

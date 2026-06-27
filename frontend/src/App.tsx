@@ -5,6 +5,7 @@ import { ToastProvider } from './context/ToastContext';
 import { ConfirmProvider } from './context/ConfirmContext';
 import AppLayout from './components/layout/AppLayout';
 import LandingPage from './pages/LandingPage';
+import VerifyPage from './pages/public/VerifyPage';
 import CampusLandingPage from './pages/CampusLandingPage';
 import CampusPPDBPage from './pages/CampusPPDBPage';
 import FeaturePage from './pages/public/FeaturePage';
@@ -177,6 +178,7 @@ function AppRoutes() {
       <Route path="/testimoni" element={<TestimoniPage />} />
       <Route path="/harga" element={<HargaPage />} />
       {features.map(f => <Route key={f.slug} path={`/fitur/${f.slug}`} element={<FeaturePage slug={f.slug} />} />)}
+      <Route path="/verify/:kode" element={<VerifyPage />} />
 
       <Route path="/kampus/:slug">
         <Route index element={<CampusLandingPage />} />
