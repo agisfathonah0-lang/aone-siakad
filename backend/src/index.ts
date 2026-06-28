@@ -4,6 +4,7 @@ import { config } from './config/index.js';
 import { pool, query } from './config/database.js';
 import { getRedis, closeRedis } from './config/redis.js';
 import { runPublicMigrations } from './database/migrate-public.js';
+import { runTenantMigrations } from './database/tenant-migrate.js';
 import { ensureBucket } from './config/storage.js';
 import { initWebSocket } from './services/websocket.js';
 import { startKeepAlive } from './services/keep-alive.js';
@@ -43,6 +44,17 @@ async function bootstrap(): Promise<void> {
     console.log('[DB] Connected to PostgreSQL');
     await runPublicMigrations();
     await autoSeed();
+
+    // Auto‑migrate all existing tenants (critical for Render — no shell access)
+    try {
+      const { rows: tenants } = await query(`SELECT schema_name FROM public.tenants WHERE status = 'active'`);
+      for (const t of tenants) {
+        await runTenantMigrations(t.schema_name);
+      }
+      console.log(`[AutoMigrate] ✅ ${tenants.length} tenant(s) migrated`);
+    } catch (err) {
+      console.warn('[AutoMigrate] ⚠️  No tenants table yet or migration failed — will retry on first request');
+    }
 
     try {
       const redis = getRedis();
