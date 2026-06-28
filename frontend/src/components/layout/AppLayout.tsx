@@ -1,11 +1,10 @@
-import { useState } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import { Outlet, useLocation, Link } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import { useAuth } from '../../context/AuthContext';
 import { Bell, Search, Menu } from 'lucide-react';
 import ThemeToggle from '../ui/ThemeToggle';
 import NotifBell from '../ui/NotifBell';
-import FloatingChatbot from '../ui/FloatingChatbot';
 
 function initialAvatar(nama?: string) {
   if (!nama) return '?';
@@ -30,6 +29,7 @@ const pageTitles: Record<string, string> = {
 
 export default function AppLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const closeSidebar = useCallback(() => setSidebarOpen(false), []);
   const { user } = useAuth();
   const location = useLocation();
   const pathSegment = location.pathname.split('/').pop() || 'dashboard';
@@ -42,7 +42,7 @@ export default function AppLayout() {
 
   return (
     <div className="min-h-screen flex" style={{ background: 'var(--background)', fontFamily: 'var(--font-sans)' }}>
-      <Sidebar open={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <Sidebar open={sidebarOpen} onClose={closeSidebar} />
 
       <main className="flex-1 flex flex-col min-h-screen lg:ml-[240px]">
         {/* Sticky Topbar */}
@@ -107,7 +107,6 @@ export default function AppLayout() {
           <Outlet />
         </div>
       </main>
-      <FloatingChatbot />
     </div>
   );
 }

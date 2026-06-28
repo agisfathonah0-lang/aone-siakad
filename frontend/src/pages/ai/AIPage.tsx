@@ -4,11 +4,14 @@ import { post, get, del } from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
 import EarlyWarningWidget from '../../components/dashboard/EarlyWarningWidget';
 import AcademicAdvisorWidget from '../../components/dashboard/AcademicAdvisorWidget';
+import AutoGradingWidget from '../../components/dashboard/AutoGradingWidget';
+import SmartSchedulerWidget from '../../components/dashboard/SmartSchedulerWidget';
+import SmartKRSWidget from '../../components/dashboard/SmartKRSWidget';
 import {
   Bot, Send, Trash2, Loader2, Sparkles, BookOpen, ScrollText,
   AlertTriangle, BarChart3, User, GraduationCap, BookMarked,
   FileText, CheckCircle, AlertCircle, RefreshCw, Plus,
-  Gauge, Zap, TrendingDown, GraduationCap as GradIcon,
+  Gauge, Zap, TrendingDown, GraduationCap as GradIcon, CalendarDays, PenLine, ShieldCheck, Key, ExternalLink,
 } from 'lucide-react';
 
 const tabs = [
@@ -18,6 +21,11 @@ const tabs = [
   { id: 'analytics', label: 'Analytics', icon: BarChart3 },
   { id: 'early-warning', label: 'Early Warning', icon: TrendingDown },
   { id: 'academic-advisor', label: 'Academic Advisor', icon: GradIcon },
+  { id: 'auto-grade', label: 'Auto-grading', icon: PenLine },
+  { id: 'schedule', label: 'Smart Schedule', icon: CalendarDays },
+  { id: 'smart-krs', label: 'Smart KRS', icon: BookMarked },
+  { id: 'akreditasi', label: 'Akreditasi', icon: FileText },
+  { id: 'tte', label: 'TTE', icon: ShieldCheck },
 ];
 
 const suggestions = [
@@ -106,6 +114,11 @@ export default function AIPage() {
       {tab === 'analytics' && <AnalyticsTab />}
       {tab === 'early-warning' && <EarlyWarningTab />}
       {tab === 'academic-advisor' && <AcademicAdvisorTab />}
+      {tab === 'auto-grade' && <AutoGradingTab />}
+      {tab === 'schedule' && <ScheduleTab />}
+      {tab === 'smart-krs' && <SmartKRSTab />}
+      {tab === 'akreditasi' && <AkreditasiTab />}
+      {tab === 'tte' && <TTETab />}
     </div>
   );
 }
@@ -507,6 +520,400 @@ function EarlyWarningTab() {
 function AcademicAdvisorTab() {
   const navigate = useNavigate();
   return <AcademicAdvisorWidget />;
+}
+
+function AutoGradingTab() {
+  return <AutoGradingWidget />;
+}
+
+function ScheduleTab() {
+  return <SmartSchedulerWidget />;
+}
+
+function SmartKRSTab() {
+  return <SmartKRSWidget />;
+}
+
+function AkreditasiTab() {
+  const [tipe, setTipe] = useState('led');
+  const [programStudi, setProgramStudi] = useState('');
+  const [kodeProdi, setKodeProdi] = useState('');
+  const [jenjang, setJenjang] = useState('S1');
+  const [detail, setDetail] = useState('');
+  const [result, setResult] = useState<any>(null);
+  const [loading, setLoading] = useState(false);
+
+  const docTypes = [
+    { id: 'led', label: 'LED', desc: 'Laporan Evaluasi Diri' },
+    { id: 'borang', label: 'Borang', desc: 'Borang Akreditasi' },
+    { id: 'standar1', label: 'Std 1', desc: 'Visi Misi Tujuan' },
+    { id: 'standar2', label: 'Std 2', desc: 'Tata Pamong' },
+    { id: 'standar3', label: 'Std 3', desc: 'Mahasiswa' },
+    { id: 'standar4', label: 'Std 4', desc: 'SDM' },
+    { id: 'standar5', label: 'Std 5', desc: 'Kurikulum' },
+    { id: 'standar6', label: 'Std 6', desc: 'Pembelajaran' },
+    { id: 'standar7', label: 'Std 7', desc: 'Penelitian' },
+    { id: 'standar8', label: 'Std 8', desc: 'Pengabdian' },
+    { id: 'standar9', label: 'Std 9', desc: 'Luaran' },
+  ];
+
+  async function generate() {
+    if (!programStudi.trim()) return;
+    setLoading(true);
+    setResult(null);
+    try {
+      const r = await post<any>('/ai/akreditasi-assistant', { tipe, program_studi: programStudi, kode_prodi: kodeProdi || undefined, jenjang, detail: detail || undefined });
+      setResult(r);
+    } catch { setResult({ judul: 'Gagal', pendahuluan: 'Terjadi kesalahan. Coba lagi.', isi: [], saran_pengisian: [] }); }
+    finally { setLoading(false); }
+  }
+
+  return (
+    <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+      <div className="bg-white dark:bg-zinc-900/50 rounded-2xl p-5 shadow-sm ring-1 ring-slate-200/50 dark:ring-zinc-800/30">
+        <div className="flex items-center gap-2 mb-4">
+          <FileText size={16} className="text-emerald-500" />
+          <h2 className="text-sm font-bold font-display dark:text-white">Akreditasi Assistant</h2>
+        </div>
+        <p className="text-xs text-slate-500 dark:text-zinc-400 mb-4">Generate dokumen akreditasi BAN-PT/LAM-PT</p>
+
+        <div className="space-y-3">
+          <div>
+            <label className="text-xs font-semibold text-slate-500 dark:text-zinc-400 mb-1 block">Jenis Dokumen</label>
+            <div className="flex flex-wrap gap-1.5 max-h-28 overflow-y-auto">
+              {docTypes.map((d) => (
+                <button key={d.id} onClick={() => setTipe(d.id)}
+                  className={`px-2.5 py-1.5 rounded-lg text-[10px] font-semibold transition-all border ${
+                    tipe === d.id
+                      ? 'bg-emerald-50 dark:bg-emerald-900/20 border-emerald-200 dark:border-emerald-800 text-emerald-600 dark:text-emerald-400'
+                      : 'bg-slate-50 dark:bg-zinc-800 border-slate-200 dark:border-zinc-700 text-slate-400 hover:text-slate-600'
+                  }`}>
+                  {d.label}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <div>
+            <label className="text-xs font-semibold text-slate-500 dark:text-zinc-400 mb-1 block">Program Studi</label>
+            <input value={programStudi} onChange={(e) => setProgramStudi(e.target.value)} placeholder="Nama Program Studi..."
+              className="w-full px-3 py-2 text-sm rounded-xl bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 dark:text-white" />
+          </div>
+
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <label className="text-xs font-semibold text-slate-500 dark:text-zinc-400 mb-1 block">Kode Prodi</label>
+              <input value={kodeProdi} onChange={(e) => setKodeProdi(e.target.value)} placeholder="Kode..."
+                className="w-full px-3 py-2 text-sm rounded-xl bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 dark:text-white" />
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-slate-500 dark:text-zinc-400 mb-1 block">Jenjang</label>
+              <select value={jenjang} onChange={(e) => setJenjang(e.target.value)}
+                className="w-full px-3 py-2 text-sm rounded-xl bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 dark:text-white">
+                {['D3', 'D4', 'S1', 'S2', 'S3', 'Profesi'].map((j) => (
+                  <option key={j} value={j}>{j}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label className="text-xs font-semibold text-slate-500 dark:text-zinc-400 mb-1 block">Informasi Tambahan (opsional)</label>
+            <textarea value={detail} onChange={(e) => setDetail(e.target.value)} rows={3} placeholder="Deskripsi program studi, keunggulan, data pendukung..."
+              className="w-full px-3 py-2 text-sm rounded-xl bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 dark:text-white resize-none" />
+          </div>
+
+          <button onClick={generate} disabled={loading || !programStudi.trim()}
+            className="w-full py-2.5 bg-emerald-500 text-white rounded-xl hover:bg-emerald-600 transition-all text-sm font-semibold disabled:opacity-50 flex items-center justify-center gap-2">
+            {loading ? <><Loader2 size={15} className="animate-spin" /> Generate...</> : <><FileText size={15} /> Generate Dokumen</>}
+          </button>
+        </div>
+      </div>
+
+      <div className="bg-white dark:bg-zinc-900/50 rounded-2xl p-5 shadow-sm ring-1 ring-slate-200/50 dark:ring-zinc-800/30">
+        <div className="flex items-center gap-2 mb-4">
+          <ScrollText size={16} className="text-emerald-500" />
+          <h2 className="text-sm font-bold font-display dark:text-white">{result?.judul || 'Hasil Dokumen'}</h2>
+        </div>
+        {result ? (
+          <div className="space-y-4 max-h-[500px] overflow-y-auto">
+            {result.pendahuluan && (
+              <div className="p-3 rounded-xl bg-slate-50 dark:bg-zinc-800">
+                <p className="text-xs font-semibold text-slate-500 dark:text-zinc-400 mb-1">Pendahuluan</p>
+                <p className="text-xs text-slate-600 dark:text-zinc-300 leading-relaxed">{result.pendahuluan}</p>
+              </div>
+            )}
+            {result.isi?.map((s: any, i: number) => (
+              <div key={i}>
+                <p className="text-xs font-semibold text-slate-500 dark:text-zinc-400 mb-1">{s.sub_bab}</p>
+                <p className="text-xs text-slate-600 dark:text-zinc-300 leading-relaxed">{s.konten}</p>
+              </div>
+            ))}
+            {result.kesimpulan && (
+              <div className="p-3 rounded-xl bg-slate-50 dark:bg-zinc-800">
+                <p className="text-xs font-semibold text-slate-500 dark:text-zinc-400 mb-1">Kesimpulan</p>
+                <p className="text-xs text-slate-600 dark:text-zinc-300 leading-relaxed">{result.kesimpulan}</p>
+              </div>
+            )}
+            {result.saran_pengisian?.length > 0 && (
+              <div>
+                <p className="text-xs font-semibold text-slate-500 dark:text-zinc-400 mb-1">Saran Pengisian</p>
+                <ul className="list-disc list-inside space-y-0.5">
+                  {result.saran_pengisian.map((s: string, i: number) => (
+                    <li key={i} className="text-xs text-slate-600 dark:text-zinc-300">{s}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
+          </div>
+        ) : (
+          <div className="text-center py-16 text-slate-300 dark:text-zinc-600">
+            <FileText size={40} className="mx-auto mb-3 opacity-50" />
+            <p className="text-sm">Pilih jenis dokumen dan generate</p>
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function TTETab() {
+  const [keys, setKeys] = useState<any[]>([]);
+  const [showKeys, setShowKeys] = useState(false);
+  const [loadingKeys, setLoadingKeys] = useState(false);
+  const [signForm, setSignForm] = useState({ document_id: '', document_type: 'surat', content: '', signer_nama: '', signer_jabatan: '' });
+  const [signResult, setSignResult] = useState<any>(null);
+  const [signLoading, setSignLoading] = useState(false);
+  const [verifyForm, setVerifyForm] = useState({ document_id: '', document_type: 'surat', content: '' });
+  const [verifyResult, setVerifyResult] = useState<any>(null);
+  const [verifyLoading, setVerifyLoading] = useState(false);
+
+  async function generateKey() {
+    setLoadingKeys(true);
+    try {
+      const r = await post<any>('/akademik/tte/keys/generate');
+      alert('Key berhasil dibuat!');
+      loadKeys();
+    } catch { alert('Gagal membuat key'); }
+    finally { setLoadingKeys(false); }
+  }
+
+  async function loadKeys() {
+    try {
+      const r = await get<any[]>('/akademik/tte/keys');
+      setKeys(r);
+    } catch {}
+  }
+
+  async function signDoc() {
+    if (!signForm.document_id || !signForm.content) return;
+    setSignLoading(true);
+    setSignResult(null);
+    try {
+      const r = await post<any>('/akademik/tte/sign', { ...signForm, signer_nama: signForm.signer_nama || undefined, signer_jabatan: signForm.signer_jabatan || undefined });
+      setSignResult(r);
+    } catch { setSignResult({ error: 'Gagal menandatangani' }); }
+    finally { setSignLoading(false); }
+  }
+
+  async function verifyDoc() {
+    if (!verifyForm.document_id) return;
+    setVerifyLoading(true);
+    setVerifyResult(null);
+    try {
+      const r = await post<any>('/akademik/tte/verify', { document_id: verifyForm.document_id, document_type: verifyForm.document_type, content: verifyForm.content || undefined });
+      setVerifyResult(r);
+    } catch { setVerifyResult({ verified: false, message: 'Gagal memverifikasi' }); }
+    finally { setVerifyLoading(false); }
+  }
+
+  const [activeTab, setActiveTab] = useState<'sign' | 'verify' | 'keys'>('sign');
+
+  return (
+    <div className="grid grid-cols-1 gap-4">
+      <div className="bg-white dark:bg-zinc-900/50 rounded-2xl p-5 shadow-sm ring-1 ring-slate-200/50 dark:ring-zinc-800/30">
+        <div className="flex items-center gap-2 mb-3">
+          <ShieldCheck size={16} className="text-emerald-500" />
+          <h2 className="text-sm font-bold font-display dark:text-white">Tanda Tangan Elektronik (TTE)</h2>
+        </div>
+        <p className="text-xs text-slate-500 dark:text-zinc-400 mb-4">
+          Tanda tangan digital RSA SHA-256 untuk dokumen akademik
+        </p>
+
+        <div className="flex gap-1.5 mb-4 p-1 bg-slate-50 dark:bg-zinc-800 rounded-xl">
+          {[
+            { id: 'sign' as const, label: 'Tanda Tangan', icon: PenLine },
+            { id: 'verify' as const, label: 'Verifikasi', icon: CheckCircle },
+            { id: 'keys' as const, label: 'Kunci', icon: Key },
+          ].map((t) => {
+            const Icon = t.icon;
+            return (
+              <button key={t.id} onClick={() => setActiveTab(t.id)}
+                className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-lg text-xs font-semibold transition-all ${
+                  activeTab === t.id
+                    ? 'bg-white dark:bg-zinc-900 text-emerald-600 dark:text-emerald-400 shadow-sm'
+                    : 'text-slate-400 hover:text-slate-600'
+                }`}>
+                <Icon size={14} /> {t.label}
+              </button>
+            );
+          })}
+        </div>
+
+        {activeTab === 'sign' && (
+          <div className="space-y-3">
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="text-xs font-semibold text-slate-500 dark:text-zinc-400 mb-1 block">ID Dokumen</label>
+                <input value={signForm.document_id} onChange={(e) => setSignForm({ ...signForm, document_id: e.target.value })} placeholder="Contoh: surat_123"
+                  className="w-full px-3 py-2 text-sm rounded-xl bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 dark:text-white" />
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-slate-500 dark:text-zinc-400 mb-1 block">Tipe Dokumen</label>
+                <select value={signForm.document_type} onChange={(e) => setSignForm({ ...signForm, document_type: e.target.value })}
+                  className="w-full px-3 py-2 text-sm rounded-xl bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 dark:text-white">
+                  <option value="surat">Surat</option>
+                  <option value="khs">KHS</option>
+                  <option value="krs">KRS</option>
+                  <option value="transkrip">Transkrip</option>
+                  <option value="ijazah">Ijazah</option>
+                </select>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="text-xs font-semibold text-slate-500 dark:text-zinc-400 mb-1 block">Nama Penandatangan</label>
+                <input value={signForm.signer_nama} onChange={(e) => setSignForm({ ...signForm, signer_nama: e.target.value })} placeholder="Nama lengkap"
+                  className="w-full px-3 py-2 text-sm rounded-xl bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 dark:text-white" />
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-slate-500 dark:text-zinc-400 mb-1 block">Jabatan</label>
+                <input value={signForm.signer_jabatan} onChange={(e) => setSignForm({ ...signForm, signer_jabatan: e.target.value })} placeholder="Contoh: Rektor"
+                  className="w-full px-3 py-2 text-sm rounded-xl bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 dark:text-white" />
+              </div>
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-slate-500 dark:text-zinc-400 mb-1 block">Konten Dokumen</label>
+              <textarea value={signForm.content} onChange={(e) => setSignForm({ ...signForm, content: e.target.value })} rows={4} placeholder="Isi/konten dokumen yang akan ditandatangani..."
+                className="w-full px-3 py-2 text-sm rounded-xl bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 dark:text-white resize-none" />
+            </div>
+            <button onClick={signDoc} disabled={signLoading || !signForm.document_id || !signForm.content}
+              className="w-full py-2.5 bg-emerald-500 text-white rounded-xl hover:bg-emerald-600 transition-all text-sm font-semibold disabled:opacity-50 flex items-center justify-center gap-2">
+              {signLoading ? <><Loader2 size={15} className="animate-spin" /> Menandatangani...</> : <><PenLine size={15} /> Tandatangani Dokumen</>}
+            </button>
+
+            {signResult && (
+              <div className="p-3 rounded-xl bg-slate-50 dark:bg-zinc-800 space-y-2">
+                {signResult.error ? (
+                  <p className="text-xs text-red-500">{signResult.error}</p>
+                ) : (
+                  <>
+                    <p className="text-xs font-semibold text-emerald-500">Dokumen Berhasil Ditandatangani!</p>
+                    <div className="grid grid-cols-2 gap-2 text-[10px]">
+                      <div><span className="text-slate-400">ID:</span> <span className="text-slate-600 dark:text-zinc-300 font-mono">{signResult.id}</span></div>
+                      <div><span className="text-slate-400">Algoritma:</span> <span className="text-slate-600 dark:text-zinc-300">{signResult.algorithm}</span></div>
+                      <div><span className="text-slate-400">Tipe:</span> <span className="text-slate-600 dark:text-zinc-300">{signResult.tte_type}</span></div>
+                      <div><span className="text-slate-400">Waktu:</span> <span className="text-slate-600 dark:text-zinc-300">{new Date(signResult.signed_at).toLocaleString('id-ID')}</span></div>
+                    </div>
+                    <div>
+                      <p className="text-[10px] text-slate-400 mb-1">SHA-256 Hash</p>
+                      <p className="text-[10px] font-mono text-slate-600 dark:text-zinc-300 break-all bg-white dark:bg-zinc-900 p-2 rounded-lg">{signResult.hash_sha256}</p>
+                    </div>
+                    <div>
+                      <p className="text-[10px] text-slate-400 mb-1">Signature (base64)</p>
+                      <p className="text-[10px] font-mono text-slate-600 dark:text-zinc-300 break-all bg-white dark:bg-zinc-900 p-2 rounded-lg max-h-20 overflow-y-auto">{signResult.signature}</p>
+                    </div>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === 'verify' && (
+          <div className="space-y-3">
+            <div className="grid grid-cols-2 gap-2">
+              <div>
+                <label className="text-xs font-semibold text-slate-500 dark:text-zinc-400 mb-1 block">ID Dokumen</label>
+                <input value={verifyForm.document_id} onChange={(e) => setVerifyForm({ ...verifyForm, document_id: e.target.value })} placeholder="Contoh: surat_123"
+                  className="w-full px-3 py-2 text-sm rounded-xl bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 dark:text-white" />
+              </div>
+              <div>
+                <label className="text-xs font-semibold text-slate-500 dark:text-zinc-400 mb-1 block">Tipe Dokumen</label>
+                <select value={verifyForm.document_type} onChange={(e) => setVerifyForm({ ...verifyForm, document_type: e.target.value })}
+                  className="w-full px-3 py-2 text-sm rounded-xl bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 dark:text-white">
+                  <option value="surat">Surat</option>
+                  <option value="khs">KHS</option>
+                  <option value="krs">KRS</option>
+                  <option value="transkrip">Transkrip</option>
+                  <option value="ijazah">Ijazah</option>
+                </select>
+              </div>
+            </div>
+            <div>
+              <label className="text-xs font-semibold text-slate-500 dark:text-zinc-400 mb-1 block">Konten Dokumen (opsional, untuk validasi lanjutan)</label>
+              <textarea value={verifyForm.content} onChange={(e) => setVerifyForm({ ...verifyForm, content: e.target.value })} rows={3} placeholder="Tempel konten asli untuk verifikasi integritas..."
+                className="w-full px-3 py-2 text-sm rounded-xl bg-slate-50 dark:bg-zinc-800 border border-slate-200 dark:border-zinc-700 focus:outline-none focus:ring-2 focus:ring-emerald-500/30 dark:text-white resize-none" />
+            </div>
+            <button onClick={verifyDoc} disabled={verifyLoading || !verifyForm.document_id}
+              className="w-full py-2.5 bg-emerald-500 text-white rounded-xl hover:bg-emerald-600 transition-all text-sm font-semibold disabled:opacity-50 flex items-center justify-center gap-2">
+              {verifyLoading ? <><Loader2 size={15} className="animate-spin" /> Memverifikasi...</> : <><CheckCircle size={15} /> Verifikasi Dokumen</>}
+            </button>
+
+            {verifyResult && (
+              <div className={`p-3 rounded-xl space-y-2 ${verifyResult.verified ? 'bg-emerald-50 dark:bg-emerald-900/20' : 'bg-rose-50 dark:bg-rose-900/20'}`}>
+                <div className="flex items-center gap-2">
+                  {verifyResult.verified ? (
+                    <CheckCircle size={16} className="text-emerald-500" />
+                  ) : (
+                    <AlertCircle size={16} className="text-rose-500" />
+                  )}
+                  <span className={`text-xs font-bold ${verifyResult.verified ? 'text-emerald-600 dark:text-emerald-400' : 'text-rose-600 dark:text-rose-400'}`}>
+                    {verifyResult.verified ? 'Dokumen ASLI & Tervalidasi' : 'Tidak Valid / Tidak Ditandatangani'}
+                  </span>
+                </div>
+                <p className="text-[10px] text-slate-500">{verifyResult.message}</p>
+                {verifyResult.total_signatures > 0 && (
+                  <p className="text-[10px] text-slate-500">Total tanda tangan: {verifyResult.total_signatures}</p>
+                )}
+                {verifyResult.signatures?.map((s: any, i: number) => (
+                  <div key={i} className="p-2 rounded-lg bg-white dark:bg-zinc-900 text-[10px] space-y-1">
+                    <p><span className="text-slate-400">Penandatangan:</span> {s.signer_nama || '-'} ({s.signer_jabatan || '-'})</p>
+                    <p><span className="text-slate-400">Tipe:</span> {s.tte_type} &middot; {s.algorithm}</p>
+                    <p><span className="text-slate-400">Ditandatangani:</span> {new Date(s.signed_at).toLocaleString('id-ID')}</p>
+                    <p><span className="text-slate-400">Valid:</span> {s.valid ? 'Ya' : 'Tidak'}</p>
+                    {s.is_revoked && <p className="text-rose-500">Dicabut: {s.revoked_alasan || '-'} ({new Date(s.revoked_at).toLocaleString('id-ID')})</p>}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {activeTab === 'keys' && (
+          <div className="space-y-3">
+            <button onClick={generateKey} disabled={loadingKeys}
+              className="w-full py-2.5 bg-emerald-500 text-white rounded-xl hover:bg-emerald-600 transition-all text-sm font-semibold disabled:opacity-50 flex items-center justify-center gap-2">
+              {loadingKeys ? <><Loader2 size={15} className="animate-spin" /> Membuat Key...</> : <><Key size={15} /> Generate Key Pair</>}
+            </button>
+            <button onClick={loadKeys} className="text-xs text-emerald-500 hover:underline">Muat ulang daftar kunci</button>
+            {keys.length > 0 && (
+              <div className="space-y-2">
+                <p className="text-xs font-semibold text-slate-500 dark:text-zinc-400">Kunci Anda ({keys.length})</p>
+                {keys.map((k: any) => (
+                  <div key={k.id} className="p-2 rounded-lg bg-slate-50 dark:bg-zinc-800 text-[10px]">
+                    <p><span className="text-slate-400">Label:</span> {k.label}</p>
+                    <p><span className="text-slate-400">Status:</span> {k.is_active ? 'Aktif' : 'Nonaktif'}</p>
+                    <p><span className="text-slate-400">Dibuat:</span> {new Date(k.created_at).toLocaleString('id-ID')}</p>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+    </div>
+  );
 }
 
 function Search(props: any) { return <svg {...props} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>; }

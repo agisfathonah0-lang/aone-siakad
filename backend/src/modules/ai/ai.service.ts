@@ -493,3 +493,362 @@ Beri analisis dalam format JSON:
   }
   return { ...parsed, inputTokens, outputTokens };
 }
+
+export async function autoGrade(req: any, body: { soal: string; jawaban: string; rubrik?: string; max_nilai?: number }) {
+  const { soal, jawaban, rubrik, max_nilai } = body;
+  if (!soal?.trim() || !jawaban?.trim()) throw new AppError(400, 'Soal dan jawaban wajib diisi');
+
+  const prompt = `Anda adalah asisten koreksi otomatis untuk perguruan tinggi Indonesia.
+
+**Soal:**
+${soal}
+
+**Jawaban Mahasiswa:**
+${jawaban}
+
+${rubrik ? `**Rubrik Penilaian:**\n${rubrik}` : ''}
+${max_nilai ? `**Nilai Maksimal:** ${max_nilai}` : ''}
+
+Beri penilaian dalam format JSON:
+{
+  "skor": <0-${max_nilai || 100}>,
+  "persentase": <0-100>,
+  "feedback": "Umpan balik detail untuk mahasiswa",
+  "kekuatan": ["Kekuatan jawaban 1", "Kekuatan jawaban 2"],
+  "kelemahan": ["Kelemahan 1", "Kelemahan 2"],
+  "saran_perbaikan": "Saran konkret untuk meningkatkan jawaban"
+}
+
+Bersikap objektif, adil, dan konstruktif. Gunakan Bahasa Indonesia.`;
+
+  const { content: reply, inputTokens, outputTokens } = await callAI([
+    { role: 'system', content: 'Kamu adalah asisten koreksi otomatis yang objektif dan konstruktif untuk perguruan tinggi Indonesia.' },
+    { role: 'user', content: prompt },
+  ], 1024, req);
+
+  let parsed: any;
+  try {
+    const jsonMatch = reply.match(/\{[\s\S]*\}/);
+    parsed = jsonMatch ? JSON.parse(jsonMatch[0]) : { skor: 0, persentase: 0, feedback: reply };
+  } catch {
+    parsed = { skor: 0, persentase: 0, feedback: reply };
+  }
+  return { ...parsed, inputTokens, outputTokens };
+}
+
+export async function optimizeSchedule(req: any, body: { prodi_id?: string; semester?: number; tahun_akademik?: string; preferensi?: string }) {
+  const s = schema(req);
+  const { prodi_id, semester, tahun_akademik, preferensi } = body;
+
+  let mkFilter = 'WHERE mk.is_active = true';
+  const params: any[] = [];
+  if (prodi_id) { params.push(prodi_id); mkFilter += ` AND mk.prodi_id = $${params.length}`; }
+  if (semester) { params.push(semester); mkFilter += ` AND mk.semester = $${params.length}`; }
+
+  const { rows: courses } = await query(
+    `SELECT mk.id, mk.kode, mk.nama, mk.sks, mk.semester, mk.prodi_id,
+            p.nama as prodi_nama
+     FROM "${s}".mata_kuliah mk JOIN "${s}".prodi p ON p.id = mk.prodi_id
+     ${mkFilter} ORDER BY mk.semester, mk.nama LIMIT 80`,
+    params
+  );
+
+  const { rows: lecturers } = await query(
+    `SELECT d.id, d.nidn, d.nama, d.program_studi_id FROM "${s}".dosen d WHERE d.is_active = true LIMIT 50`
+  );
+
+  const { rows: rooms } = await query(
+    `SELECT r.* FROM "${s}".ruangan r WHERE r.is_active = true LIMIT 30`
+  );
+
+  const timeSlots = [
+    '07:30-09:10', '09:20-11:00', '11:10-12:50',
+    '13:00-14:40', '14:50-16:30', '16:40-18:20',
+  ];
+  const days = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+
+  const prompt = `Anda adalah AI penjadwalan perkuliahan untuk perguruan tinggi Indonesia. Buat jadwal perkuliahan yang OPTIMAL dengan mempertimbangkan:
+
+**Constraints:**
+1. Tidak boleh bentrok: dosen, ruangan, dan kelas di waktu yang sama
+2. Dosen hanya bisa mengajar 1 kelas di satu waktu
+3. Ruangan hanya bisa dipakai 1 kelas di satu waktu
+4. Satu kelompok mahasiswa hanya bisa punya 1 kelas di satu waktu
+5. Total SKS per hari per kelas tidak boleh > 8 SKS
+6. Prioritas: jadwal pagi lebih baik dari siang/sore
+${preferensi ? `\n**Preferensi Tambahan:**\n${preferensi}` : ''}
+
+**Mata Kuliah (${courses.length} MK):**
+${JSON.stringify(courses.map(c => ({ kode: c.kode, nama: c.nama, sks: c.sks, semester: c.semester, prodi: c.prodi_nama })), null, 2)}
+
+**Dosen (${lecturers.length} orang):**
+${JSON.stringify(lecturers.map(l => ({ nidn: l.nidn, nama: l.nama })), null, 2)}
+
+**Ruangan (${rooms.length} ruang):**
+${JSON.stringify(rooms.map(r => ({ kode: r.kode, nama: r.nama, kapasitas: r.kapasitas })), null, 2)}
+
+**Slot Waktu (6 slot/hari × 6 hari = 36 slot):**
+${JSON.stringify({ hari: days, jam: timeSlots })}
+
+Buat jadwal dalam format JSON:
+{
+  "jadwal": [
+    {
+      "hari": "Senin",
+      "jam": "07:30-09:10",
+      "mk_kode": "",
+      "mk_nama": "",
+      "sks": 0,
+      "dosen": "",
+      "ruangan": "",
+      "prodi": ""
+    }
+  ],
+  "statistik": {
+    "total_kelas": 0,
+    "total_sks": 0,
+    "pagi_persen": 0,
+    "sore_persen": 0,
+    "pemanfaatan_ruang": 0
+  },
+  "catatan": "Saran atau catatan tentang jadwal"
+}
+
+Usahakan sebanyak mungkin mata kuliah terjadwal. Prioritaskan jadwal pagi (slot 1-3).`;
+
+  const { content: reply, inputTokens, outputTokens } = await callAI([
+    { role: 'system', content: 'Kamu adalah AI penjadwalan perkuliahan. Buat jadwal optimal yang memenuhi semua constraint. Gunakan Bahasa Indonesia.' },
+    { role: 'user', content: prompt },
+  ], 3072, req);
+
+  let parsed: any;
+  try {
+    const jsonMatch = reply.match(/\{[\s\S]*\}/);
+    parsed = jsonMatch ? JSON.parse(jsonMatch[0]) : { jadwal: [], catatan: reply };
+  } catch {
+    parsed = { jadwal: [], catatan: reply };
+  }
+  return {
+    ...parsed,
+    inputTokens,
+    outputTokens,
+    metadata: {
+      total_mk: courses.length,
+      total_dosen: lecturers.length,
+      total_ruangan: rooms.length,
+      hari: days,
+      slot_waktu: timeSlots,
+    },
+  };
+}
+
+export async function akreditasiAssistant(req: any, body: { tipe: string; program_studi?: string; kode_prodi?: string; jenjang?: string; detail?: string }) {
+  const { tipe, program_studi, kode_prodi, jenjang, detail } = body;
+
+  const docTypes: Record<string, { label: string; desc: string }> = {
+    'led': { label: 'Laporan Evaluasi Diri (LED)', desc: 'Dokumen evaluasi diri program studi untuk akreditasi BAN-PT' },
+    'borang': { label: 'Borang Akreditasi', desc: 'Formulir isian akreditasi program studi BAN-PT' },
+    'standar1': { label: 'Standar 1 - Visi, Misi, Tujuan', desc: 'Dokumen standar 1 akreditasi BAN-PT' },
+    'standar2': { label: 'Standar 2 - Tata Pamong', desc: 'Dokumen standar 2 akreditasi BAN-PT' },
+    'standar3': { label: 'Standar 3 - Mahasiswa', desc: 'Dokumen standar 3 akreditasi BAN-PT' },
+    'standar4': { label: 'Standar 4 - Sumber Daya Manusia', desc: 'Dokumen standar 4 akreditasi BAN-PT' },
+    'standar5': { label: 'Standar 5 - Kurikulum', desc: 'Dokumen standar 5 akreditasi BAN-PT' },
+    'standar6': { label: 'Standar 6 - Pembelajaran', desc: 'Dokumen standar 6 akreditasi BAN-PT' },
+    'standar7': { label: 'Standar 7 - Penelitian', desc: 'Dokumen standar 7 akreditasi BAN-PT' },
+    'standar8': { label: 'Standar 8 - Pengabdian', desc: 'Dokumen standar 8 akreditasi BAN-PT' },
+    'standar9': { label: 'Standar 9 - Luaran', desc: 'Dokumen standar 9 akreditasi BAN-PT' },
+  };
+
+  const docInfo = docTypes[tipe] || docTypes['led'];
+  const prodiStr = program_studi || 'Program Studi yang diusulkan';
+  const jenjangStr = jenjang || 'S1';
+
+  const prompt = `Anda adalah asisten akreditasi perguruan tinggi Indonesia yang ahli dalam menyusun dokumen BAN-PT / LAM-PT.
+
+**Jenis Dokumen:** ${docInfo.label}
+**Deskripsi:** ${docInfo.desc}
+**Program Studi:** ${prodiStr} (${kode_prodi || '-'}) - Jenjang ${jenjangStr}
+${detail ? `\n**Informasi Tambahan:**\n${detail}` : ''}
+
+Buat dokumen akreditasi yang lengkap, profesional, dan sesuai standar BAN-PT / LAM-PT terbaru.
+
+Format JSON:
+{
+  "judul": "Judul dokumen",
+  "program_studi": "${prodiStr}",
+  "jenjang": "${jenjangStr}",
+  "pendahuluan": "Pendahuluan / latar belakang dokumen",
+  "isi": [
+    {
+      "sub_bab": "Nama sub bab",
+      "konten": "Konten lengkap sub bab dalam format paragraf"
+    }
+  ],
+  "kesimpulan": "Kesimpulan dan rekomendasi",
+  "saran_pengisian": ["Saran 1 untuk melengkapi dokumen", "Saran 2 untuk melengkapi dokumen"],
+  "referensi": ["Referensi 1", "Referensi 2"]
+}
+
+Gunakan Bahasa Indonesia formal dan akademik. Tulis konten yang siap pakai untuk dokumen akreditasi.`;
+
+  const { content: reply, inputTokens, outputTokens } = await callAI([
+    { role: 'system', content: 'Kamu adalah asisten akreditasi perguruan tinggi Indonesia. Ahli dalam menyusun dokumen BAN-PT, LAM-PT, dan standar akreditasi nasional. Gunakan Bahasa Indonesia formal dan akademik.' },
+    { role: 'user', content: prompt },
+  ], 3072, req);
+
+  let parsed: any;
+  try {
+    const jsonMatch = reply.match(/\{[\s\S]*\}/);
+    parsed = jsonMatch ? JSON.parse(jsonMatch[0]) : { judul: docInfo.label, isi: [{ sub_bab: 'Konten', konten: reply }], saran_pengisian: [] };
+  } catch {
+    parsed = { judul: docInfo.label, isi: [{ sub_bab: 'Konten', konten: reply }], saran_pengisian: [] };
+  }
+  return { ...parsed, tipe, inputTokens, outputTokens };
+}
+
+export async function smartKRS(req: any, body: { semester?: number; preferensi?: string }) {
+  const s = schema(req);
+  const userId = req.user?.id;
+  if (!userId) throw new AppError(401, 'Belum login');
+
+  const { rows: mhs } = await query(
+    `SELECT m.id, m.nim, m.nama, m.program_studi_id, m.angkatan, m.semester, m.ipk,
+            p.nama as prodi_nama, p.jenjang
+     FROM "${s}".mahasiswa m JOIN "${s}".prodi p ON p.id = m.program_studi_id
+     WHERE m.user_id = $1 LIMIT 1`, [userId]
+  );
+  if (mhs.length === 0) throw new AppError(404, 'Data mahasiswa tidak ditemukan');
+  const student = mhs[0];
+  const currentSem = body?.semester || parseInt(student.semester, 10) || 1;
+
+  // SKS limit based on IPK
+  const ipk = parseFloat(student.ipk) || 0;
+  let maxSks = 24;
+  if (ipk >= 3.5) maxSks = 24;
+  else if (ipk >= 3.0) maxSks = 22;
+  else if (ipk >= 2.5) maxSks = 20;
+  else if (ipk >= 2.0) maxSks = 18;
+  else maxSks = 16;
+
+  // Get kurikulum for this prodi
+  const { rows: kurikulum } = await query(
+    `SELECT id, kode, nama, total_sks FROM "${s}".kurikulum
+     WHERE program_studi_id = $1 AND is_active = true
+     ORDER BY tahun_mulai DESC LIMIT 1`, [student.program_studi_id]
+  );
+
+  // Get MK from kurikulum
+  const { rows: kurMk } = await query(
+    `SELECT km.mata_kuliah_id, km.semester as kur_semester, km.wajib,
+            mk.kode, mk.nama, mk.sks, mk.jenis
+     FROM "${s}".kurikulum_matakuliah km
+     JOIN "${s}".mata_kuliah mk ON mk.id = km.mata_kuliah_id
+     WHERE km.kurikulum_id = $1 AND mk.is_active = true
+     ORDER BY km.semester, mk.nama`, [kurikulum.length > 0 ? kurikulum[0].id : null]
+  );
+
+  // Get already taken courses
+  const { rows: takenMk } = await query(
+    `SELECT DISTINCT n.mata_kuliah_id, n.nilai_akhir, n.nilai_huruf
+     FROM "${s}".nilai n WHERE n.mahasiswa_id = $1 AND n.nilai_akhir IS NOT NULL`, [student.id]
+  );
+  const takenSet = new Set(takenMk.map((t: any) => t.mata_kuliah_id));
+
+  // Get KRS history for this semester
+  const { rows: existingKrs } = await query(
+    `SELECT k.id, j.mata_kuliah_id, j.hari, j.jam_mulai, j.jam_selesai
+     FROM "${s}".krs k
+     JOIN "${s}".jadwal_kuliah j ON j.id = k.jadwal_id
+     WHERE k.mahasiswa_id = $1 AND k.status != 'dibatalkan' AND k.semester = $2`, [student.id, currentSem]
+  );
+
+  const totalSksKurikulum = kurikulum.length > 0 ? parseInt(kurikulum[0].total_sks, 10) || 0 : 0;
+  const sksTaken = takenMk.reduce((sum: number, t: any) => sum + (parseInt((kurMk.find((k: any) => k.mata_kuliah_id === t.mata_kuliah_id)?.sks) || '0', 10) || 0), 0);
+  const sksRemaining = Math.max(0, totalSksKurikulum - sksTaken);
+
+  // Categorize MK
+  const availableMk = kurMk.filter((mk: any) => !takenSet.has(mk.mata_kuliah_id));
+  const mkThisSem = availableMk.filter((mk: any) => parseInt(mk.kur_semester, 10) === currentSem);
+  const mkPrevSem = availableMk.filter((mk: any) => parseInt(mk.kur_semester, 10) < currentSem);
+  const mkNextSem = availableMk.filter((mk: any) => parseInt(mk.kur_semester, 10) > currentSem);
+
+  const prompt = `Sebagai AI Smart KRS Advisor untuk perguruan tinggi Indonesia, buat rekomendasi KRS yang optimal:
+
+**Data Mahasiswa:**
+- Nama: ${student.nama}
+- NIM: ${student.nim}
+- Prodi: ${student.prodi_nama} (${student.jenjang})
+- Semester Saat Ini: ${currentSem}
+- IPK: ${student.ipk}
+- SKS Maksimal yang Diizinkan: ${maxSks} SKS (berdasarkan IPK)
+- Total SKS Kurikulum: ${totalSksKurikulum} SKS
+- SKS Sudah Diambil: ${sksTaken} SKS
+- SKS Tersisa: ${sksRemaining} SKS
+
+**Mata Kuliah WAJIB semester ${currentSem} yang belum diambil (${mkThisSem.filter(m => m.wajib).length} MK):**
+${JSON.stringify(mkThisSem.filter(m => m.wajib).map(m => ({ kode: m.kode, nama: m.nama, sks: m.sks })), null, 2)}
+
+**Mata Kuliah PILIHAN semester ${currentSem} (${mkThisSem.filter(m => !m.wajib).length} MK):**
+${JSON.stringify(mkThisSem.filter(m => !m.wajib).map(m => ({ kode: m.kode, nama: m.nama, sks: m.sks })), null, 2)}
+
+**Mata Kuliah dari semester sebelumnya yang belum lulus (${mkPrevSem.length} MK):**
+${JSON.stringify(mkPrevSem.map(m => ({ kode: m.kode, nama: m.nama, sks: m.sks, wajib: m.wajib, semester_kurikulum: m.kur_semester })), null, 2)}
+
+${body?.preferensi ? `\n**Preferensi Mahasiswa:**\n${body.preferensi}` : ''}
+
+Buat rekomendasi dalam format JSON:
+{
+  "rekomendasi_krs": [
+    {
+      "kode": "",
+      "nama": "",
+      "sks": 0,
+      "semester_kurikulum": 0,
+      "prioritas": "wajib/rekomendasi/opsional",
+      "alasan": "Alasan direkomendasikan",
+      "kategori": "semester_ini/semester_lalu/semester_depan"
+    }
+  ],
+  "total_sks_rekomendasi": 0,
+  "sks_maksimal": ${maxSks},
+  "sks_terpakai": ${sksTaken},
+  "sks_tersisa_kurikulum": ${sksRemaining},
+  "daya_tampung": ${maxSks - sksTaken},
+  "catatan": [
+    "Catatan penting 1",
+    "Catatan penting 2"
+  ],
+  "strategi": "Strategi pengambilan KRS yang disarankan"
+}
+
+Pertimbangkan:
+1. Prioritaskan MK wajib semester ini yang belum diambil
+2. Prioritaskan MK dari semester sebelumnya yang belum lulus (terutama yang wajib)
+3. Jangan melebihi ${maxSks} SKS total
+4. Perhatikan prasyarat mata kuliah
+5. Beri rekomendasi yang realistis dan achievable
+6. Gunakan Bahasa Indonesia`;
+
+  const { content: reply, inputTokens, outputTokens } = await callAI([
+    { role: 'system', content: 'Kamu adalah AI Smart KRS Advisor untuk SIAKAD. Beri rekomendasi KRS yang optimal, personal, dan sesuai aturan akademik Indonesia.' },
+    { role: 'user', content: prompt },
+  ], 2048, req);
+
+  let parsed: any;
+  try {
+    const jsonMatch = reply.match(/\{[\s\S]*\}/);
+    parsed = jsonMatch ? JSON.parse(jsonMatch[0]) : { rekomendasi_krs: [], catatan: ['Gagal memproses rekomendasi'] };
+  } catch {
+    parsed = { rekomendasi_krs: [], catatan: ['Gagal memproses rekomendasi'] };
+  }
+  return {
+    ...parsed,
+    mahasiswa: student.nama,
+    nim: student.nim,
+    prodi: student.prodi_nama,
+    semester: currentSem,
+    ipk: student.ipk,
+    inputTokens,
+    outputTokens,
+  };
+}

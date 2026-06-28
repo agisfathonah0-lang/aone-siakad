@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo, useRef, memo } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import {
   LayoutDashboard, GraduationCap, Presentation, Wallet, Ellipsis, Share2, Sparkles,
@@ -58,44 +58,35 @@ const roleLabels: Record<string, string> = {
   calon_mahasiswa: 'Calon Mhs', alumni: 'Alumni',
 };
 
-export default function Sidebar({ open, onClose }: SidebarProps) {
+const Sidebar = memo(function Sidebar({ open, onClose }: SidebarProps) {
   const { user, logout, setActiveRole } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
   const role = user?.role || 'mahasiswa';
-  const allRoles: Role[] = user?.roles?.length ? user.roles : [role];
+  const allRoles = useMemo<Role[]>(() => user?.roles?.length ? user.roles : [role], [user?.roles, role]);
   const isVendor = role === 'vendor_super_admin';
   const [showRoleSwitcher, setShowRoleSwitcher] = useState(false);
 
   const filteredMenus = useMemo(
     () => isVendor ? [] : filterMenusByRoles(SIDEBAR_MENUS, allRoles),
-    [isVendor, allRoles.join(',')]
+    [isVendor, allRoles]
   );
   const slug = location.pathname.split('/')[2] || user?.tenantSlug || '';
   const basePath = `/kampus/${slug}`;
-
-  const [expandedSection, setExpandedSection] = useState<string>(() => {
-    const segment = location.pathname.split('/').pop() || 'dashboard';
-    const menus = filterMenusByRoles(SIDEBAR_MENUS, allRoles);
-    const section = menus.find(m => {
-      if (m.path === segment) return true;
-      return m.children?.some((c: any) => c.path === segment || c.children?.some((s: any) => s.path === segment));
-    });
-    return section?.label || '';
-  });
-
   const pathSegment = location.pathname.split('/').pop() || 'dashboard';
 
-  // Sync expanded section on navigation  (filteredMenus is memoized, stable reference)
-  useEffect(() => {
+  const [expandedSection, setExpandedSection] = useState<string>('');
+  const prevPath = useRef(pathSegment);
+
+  // Sync expanded section only when path actually changes (not every render)
+  if (prevPath.current !== pathSegment) {
+    prevPath.current = pathSegment;
     const section = filteredMenus.find(m => {
       if (m.path === pathSegment) return true;
       return m.children?.some((c: any) => c.path === pathSegment || c.children?.some((s: any) => s.path === pathSegment));
     });
-    if (section && expandedSection !== section.label) {
-      setExpandedSection(section.label);
-    }
-  }, [pathSegment, filteredMenus]);
+    if (section) setExpandedSection(section.label);
+  }
 
   const navMenus = isVendor ? vendorItems : filteredMenus;
 
@@ -301,4 +292,6 @@ export default function Sidebar({ open, onClose }: SidebarProps) {
       </div>
     </>
   );
-}
+});
+
+export default Sidebar;
