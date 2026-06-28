@@ -162,7 +162,7 @@ const Sidebar = memo(function Sidebar({ open, onClose }: SidebarProps) {
                 <Icon size={16} style={{ opacity: sectionActive ? 1 : 0.6 }} />
                 <span className="flex-1 text-xs font-medium">{item.label}</span>
                 {hasChildren && (
-                  <ChevronRight size={12} style={{ opacity: 0.4 }} className={`transition-transform duration-200 ${isOpen ? 'rotate-90' : ''}`} />
+                  <ChevronRight size={12} style={{ opacity: 0.4 }} className={`${isOpen ? 'rotate-90' : ''}`} />
                 )}
                 {sectionActive && !hasChildren && (
                   <span className="w-1 h-4 rounded-full" style={{ background: 'var(--sidebar-primary)' }} />
@@ -172,7 +172,7 @@ const Sidebar = memo(function Sidebar({ open, onClose }: SidebarProps) {
               {/* Children */}
               {hasChildren && (
                 <div
-                  className="ml-2 border-l overflow-hidden transition-all duration-200"
+                  className="ml-2 border-l overflow-hidden"
                   style={{
                     borderColor: 'var(--sidebar-border)',
                     maxHeight: isOpen ? 2000 : 0,
