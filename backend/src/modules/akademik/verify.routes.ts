@@ -89,7 +89,9 @@ router.get(
             dv = rows[0];
             schemaName = req.tenant!.schemaName;
           }
-        } catch {} // table may not exist yet, fall through to cross-tenant
+        } catch (e: any) {
+          console.warn(`[Verify] Tenant lookup skipped (${req.tenant?.schemaName}): ${e.code || e.message}`);
+        }
       } else {
         // Cross-tenant lookup: search all active tenant schemas
         const { rows: tenants } = await query(
@@ -106,7 +108,11 @@ router.get(
               schemaName = t.schema_name;
               break;
             }
-          } catch {} // skip tenants without document_verification table
+          } catch (e: any) {
+            if (e.code !== '42P01') {
+              console.warn(`[Verify] Cross-tenant error (${t.schema_name}): ${e.code || e.message}`);
+            }
+          }
         }
         if (!dv) throw new AppError(404, 'Dokumen tidak ditemukan');
       }
@@ -182,7 +188,10 @@ router.get(
         dokumen,
         chain: chain.map((l: any) => ({ hash: l.hash, prev_hash: l.prev_hash, created_at: l.created_at })),
       });
-    } catch (err) { next(err); }
+    } catch (err: any) {
+      console.error(`[Verify] Error for code=${req.params.kode}:`, err.message || err);
+      next(err);
+    }
   }
 );
 
