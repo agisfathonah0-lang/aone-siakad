@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { get } from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
+import EarlyWarningWidget from '../../components/dashboard/EarlyWarningWidget';
 import { BookOpen, Users, ClipboardCheck, Award, Clock, UserCheck, ArrowRight, CalendarDays, GraduationCap, TrendingUp, TrendingDown, BarChart3, BellRing, Sparkles, Bot, BookOpenCheck, AlertTriangle } from 'lucide-react';
 
 function StatCard({ icon: Icon, label, value, color, change, changeType }: { icon: any; label: string; value: string; color: string; change?: string; changeType?: 'up' | 'down' }) {
@@ -181,6 +182,9 @@ export default function DosenDashboard() {
           ))}
         </div>
       </section>
+
+      {/* Early Warning System */}
+      <EarlyWarningWidget />
 
       {/* Quick Actions */}
       <section className="bg-card rounded-xl border border-border p-5" style={{ background: 'var(--card)', borderColor: 'var(--border)' }}>

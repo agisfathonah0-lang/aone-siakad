@@ -304,6 +304,63 @@ Perhatikan: teks pendek (< 100 kata) mungkin memiliki false positive yang lebih 
   return { ...parsed, inputTokens, outputTokens };
 }
 
+export async function earlyWarning(req: any) {
+  const s = schema(req);
+  const { rows: mhs } = await query(
+    `SELECT id, nim, nama, program_studi_id, angkatan, semester, status, ipk,
+            (SELECT COUNT(*) FROM "${s}".absensi a WHERE a.mahasiswa_id = m.id AND a.status = 'alpha') as alpha,
+            (SELECT ROUND(AVG(n.nilai_akhir), 2) FROM "${s}".nilai n WHERE n.mahasiswa_id = m.id) as avg_nilai,
+            (SELECT COUNT(*)::int - COUNT(*) FILTER (WHERE n.nilai_akhir IS NOT NULL) FROM "${s}".nilai n WHERE n.mahasiswa_id = m.id) as nilai_kosong
+     FROM "${s}".mahasiswa m WHERE m.status = 'aktif' ORDER BY m.semester DESC LIMIT 500`
+  );
+  const { rows: prodi } = await query(`SELECT id, nama FROM "${s}".prodi`);
+  const prodiMap = Object.fromEntries(prodi.map((p: any) => [p.id, p.nama]));
+
+  const scored = mhs.map((m: any) => {
+    const ipk = parseFloat(m.ipk) || 0;
+    const alpha = parseInt(m.alpha, 10) || 0;
+    const avgNilai = parseFloat(m.avg_nilai) || 0;
+    const nilaiKosong = parseInt(m.nilai_kosong, 10) || 0;
+    const semester = parseInt(m.semester, 10) || 1;
+
+    // Risk scoring: IPK rendah + alpha tinggi + nilai kosong
+    let riskScore = 0;
+    if (ipk < 2.0) riskScore += 40;
+    else if (ipk < 2.5) riskScore += 25;
+    else if (ipk < 3.0) riskScore += 10;
+
+    if (alpha > 10) riskScore += 30;
+    else if (alpha > 5) riskScore += 20;
+    else if (alpha > 3) riskScore += 10;
+
+    if (avgNilai < 60) riskScore += 20;
+    else if (avgNilai < 70) riskScore += 10;
+
+    if (nilaiKosong > 3) riskScore += 15;
+    else if (nilaiKosong > 1) riskScore += 8;
+
+    if (semester > 6 && ipk < 2.5) riskScore += 10;
+
+    const level = riskScore >= 60 ? 'tinggi' : riskScore >= 35 ? 'sedang' : 'rendah';
+    return {
+      id: m.id, nim: m.nim, nama: m.nama, prodi: prodiMap[m.program_studi_id] || '',
+      angkatan: m.angkatan, semester, ipk, alpha, avgNilai, riskScore, level,
+    };
+  });
+
+  const tinggi = scored.filter(s => s.level === 'tinggi');
+  const sedang = scored.filter(s => s.level === 'sedang');
+  const rendah = scored.filter(s => s.level === 'rendah');
+
+  return {
+    total_dianalisis: scored.length,
+    risiko_tinggi: tinggi.length,
+    risiko_sedang: sedang.length,
+    risiko_rendah: rendah.length,
+    mahasiswa: scored.sort((a, b) => b.riskScore - a.riskScore).slice(0, 50),
+  };
+}
+
 export async function analyzeMahasiswa(req: any, body: { tipe: 'performa' | 'risiko' | 'rekomendasi'; prodi_id?: string }) {
   const s = schema(req);
   const { tipe, prodi_id } = body;

@@ -52,6 +52,13 @@ router.post('/plagiarism/check', authenticate, requireRole(Role.SUPER_ADMIN, Rol
   } catch (err) { next(err); }
 });
 
+router.get('/early-warning', authenticate, requireRole(Role.SUPER_ADMIN, Role.ADMIN, Role.AKADEMIK, Role.KAPRODI, Role.DOSEN), async (req, res, next) => {
+  try {
+    const result = await aiService.earlyWarning(req);
+    sendSuccess(res, result);
+  } catch (err) { next(err); }
+});
+
 router.post('/analytics/mahasiswa', authenticate, requireRole(Role.SUPER_ADMIN, Role.ADMIN, Role.AKADEMIK), async (req, res, next) => {
   try {
     const result = await aiService.analyzeMahasiswa(req, req.body);

@@ -11,6 +11,7 @@ import {
   Building2, Filter, Search, Dot, Eye, Plus, Download, Bot, BookOpenCheck, AlertTriangle,
 } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
+import EarlyWarningWidget from '../../components/dashboard/EarlyWarningWidget';
 import DosenDashboard from './DosenDashboard';
 import AkademikDashboard from './AkademikDashboard';
 import KeuanganDashboard from './KeuanganDashboard';
@@ -205,6 +206,9 @@ function AdminDashboard() {
           ))}
         </div>
       </section>
+
+      {/* Early Warning System */}
+      <EarlyWarningWidget />
 
       <section className="grid grid-cols-1 lg:grid-cols-3 gap-4">
         <div className="lg:col-span-2 bg-card rounded-xl border border-border p-5" style={{ background: 'var(--card)', borderColor: 'var(--border)' }}>
