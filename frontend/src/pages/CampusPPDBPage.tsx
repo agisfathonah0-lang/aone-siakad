@@ -18,7 +18,7 @@ export default function CampusPPDBPage() {
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
-  const [result, setResult] = useState<{ nomor_daftar: string; nama: string } | null>(null);
+  const [result, setResult] = useState<{ nomor_daftar: string; nama: string; generatedPassword?: string } | null>(null);
   const [error, setError] = useState('');
   const [step, setStep] = useState(0);
   const [form, setForm] = useState<Record<string, any>>({});
@@ -54,7 +54,7 @@ export default function CampusPPDBPage() {
     setError('');
     setSubmitting(true);
     try {
-      const data = await post<{ nomor_daftar: string; nama: string }>('/ppdb/register', form);
+      const data = await post<{ nomor_daftar: string; nama: string; generatedPassword?: string }>('/ppdb/register', form);
       setResult(data);
       setSuccess(true);
     } catch (err: any) {
@@ -118,10 +118,16 @@ export default function CampusPPDBPage() {
         </div>
         <h2 className="text-xl font-display font-extrabold tracking-tight text-white mb-2">Pendaftaran Berhasil!</h2>
         <p className="text-sm text-zinc-400 mb-4">Terima kasih <strong className="text-white">{result.nama}</strong>, pendaftaran kamu sudah diterima.</p>
-        <div className="rounded-xl bg-zinc-900/50 border border-white/5 p-4 mb-6">
+        <div className="rounded-xl bg-zinc-900/50 border border-white/5 p-4 mb-4">
           <p className="text-[10px] text-zinc-500 mb-1">Nomor Pendaftaran</p>
           <p className="text-lg font-bold font-display tracking-wider" style={{ color }}>{result.nomor_daftar}</p>
         </div>
+        {result.generatedPassword && (
+          <div className="rounded-xl bg-amber-900/20 border border-amber-500/20 p-3 mb-4">
+            <p className="text-[10px] text-amber-400 mb-1">Password (simpan untuk login)</p>
+            <p className="text-sm font-mono font-bold text-amber-300 tracking-wider">{result.generatedPassword}</p>
+          </div>
+        )}
         <p className="text-[11px] text-zinc-500 mb-6">Silakan login menggunakan email dan password yang didaftarkan untuk melanjutkan pembayaran dan upload dokumen.</p>
         <div className="flex items-center justify-center gap-3">
           <Link to={`/kampus/${slug}`} className="px-4 py-2 rounded-xl text-xs font-bold bg-white/5 text-zinc-300 hover:bg-white/10 transition-all border border-white/10">Kembali</Link>

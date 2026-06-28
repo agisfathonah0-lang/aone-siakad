@@ -5,7 +5,7 @@ import { Request, Response, NextFunction } from 'express';
 
 export function campusGuard(req: Request, res: Response, next: NextFunction): void {
   // Public endpoints skip auth but still need tenant + subscription
-  if (req.path === '/register') {
+  if (req.path.endsWith('/register')) {
     optionalAuth(req, res, () => {
       requireTenantAccess(req, res, () => {
         requireActiveSubscription(req, res, next);

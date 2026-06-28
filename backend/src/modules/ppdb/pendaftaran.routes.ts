@@ -72,13 +72,13 @@ router.post(
     body('email').isEmail().withMessage('Email tidak valid'),
     body('no_hp').notEmpty().withMessage('No HP wajib diisi'),
     body('program_studi_id').isUUID().withMessage('Program studi tidak valid'),
-    body('password').isLength({ min: 6 }).withMessage('Password minimal 6 karakter'),
+    body('password').optional({ values: 'null' }).isLength({ min: 6 }).withMessage('Password minimal 6 karakter'),
     validate,
   ],
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const schema = s(req);
-      const { nama, email, password, no_hp, program_studi_id, jalur_pendaftaran, tempat_lahir, tanggal_lahir, jenis_kelamin, alamat, ...extraFields } = req.body;
+      const { nama, email, password: rawPassword, no_hp, program_studi_id, jalur_pendaftaran, tempat_lahir, tanggal_lahir, jenis_kelamin, alamat, ...extraFields } = req.body;
 
       const { rows: exist } = await query(
         `SELECT id FROM ${schema}.users WHERE email = $1`,
@@ -91,6 +91,7 @@ router.post(
       );
       const noDaftar = generateNoDaftar('DEMO', new Date().getFullYear(), parseInt(count[0].total, 10) + 1);
 
+      const password = rawPassword || Math.random().toString(36).slice(2, 10) + 'Aa1!';
       const passwordHash = await bcrypt.hash(password, 12);
       const userId = uuid();
       const pendaftarId = uuid();
@@ -113,6 +114,7 @@ router.post(
         id: pendaftarId,
         nomor_daftar: noDaftar,
         nama,
+        ...(rawPassword ? {} : { generatedPassword: password }),
       }, 'Pendaftaran berhasil, silakan login', 201);
     } catch (err) {
       next(err);
