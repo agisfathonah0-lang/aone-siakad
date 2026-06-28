@@ -23,7 +23,9 @@ const CREATE_DV_TABLE = `
     hash VARCHAR(64) NOT NULL,
     prev_hash VARCHAR(64),
     verification_code VARCHAR(10) UNIQUE NOT NULL,
+    metadata JSONB,
     verified_count INTEGER DEFAULT 0,
+    last_verified_at TIMESTAMPTZ,
     created_at TIMESTAMPTZ DEFAULT NOW()
   );
   CREATE INDEX IF NOT EXISTS idx_dv_surat ON {s}.document_verification(surat_id, surat_type);
@@ -34,6 +36,12 @@ async function ensureDVTable(schemaName: string): Promise<void> {
   const s = `"${schemaName}"`;
   const sql = CREATE_DV_TABLE.replace(/\{s\}/g, s);
   await query(sql);
+  // Add missing columns for existing tables created by older versions
+  for (const col of ['last_verified_at TIMESTAMPTZ', 'metadata JSONB']) {
+    try {
+      await query(`ALTER TABLE ${s}.document_verification ADD COLUMN IF NOT EXISTS ${col}`);
+    } catch {} // ignore if already exists or other error
+  }
 }
 
 function isMissingTable(err: any): boolean {
