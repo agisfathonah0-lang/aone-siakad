@@ -36,50 +36,52 @@ export async function createDocumentVerification(
   return { hash, verification_code: verificationCode };
 }
 
-function addFooter(doc: PDFKit.PDFDocument, dicetakOleh?: string) {
+async function embedQRFooter(
+  doc: PDFKit.PDFDocument,
+  dicetakOleh: string,
+  verificationCode?: string,
+  baseUrl?: string
+): Promise<void> {
+  const lebar = doc.page.width - doc.page.margins.left - doc.page.margins.right;
+  const qrSize = 40;
+  const qrY = doc.page.height - doc.page.margins.bottom - 18 - qrSize - 6;
   const now = new Date();
   const tgl = now.toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
-  const lebar = doc.page.width - doc.page.margins.left - doc.page.margins.right;
-  const y = doc.page.height - doc.page.margins.bottom - 18;
 
-  doc.rect(doc.page.margins.left, y - 2, lebar, 0.5).fill('#94a3b8');
+  // Separator line
+  doc.rect(doc.page.margins.left, qrY + qrSize + 4, lebar, 0.5).fill('#94a3b8');
+
+  // Footer text (left)
+  const footerY = qrY + qrSize + 8;
   doc.font('Helvetica').fontSize(5.5).fillColor('#64748b');
-  doc.text(`Dicetak oleh: ${dicetakOleh || '-'} pada ${tgl}`, doc.page.margins.left, y + 2, { width: lebar, align: 'left' });
-  doc.text('Dokumen ini terverifikasi AOne Siakad', doc.page.margins.left, y + 9, { width: lebar, align: 'left' });
+  doc.text(`Dicetak oleh: ${dicetakOleh || '-'} pada ${tgl}`, doc.page.margins.left, footerY, { width: lebar, align: 'left' });
+  doc.text(verificationCode ? 'Dokumen ini terverifikasi AOne Siakad' : 'Dokumen ini tidak memiliki verifikasi digital', doc.page.margins.left, footerY + 7, { width: lebar, align: 'left' });
   doc.fillColor('#000000');
-}
 
-async function embedVerificationQR(
-  doc: PDFKit.PDFDocument,
-  verificationCode: string,
-  baseUrl: string
-): Promise<void> {
-  try {
-    const qr = await import('qrcode');
-    const qrDataUrl = await qr.default.toDataURL(
-      `${baseUrl}/verify/${verificationCode}`,
-      { width: 150, margin: 1, color: { dark: '#1e293b', light: '#ffffff' } }
-    );
-    const qrBuf = Buffer.from(qrDataUrl.split(',')[1], 'base64');
+  // QR code + verify text (above separator)
+  if (verificationCode && baseUrl) {
+    try {
+      const qr = await import('qrcode');
+      const qrDataUrl = await qr.default.toDataURL(
+        `${baseUrl}/verify/${verificationCode}`,
+        { width: 150, margin: 1, color: { dark: '#1e293b', light: '#ffffff' } }
+      );
+      const qrBuf = Buffer.from(qrDataUrl.split(',')[1], 'base64');
 
-    const lebar = doc.page.width - doc.page.margins.left - doc.page.margins.right;
-    // QR at bottom-right, 6pt above footer separator
-    const qrSize = 40;
-    const qrY = doc.page.height - doc.page.margins.bottom - 18 - qrSize - 6;
-    const qrX = doc.page.width - doc.page.margins.right - qrSize;
+      const qrX = doc.page.width - doc.page.margins.right - qrSize;
+      doc.image(qrBuf, qrX, qrY, { width: qrSize, height: qrSize });
 
-    // Text left, QR right
-    doc.image(qrBuf, qrX, qrY, { width: qrSize, height: qrSize });
-    const textW = lebar - qrSize - 8;
-    doc.font('Helvetica').fontSize(6).fillColor('#1e293b');
-    doc.text('Verifikasi dokumen:', doc.page.margins.left, qrY + 4, { width: textW });
-    doc.font('Helvetica-Bold').fontSize(6);
-    doc.text(`Kode: ${verificationCode}`, doc.page.margins.left, qrY + 12, { width: textW });
-    doc.font('Helvetica').fontSize(5).fillColor('#64748b');
-    doc.text('Scan QR atau kunjungi website untuk verifikasi', doc.page.margins.left, qrY + 22, { width: textW });
-    doc.fillColor('#000000');
-  } catch (e) {
-    console.error('[QR] Gagal generate QR:', e);
+      const textW = lebar - qrSize - 8;
+      doc.font('Helvetica').fontSize(6).fillColor('#1e293b');
+      doc.text('Verifikasi dokumen:', doc.page.margins.left, qrY + 4, { width: textW });
+      doc.font('Helvetica-Bold').fontSize(6);
+      doc.text(`Kode: ${verificationCode}`, doc.page.margins.left, qrY + 12, { width: textW });
+      doc.font('Helvetica').fontSize(5).fillColor('#64748b');
+      doc.text('Scan QR atau kunjungi website untuk verifikasi', doc.page.margins.left, qrY + 22, { width: textW });
+      doc.fillColor('#000000');
+    } catch (e) {
+      console.error('[QR] Gagal generate QR:', e);
+    }
   }
 }
 
@@ -253,10 +255,7 @@ export async function generateKHS(
       doc.text(`Total SKS: ${totalSks}`, 50, tableY + 10, { continued: true });
       doc.text(`     IPK: ${ipk}`, { align: 'right' });
 
-      addFooter(doc, dicetakOleh);
-      if (verificationCode && baseUrl) {
-        await embedVerificationQR(doc, verificationCode, baseUrl);
-      }
+      await embedQRFooter(doc, dicetakOleh || '-', verificationCode, baseUrl);
       doc.end();
     } catch (err) {
       reject(err);
@@ -331,10 +330,7 @@ export async function generateKRS(
 
       drawTable(doc, headers, widths, aligns, tableRows, doc.y);
 
-      addFooter(doc, dicetakOleh);
-      if (verificationCode && baseUrl) {
-        await embedVerificationQR(doc, verificationCode, baseUrl);
-      }
+      await embedQRFooter(doc, dicetakOleh || '-', verificationCode, baseUrl);
       doc.end();
     } catch (err) {
       reject(err);
@@ -456,10 +452,7 @@ export async function generateTranskrip(schemaName: string, mahasiswaId: string,
       doc.fontSize(12).font('Helvetica-Bold');
       doc.text(`Total SKS: ${totalSksAll}     IPK: ${finalIpk}`, { align: 'center' });
 
-      addFooter(doc, dicetakOleh);
-      if (verificationCode && baseUrl) {
-        await embedVerificationQR(doc, verificationCode, baseUrl);
-      }
+      await embedQRFooter(doc, dicetakOleh || '-', verificationCode, baseUrl);
       doc.end();
     } catch (err) {
       reject(err);
@@ -594,10 +587,7 @@ export async function generateSuratKeluar(
       doc.moveDown(3);
       doc.font('Helvetica-Bold').text(surat[0].penandatangan || '(________________)', { align: 'right' });
 
-      addFooter(doc, dicetakOleh);
-      if (verificationCode && baseUrl) {
-        await embedVerificationQR(doc, verificationCode, baseUrl);
-      }
+      await embedQRFooter(doc, dicetakOleh || '-', verificationCode, baseUrl);
       doc.end();
     } catch (err) {
       reject(err);
