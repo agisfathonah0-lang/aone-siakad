@@ -78,30 +78,35 @@ router.get(
 
       if (s) {
         // Tenant-specific lookup
-        const { rows } = await query(
-          `SELECT dv.*, t.nama_pt FROM ${s}.document_verification dv
-           JOIN public.tenants t ON t.schema_name = $1
-           WHERE dv.verification_code = $2`,
-          [req.tenant!.schemaName, code]
-        );
-        if (rows.length === 0) throw new AppError(404, 'Dokumen tidak ditemukan');
-        dv = rows[0];
-        schemaName = req.tenant!.schemaName;
+        try {
+          const { rows } = await query(
+            `SELECT dv.*, t.nama_pt FROM ${s}.document_verification dv
+             JOIN public.tenants t ON t.schema_name = $1
+             WHERE dv.verification_code = $2`,
+            [req.tenant!.schemaName, code]
+          );
+          if (rows.length > 0) {
+            dv = rows[0];
+            schemaName = req.tenant!.schemaName;
+          }
+        } catch {} // table may not exist yet, fall through to cross-tenant
       } else {
         // Cross-tenant lookup: search all active tenant schemas
         const { rows: tenants } = await query(
           `SELECT schema_name, nama_pt FROM public.tenants WHERE is_active = true ORDER BY created_at DESC`
         );
         for (const t of tenants) {
-          const { rows } = await query(
-            `SELECT * FROM "${t.schema_name}".document_verification WHERE verification_code = $1 LIMIT 1`,
-            [code]
-          );
-          if (rows.length > 0) {
-            dv = { ...rows[0], nama_pt: t.nama_pt };
-            schemaName = t.schema_name;
-            break;
-          }
+          try {
+            const { rows } = await query(
+              `SELECT * FROM "${t.schema_name}".document_verification WHERE verification_code = $1 LIMIT 1`,
+              [code]
+            );
+            if (rows.length > 0) {
+              dv = { ...rows[0], nama_pt: t.nama_pt };
+              schemaName = t.schema_name;
+              break;
+            }
+          } catch {} // skip tenants without document_verification table
         }
         if (!dv) throw new AppError(404, 'Dokumen tidak ditemukan');
       }
