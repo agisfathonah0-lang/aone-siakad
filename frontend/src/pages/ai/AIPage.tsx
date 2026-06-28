@@ -3,11 +3,12 @@ import { useSearchParams, useNavigate } from 'react-router-dom';
 import { post, get, del } from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
 import EarlyWarningWidget from '../../components/dashboard/EarlyWarningWidget';
+import AcademicAdvisorWidget from '../../components/dashboard/AcademicAdvisorWidget';
 import {
   Bot, Send, Trash2, Loader2, Sparkles, BookOpen, ScrollText,
   AlertTriangle, BarChart3, User, GraduationCap, BookMarked,
   FileText, CheckCircle, AlertCircle, RefreshCw, Plus,
-  Gauge, Zap, TrendingDown,
+  Gauge, Zap, TrendingDown, GraduationCap as GradIcon,
 } from 'lucide-react';
 
 const tabs = [
@@ -16,6 +17,7 @@ const tabs = [
   { id: 'plagiarism', label: 'Plagiarism Check', icon: AlertTriangle },
   { id: 'analytics', label: 'Analytics', icon: BarChart3 },
   { id: 'early-warning', label: 'Early Warning', icon: TrendingDown },
+  { id: 'academic-advisor', label: 'Academic Advisor', icon: GradIcon },
 ];
 
 const suggestions = [
@@ -103,6 +105,7 @@ export default function AIPage() {
       {tab === 'plagiarism' && <PlagiarismTab />}
       {tab === 'analytics' && <AnalyticsTab />}
       {tab === 'early-warning' && <EarlyWarningTab />}
+      {tab === 'academic-advisor' && <AcademicAdvisorTab />}
     </div>
   );
 }
@@ -499,6 +502,11 @@ function AnalyticsTab() {
 function EarlyWarningTab() {
   const navigate = useNavigate();
   return <EarlyWarningWidget />;
+}
+
+function AcademicAdvisorTab() {
+  const navigate = useNavigate();
+  return <AcademicAdvisorWidget />;
 }
 
 function Search(props: any) { return <svg {...props} fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>; }

@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import Badge from '../../components/ui/Badge';
 import EarlyWarningWidget from '../../components/dashboard/EarlyWarningWidget';
+import AcademicAdvisorWidget from '../../components/dashboard/AcademicAdvisorWidget';
 import DosenDashboard from './DosenDashboard';
 import AkademikDashboard from './AkademikDashboard';
 import KeuanganDashboard from './KeuanganDashboard';
@@ -492,6 +493,9 @@ function MahasiswaDashboard() {
           <StatCard label="Tagihan" value={tagihanPending.toString()} icon={Wallet} color="bg-red-500" />
         </div>
       </section>
+
+      {/* AI Academic Advisor */}
+      <AcademicAdvisorWidget />
 
       <section className="grid grid-cols-1 lg:grid-cols-2 gap-4">
         <div className="bg-card rounded-xl border border-border p-5" style={{ background: 'var(--card)', borderColor: 'var(--border)' }}>

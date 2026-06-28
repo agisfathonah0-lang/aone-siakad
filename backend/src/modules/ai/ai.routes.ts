@@ -59,6 +59,13 @@ router.get('/early-warning', authenticate, requireRole(Role.SUPER_ADMIN, Role.AD
   } catch (err) { next(err); }
 });
 
+router.post('/academic-advisor', authenticate, requireRole(Role.SUPER_ADMIN, Role.ADMIN, Role.AKADEMIK, Role.DOSEN, Role.MAHASISWA), async (req, res, next) => {
+  try {
+    const result = await aiService.academicAdvisor(req, req.body);
+    sendSuccess(res, result);
+  } catch (err) { next(err); }
+});
+
 router.post('/analytics/mahasiswa', authenticate, requireRole(Role.SUPER_ADMIN, Role.ADMIN, Role.AKADEMIK), async (req, res, next) => {
   try {
     const result = await aiService.analyzeMahasiswa(req, req.body);

@@ -361,6 +361,96 @@ export async function earlyWarning(req: any) {
   };
 }
 
+export async function academicAdvisor(req: any, body: { tipe?: 'mk' | 'karir' | 'semua' }) {
+  const s = schema(req);
+  const userId = req.user?.id;
+  if (!userId) throw new AppError(401, 'Belum login');
+
+  // Get student data
+  const { rows: mhs } = await query(
+    `SELECT m.id, m.nim, m.nama, m.program_studi_id, m.angkatan, m.semester, m.ipk,
+            p.nama as prodi_nama, p.jenjang
+     FROM "${s}".mahasiswa m JOIN "${s}".prodi p ON p.id = m.program_studi_id
+     WHERE m.user_id = $1 LIMIT 1`, [userId]
+  );
+  if (mhs.length === 0) throw new AppError(404, 'Data mahasiswa tidak ditemukan');
+
+  const student = mhs[0];
+  const tipe = body?.tipe || 'semua';
+
+  // Get course history
+  const { rows: nilai } = await query(
+    `SELECT mk.kode, mk.nama as mk_nama, mk.sks, n.nilai_akhir, n.nilai_huruf, n.semester, n.tahun_akademik
+     FROM "${s}".nilai n JOIN "${s}".mata_kuliah mk ON mk.id = n.mata_kuliah_id
+     WHERE n.mahasiswa_id = $1 ORDER BY n.created_at DESC LIMIT 40`,
+    [student.id]
+  );
+
+  // Get available courses for next semester
+  const nextSem = Math.min(parseInt(student.semester, 10) + 1, 14);
+  const { rows: availableMk } = await query(
+    `SELECT mk.id, mk.kode, mk.nama, mk.sks, mk.semester,
+            (SELECT COUNT(*) FROM "${s}".kurikulum k WHERE k.mata_kuliah_id = mk.id AND k.semester = $2) as kur_semester
+     FROM "${s}".mata_kuliah mk
+     WHERE mk.semester <= $2 AND mk.is_active = true
+     ORDER BY mk.semester, mk.nama LIMIT 60`,
+    [student.id, nextSem]
+  );
+
+  const prompt = `Sebagai AI Academic Advisor untuk perguruan tinggi Indonesia, berikan rekomendasi personalized untuk mahasiswa berikut:
+
+**Data Mahasiswa:**
+- Nama: ${student.nama}
+- NIM: ${student.nim}
+- Program Studi: ${student.prodi_nama} (${student.jenjang})
+- Semester Saat Ini: ${student.semester}
+- IPK: ${student.ipk}
+- Angkatan: ${student.angkatan}
+
+**Riwayat Nilai (${nilai.length} mata kuliah):**
+${JSON.stringify(nilai.map(n => ({ mk: n.mk_nama, sks: n.sks, nilai: n.nilai_huruf || n.nilai_akhir, sem: n.semester })), null, 2)}
+
+**Mata Kuliah Tersedia untuk Semester ${nextSem}:**
+${JSON.stringify(availableMk.map(m => ({ kode: m.kode, nama: m.nama, sks: m.sks, semester_kur: m.kur_semester })), null, 2)}
+
+${tipe === 'mk' || tipe === 'semua' ? `
+Beri rekomendasi mata kuliah yang HARUS diambil semester depan dengan format JSON:
+{
+  "rekomendasi_mk": [
+    { "kode": "", "nama": "", "sks": 0, "alasan": "singkat", "prioritas": "wajib/rekomendasi/opsional" }
+  ],
+  "total_sks": 0,
+  "catatan_akademik": "Saran khusus untuk mahasiswa ini"
+}` : ''}
+${tipe === 'karir' || tipe === 'semua' ? `
+Beri rekomendasi jalur karir dengan format JSON:
+{
+  "jalur_karir": [
+    { "bidang": "", "level": "pemula/menengah/lanjut", "mk_pendukung": ["MK1", "MK2"], "prospek": "deskripsi prospek karir" }
+  ],
+  "skill_gap": ["skill yang perlu ditingkatkan"],
+  "rekomendasi_sertifikasi": ["sertifikasi 1", "sertifikasi 2"],
+  "ringkasan": "Kesimpulan singkat"
+}` : ''}`;
+
+  const { content: reply, inputTokens, outputTokens } = await callAI([
+    { role: 'system', content: 'Kamu adalah AI Academic Advisor untuk SIAKAD. Beri rekomendasi yang personal, akurat, dan sesuai kurikulum Indonesia. Gunakan Bahasa Indonesia.' },
+    { role: 'user', content: prompt },
+  ], 2048, req);
+
+  let parsed: any;
+  try {
+    const jsonMatch = reply.match(/\{[\s\S]*\}/g);
+    if (jsonMatch) {
+      parsed = jsonMatch.map((j: string) => {
+        try { return JSON.parse(j); } catch { return null; }
+      }).filter(Boolean).reduce((acc: any, cur: any) => ({ ...acc, ...cur }), {});
+    }
+  } catch { parsed = { rekomendasi_mk: [], catatan_akademik: reply }; }
+
+  return { ...parsed, mahasiswa: student.nama, nim: student.nim, prodi: student.prodi_nama, semester: student.semester, ipk: student.ipk, inputTokens, outputTokens };
+}
+
 export async function analyzeMahasiswa(req: any, body: { tipe: 'performa' | 'risiko' | 'rekomendasi'; prodi_id?: string }) {
   const s = schema(req);
   const { tipe, prodi_id } = body;
