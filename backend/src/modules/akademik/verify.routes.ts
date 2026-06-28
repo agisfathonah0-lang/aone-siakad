@@ -3,9 +3,26 @@ import { v4 as uuid } from 'uuid';
 import crypto from 'crypto';
 import { query } from '../../config/database.js';
 import { authenticate } from '../../middleware/auth.js';
+import { requireRole } from '../../middleware/role.js';
+import { Role } from '../../types/enums.js';
 import { sendSuccess } from '../../middleware/response.js';
 import { AppError } from '../../middleware/errorHandler.js';
+import { createDocumentVerification } from './cetak.service.js';
 import QRCode from 'qrcode';
+
+// Simple in-memory rate limiter: max 20 requests/min per IP
+const rateLimitMap = new Map<string, { count: number; resetAt: number }>();
+function checkRateLimit(ip: string): boolean {
+  const now = Date.now();
+  const entry = rateLimitMap.get(ip);
+  if (!entry || now > entry.resetAt) {
+    rateLimitMap.set(ip, { count: 1, resetAt: now + 60000 });
+    return true;
+  }
+  if (entry.count >= 20) return false;
+  entry.count++;
+  return true;
+}
 
 const router = Router();
 
@@ -71,6 +88,18 @@ router.get(
   '/:kode',
   async (req: Request, res: Response, next: NextFunction) => {
     try {
+      // Rate limit
+      const ip = req.ip || req.socket.remoteAddress || 'unknown';
+      if (!checkRateLimit(ip)) {
+        throw new AppError(429, 'Terlalu banyak permintaan. Coba lagi 1 menit.');
+      }
+      // Periodic cleanup (every 100 requests)
+      if (rateLimitMap.size > 1000) {
+        const now = Date.now();
+        for (const [k, v] of rateLimitMap) {
+          if (now > v.resetAt) rateLimitMap.delete(k);
+        }
+      }
       const code = req.params.kode.toUpperCase();
       const s = schemaSafe(req);
       let dv: any;
@@ -272,6 +301,57 @@ router.get(
         qr_data_url: qrDataUrl,
         verification_url: `${baseUrl}/verify/${dv.verification_code}`,
       });
+    } catch (err) { next(err); }
+  }
+);
+
+// Batch re-verify: create verification for all existing documents
+router.post(
+  '/batch',
+  authenticate,
+  requireRole(Role.ADMIN, Role.AKADEMIK),
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const s = schema(req);
+      const sn = req.tenant!.schemaName;
+      let khs = 0, krs = 0, trans = 0, surat = 0;
+
+      // KHS & KRS: group approved KRS by mahasiswa + semester + TA
+      const { rows: krsRows } = await query(
+        `SELECT DISTINCT mahasiswa_id, semester, tahun_akademik FROM ${s}.krs WHERE status = 'disetujui'`
+      );
+      for (const r of krsRows) {
+        const khsId = `khs_${r.mahasiswa_id}_${r.semester}_${r.tahun_akademik}`;
+        const krsId = `krs_${r.mahasiswa_id}_${r.semester}_${r.tahun_akademik}`;
+        try {
+          await createDocumentVerification(sn, khsId, 'khs', `khs:${r.mahasiswa_id}:${r.semester}:${r.tahun_akademik}`);
+          khs++;
+        } catch { /* duplicate or error */ }
+        try {
+          await createDocumentVerification(sn, krsId, 'krs', `krs:${r.mahasiswa_id}:${r.semester}:${r.tahun_akademik}`);
+          krs++;
+        } catch { /* duplicate or error */ }
+      }
+
+      // Transkrip: one per mahasiswa
+      const { rows: mhsRows } = await query(`SELECT id FROM ${s}.mahasiswa`);
+      for (const m of mhsRows) {
+        try {
+          await createDocumentVerification(sn, `transkrip_${m.id}`, 'transkrip', `transkrip:${m.id}`);
+          trans++;
+        } catch {}
+      }
+
+      // Surat keluar
+      const { rows: suratRows } = await query(`SELECT id FROM ${s}.surat_keluar`);
+      for (const row of suratRows) {
+        try {
+          await createDocumentVerification(sn, row.id, 'keluar', `surat:${row.id}`);
+          surat++;
+        } catch {}
+      }
+
+      sendSuccess(res, { khs, krs, transkrip: trans, surat_keluar: surat }, 'Batch re-verify selesai');
     } catch (err) { next(err); }
   }
 );
