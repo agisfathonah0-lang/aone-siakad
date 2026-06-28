@@ -71,6 +71,8 @@ export async function createDocumentVerification(
     return { hash, verification_code: verificationCode };
   };
 
+  // Always ensure table + columns exist (cheap with IF NOT EXISTS)
+  await ensureDVTable(schemaName);
   try {
     return await tryInsert();
   } catch (err: any) {
