@@ -13,13 +13,25 @@ function schema(req: Request): string {
   return `"${req.tenant.schemaName}"`;
 }
 
-async function getTenantWebsite(schemaName: string): Promise<string> {
-  const { rows } = await query(
-    `SELECT website FROM public.tenants WHERE schema_name = $1 LIMIT 1`,
-    [schemaName]
-  );
-  const website = rows[0]?.website || 'https://aone-siakad.my.id';
-  return website.startsWith('http') ? website : `https://${website}`;
+async function prepareVerification(
+  schemaName: string,
+  refId: string,
+  refType: string,
+  content: string
+): Promise<{ code?: string; baseUrl: string }> {
+  try {
+    const { verification_code } = await createDocumentVerification(schemaName, refId, refType, content);
+    const { rows } = await query(
+      `SELECT website FROM public.tenants WHERE schema_name = $1 LIMIT 1`,
+      [schemaName]
+    );
+    const website = rows[0]?.website || 'https://aone-siakad.my.id';
+    const baseUrl = website.startsWith('http') ? website : `https://${website}`;
+    return { code: verification_code, baseUrl };
+  } catch (err) {
+    console.error('[Cetak] Gagal buat verifikasi dokumen:', err);
+    return { baseUrl: 'https://aone-siakad.my.id' };
+  }
 }
 
 router.get(
@@ -34,10 +46,9 @@ router.get(
       const tahunAkademik = req.query.tahun_akademik as string;
       const refId = semester && tahunAkademik ? `khs_${mhsId}_${semester}_${tahunAkademik}` : `khs_${mhsId}`;
       const content = `khs:${mhsId}:${semester || ''}:${tahunAkademik || ''}`;
-      const { verification_code } = await createDocumentVerification(req.tenant!.schemaName, refId, 'khs', content);
-      const baseUrl = await getTenantWebsite(req.tenant!.schemaName);
+      const { code, baseUrl } = await prepareVerification(req.tenant!.schemaName, refId, 'khs', content);
       const dicetakOleh = req.user?.email?.split('@')[0] || 'User';
-      const pdf = await generateKHS(req.tenant!.schemaName, mhsId, semester, tahunAkademik, dicetakOleh, verification_code, baseUrl);
+      const pdf = await generateKHS(req.tenant!.schemaName, mhsId, semester, tahunAkademik, dicetakOleh, code, baseUrl);
       const { rows } = await query(`SELECT nim FROM ${s}.mahasiswa WHERE id = $1`, [mhsId]);
       const nim = rows.length > 0 ? rows[0].nim : mhsId;
       const suffix = semester && tahunAkademik ? `_${semester}_${tahunAkademik}` : '';
@@ -66,9 +77,8 @@ router.get(
       const dicetakOleh = req.user?.email?.split('@')[0] || 'User';
       const refId = `krs_${mhsId}_${semester}_${tahunAkademik}`;
       const content = `krs:${mhsId}:${semester}:${tahunAkademik}`;
-      const { verification_code: vKrs } = await createDocumentVerification(req.tenant!.schemaName, refId, 'krs', content);
-      const baseUrlKrs = await getTenantWebsite(req.tenant!.schemaName);
-      const pdf = await generateKRS(req.tenant!.schemaName, mhsId, semester, tahunAkademik, dicetakOleh, vKrs, baseUrlKrs);
+      const { code: krsCode, baseUrl: krsUrl } = await prepareVerification(req.tenant!.schemaName, refId, 'krs', content);
+      const pdf = await generateKRS(req.tenant!.schemaName, mhsId, semester, tahunAkademik, dicetakOleh, krsCode, krsUrl);
       const { rows } = await query(`SELECT nim FROM ${s}.mahasiswa WHERE id = $1`, [mhsId]);
       const nim = rows.length > 0 ? rows[0].nim : mhsId;
       res.setHeader('Content-Type', 'application/pdf');
@@ -91,9 +101,8 @@ router.get(
       const dicetakOleh = req.user?.email?.split('@')[0] || 'User';
       const refId = `transkrip_${mhsId}`;
       const content = `transkrip:${mhsId}`;
-      const { verification_code: vTrans } = await createDocumentVerification(req.tenant!.schemaName, refId, 'transkrip', content);
-      const baseUrlTrans = await getTenantWebsite(req.tenant!.schemaName);
-      const pdf = await generateTranskrip(req.tenant!.schemaName, mhsId, dicetakOleh, vTrans, baseUrlTrans);
+      const { code: transCode, baseUrl: transUrl } = await prepareVerification(req.tenant!.schemaName, refId, 'transkrip', content);
+      const pdf = await generateTranskrip(req.tenant!.schemaName, mhsId, dicetakOleh, transCode, transUrl);
       const { rows } = await query(`SELECT nim FROM ${s}.mahasiswa WHERE id = $1`, [mhsId]);
       const nim = rows.length > 0 ? rows[0].nim : mhsId;
       res.setHeader('Content-Type', 'application/pdf');
@@ -113,9 +122,8 @@ router.get(
     try {
       const dicetakOleh = req.user?.email?.split('@')[0] || 'User';
       const suratId = req.params.surat_id;
-      const { verification_code: vSurat } = await createDocumentVerification(req.tenant!.schemaName, suratId, 'keluar', `surat:${suratId}`);
-      const baseUrlSurat = await getTenantWebsite(req.tenant!.schemaName);
-      const pdf = await generateSuratKeluar(req.tenant!.schemaName, suratId, dicetakOleh, vSurat, baseUrlSurat);
+      const { code: suratCode, baseUrl: suratUrl } = await prepareVerification(req.tenant!.schemaName, suratId, 'keluar', `surat:${suratId}`);
+      const pdf = await generateSuratKeluar(req.tenant!.schemaName, suratId, dicetakOleh, suratCode, suratUrl);
       res.setHeader('Content-Type', 'application/pdf');
       res.setHeader('Content-Disposition', `attachment; filename="Surat_${req.params.surat_id.slice(0, 8)}.pdf"`);
       res.end(pdf);
