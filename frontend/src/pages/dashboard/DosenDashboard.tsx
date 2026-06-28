@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { get } from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
-import { BookOpen, Users, ClipboardCheck, Award, Clock, UserCheck, ArrowRight, CalendarDays, GraduationCap, TrendingUp, TrendingDown, BarChart3, BellRing } from 'lucide-react';
+import { BookOpen, Users, ClipboardCheck, Award, Clock, UserCheck, ArrowRight, CalendarDays, GraduationCap, TrendingUp, TrendingDown, BarChart3, BellRing, Sparkles, Bot, BookOpenCheck, AlertTriangle } from 'lucide-react';
 
 function StatCard({ icon: Icon, label, value, color, change, changeType }: { icon: any; label: string; value: string; color: string; change?: string; changeType?: 'up' | 'down' }) {
   return (
@@ -152,6 +152,33 @@ export default function DosenDashboard() {
               ))}
             </div>
           )}
+        </div>
+      </section>
+
+      {/* Fitur AI */}
+      <section className="bg-card rounded-xl border border-border p-5" style={{ background: 'var(--card)', borderColor: 'var(--border)' }}>
+        <div className="flex items-center gap-2 mb-4">
+          <Sparkles size={18} className="text-emerald-500" />
+          <h2 className="text-sm font-bold" style={{ fontFamily: 'var(--font-display)', color: 'var(--foreground)' }}>Fitur AI</h2>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          {[
+            { icon: Bot, label: 'AI Chatbot', desc: 'Tanya seputar akademik', path: 'ai', color: 'text-emerald-600 bg-emerald-50' },
+            { icon: BookOpenCheck, label: 'Generate RPS', desc: 'Buat RPS otomatis', path: 'ai?tab=rps', color: 'text-blue-600 bg-blue-50' },
+            { icon: AlertTriangle, label: 'Cek Plagiarisme', desc: 'Deteksi plagiarisme', path: 'ai?tab=plagiarism', color: 'text-amber-600 bg-amber-50' },
+          ].map(({ icon: Icon, label, desc, path, color }) => (
+            <button key={label} onClick={() => navigate(path)}
+              className="flex items-center gap-3 p-3 rounded-lg border transition-all text-left"
+              style={{ borderColor: 'var(--border)' }}
+              onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(16,185,129,0.3)'; e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.05)'; }}
+              onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.boxShadow = 'none'; }}>
+              <div className={`w-9 h-9 rounded-lg flex items-center justify-center shrink-0 ${color}`}><Icon size={16} /></div>
+              <div className="min-w-0">
+                <p className="text-xs font-semibold" style={{ color: 'var(--foreground)' }}>{label}</p>
+                <p className="text-[10px] mt-0.5 truncate" style={{ color: 'var(--muted-foreground)' }}>{desc}</p>
+              </div>
+            </button>
+          ))}
         </div>
       </section>
 

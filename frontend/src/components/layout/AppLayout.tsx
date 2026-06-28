@@ -5,6 +5,7 @@ import { useAuth } from '../../context/AuthContext';
 import { Bell, Search, Menu } from 'lucide-react';
 import ThemeToggle from '../ui/ThemeToggle';
 import NotifBell from '../ui/NotifBell';
+import FloatingChatbot from '../ui/FloatingChatbot';
 
 function initialAvatar(nama?: string) {
   if (!nama) return '?';
@@ -106,6 +107,7 @@ export default function AppLayout() {
           <Outlet />
         </div>
       </main>
+      <FloatingChatbot />
     </div>
   );
 }
