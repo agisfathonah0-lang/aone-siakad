@@ -1,7 +1,8 @@
 -- 032_tenant_document_verification.sql — Blockchain-style document verification
+-- surat_id is VARCHAR to support composite IDs (e.g. khs_uuid_ganjil_2024/2025)
 CREATE TABLE IF NOT EXISTS {schema}.document_verification (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  surat_id UUID NOT NULL,
+  surat_id VARCHAR(255) NOT NULL,
   surat_type VARCHAR(20) NOT NULL,
   hash VARCHAR(64) NOT NULL,
   prev_hash VARCHAR(64),

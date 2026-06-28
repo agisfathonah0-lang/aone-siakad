@@ -64,16 +64,31 @@ async function embedVerificationQR(
     const qrBuf = Buffer.from(qrDataUrl.split(',')[1], 'base64');
 
     doc.moveDown(1);
-    try { doc.moveTo(doc.page.margins.left, doc.y).lineTo(doc.page.width - doc.page.margins.right, doc.y).lineWidth(0.5).stroke('#cccccc'); } catch {}
+    doc.rect(doc.page.margins.left, doc.y, doc.page.width - doc.page.margins.left - doc.page.margins.right, 0.5).fill('#d1d5db');
     doc.moveDown(0.5);
-    doc.image(qrBuf, doc.page.width - doc.page.margins.right - 75, doc.y, { width: 55, height: 55 });
+    doc.image(qrBuf, doc.page.width - doc.page.margins.right - 70, doc.y, { width: 50, height: 50 });
     doc.font('Helvetica').fontSize(6);
-    doc.text('Verifikasi dokumen:', doc.page.margins.left, doc.y - 40, { width: doc.page.width - doc.page.margins.left - doc.page.margins.right - 80 });
+    doc.text('Verifikasi dokumen:', doc.page.margins.left, doc.y - 36, { width: doc.page.width - doc.page.margins.left - doc.page.margins.right - 75 });
     doc.font('Helvetica-Bold').fontSize(6);
-    doc.text(`Kode: ${dv[0].verification_code}`, doc.page.margins.left, doc.y + 2, { width: doc.page.width - doc.page.margins.left - doc.page.margins.right - 80 });
-    doc.font('Helvetica').fontSize(5);
-    doc.text('Scan QR atau kunjungi website untuk verifikasi', doc.page.margins.left, doc.y + 4, { width: doc.page.width - doc.page.margins.left - doc.page.margins.right - 80 });
-  } catch { /* QR code optional */ }
+    doc.text(`Kode: ${dv[0].verification_code}`, doc.page.margins.left, doc.y + 2, { width: doc.page.width - doc.page.margins.left - doc.page.margins.right - 75 });
+    doc.font('Helvetica').fontSize(5).fillColor('#64748b');
+    doc.text('Scan QR atau kunjungi website untuk verifikasi', doc.page.margins.left, doc.y + 4, { width: doc.page.width - doc.page.margins.left - doc.page.margins.right - 75 });
+  } catch (e) {
+    console.error('[QR] Gagal generate QR:', e);
+  }
+}
+
+function addFooter(doc: PDFKit.PDFDocument, dicetakOleh?: string) {
+  const now = new Date();
+  const tgl = now.toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+  const lebar = doc.page.width - doc.page.margins.left - doc.page.margins.right;
+  const y = doc.page.height - doc.page.margins.bottom - 30;
+
+  doc.rect(doc.page.margins.left, y - 2, lebar, 0.5).fill('#94a3b8');
+  doc.font('Helvetica').fontSize(5.5).fillColor('#64748b');
+  doc.text(`Dicetak oleh: ${dicetakOleh || '-'} pada ${tgl}`, doc.page.margins.left, y + 2, { width: lebar, align: 'left' });
+  doc.text('Dokumen ini terverifikasi AOne Siakad', doc.page.margins.left, y + 9, { width: lebar, align: 'left' });
+  doc.fillColor('#000000');
 }
 
 function s(schemaName: string): string {
@@ -159,7 +174,8 @@ export async function generateKHS(
   schemaName: string,
   mahasiswaId: string,
   semester?: string,
-  tahunAkademik?: string
+  tahunAkademik?: string,
+  dicetakOleh?: string
 ): Promise<Buffer> {
   return new Promise<Buffer>(async (resolve, reject) => {
     try {
@@ -243,6 +259,7 @@ export async function generateKHS(
       doc.text(`Total SKS: ${totalSks}`, 50, tableY + 10, { continued: true });
       doc.text(`     IPK: ${ipk}`, { align: 'right' });
 
+      addFooter(doc, dicetakOleh);
       const refId = semester && tahunAkademik ? `khs_${mahasiswaId}_${semester}_${tahunAkademik}` : `khs_${mahasiswaId}`;
       await embedVerificationQR(doc, schemaName, refId, 'khs');
       doc.end();
@@ -256,7 +273,8 @@ export async function generateKRS(
   schemaName: string,
   mahasiswaId: string,
   semester: string,
-  tahunAkademik: string
+  tahunAkademik: string,
+  dicetakOleh?: string
 ): Promise<Buffer> {
   return new Promise<Buffer>(async (resolve, reject) => {
     try {
@@ -316,6 +334,7 @@ export async function generateKRS(
 
       drawTable(doc, headers, widths, aligns, tableRows, doc.y);
 
+      addFooter(doc, dicetakOleh);
       const refIdKrs = `krs_${mahasiswaId}_${semester}_${tahunAkademik}`;
       await embedVerificationQR(doc, schemaName, refIdKrs, 'krs');
       doc.end();
@@ -325,7 +344,7 @@ export async function generateKRS(
   });
 }
 
-export async function generateTranskrip(schemaName: string, mahasiswaId: string): Promise<Buffer> {
+export async function generateTranskrip(schemaName: string, mahasiswaId: string, dicetakOleh?: string): Promise<Buffer> {
   return new Promise<Buffer>(async (resolve, reject) => {
     try {
       const doc = new PDFDocument({ margin: 50, size: 'A4' });
@@ -439,6 +458,7 @@ export async function generateTranskrip(schemaName: string, mahasiswaId: string)
       doc.fontSize(12).font('Helvetica-Bold');
       doc.text(`Total SKS: ${totalSksAll}     IPK: ${finalIpk}`, { align: 'center' });
 
+      addFooter(doc, dicetakOleh);
       const refIdTrans = `transkrip_${mahasiswaId}`;
       await embedVerificationQR(doc, schemaName, refIdTrans, 'transkrip');
       doc.end();
@@ -450,7 +470,8 @@ export async function generateTranskrip(schemaName: string, mahasiswaId: string)
 
 export async function generateSuratKeluar(
   schemaName: string,
-  suratId: string
+  suratId: string,
+  dicetakOleh?: string
 ): Promise<Buffer> {
   return new Promise<Buffer>(async (resolve, reject) => {
     try {
@@ -572,6 +593,7 @@ export async function generateSuratKeluar(
       doc.moveDown(3);
       doc.font('Helvetica-Bold').text(surat[0].penandatangan || '(________________)', { align: 'right' });
 
+      addFooter(doc, dicetakOleh);
       await embedVerificationQR(doc, schemaName, suratId, 'keluar');
       doc.end();
     } catch (err) {

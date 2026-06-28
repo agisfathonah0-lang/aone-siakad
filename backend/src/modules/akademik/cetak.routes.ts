@@ -26,7 +26,8 @@ router.get(
       const refId = semester && tahunAkademik ? `khs_${mhsId}_${semester}_${tahunAkademik}` : `khs_${mhsId}`;
       const content = `khs:${mhsId}:${semester || ''}:${tahunAkademik || ''}`;
       await createDocumentVerification(req.tenant!.schemaName, refId, 'khs', content).catch(() => {});
-      const pdf = await generateKHS(req.tenant!.schemaName, mhsId, semester, tahunAkademik);
+      const dicetakOleh = req.user?.email?.split('@')[0] || 'User';
+      const pdf = await generateKHS(req.tenant!.schemaName, mhsId, semester, tahunAkademik, dicetakOleh);
       const { rows } = await query(`SELECT nim FROM ${s}.mahasiswa WHERE id = $1`, [mhsId]);
       const nim = rows.length > 0 ? rows[0].nim : mhsId;
       const suffix = semester && tahunAkademik ? `_${semester}_${tahunAkademik}` : '';
@@ -52,10 +53,11 @@ router.get(
       if (!semester || !tahunAkademik) {
         throw new AppError(400, 'Parameter semester dan tahun_akademik wajib diisi');
       }
+      const dicetakOleh = req.user?.email?.split('@')[0] || 'User';
       const refId = `krs_${mhsId}_${semester}_${tahunAkademik}`;
       const content = `krs:${mhsId}:${semester}:${tahunAkademik}`;
       await createDocumentVerification(req.tenant!.schemaName, refId, 'krs', content).catch(() => {});
-      const pdf = await generateKRS(req.tenant!.schemaName, mhsId, semester, tahunAkademik);
+      const pdf = await generateKRS(req.tenant!.schemaName, mhsId, semester, tahunAkademik, dicetakOleh);
       const { rows } = await query(`SELECT nim FROM ${s}.mahasiswa WHERE id = $1`, [mhsId]);
       const nim = rows.length > 0 ? rows[0].nim : mhsId;
       res.setHeader('Content-Type', 'application/pdf');
@@ -75,10 +77,11 @@ router.get(
     try {
       const s = schema(req);
       const mhsId = req.params.mahasiswa_id;
+      const dicetakOleh = req.user?.email?.split('@')[0] || 'User';
       const refId = `transkrip_${mhsId}`;
       const content = `transkrip:${mhsId}`;
       await createDocumentVerification(req.tenant!.schemaName, refId, 'transkrip', content).catch(() => {});
-      const pdf = await generateTranskrip(req.tenant!.schemaName, mhsId);
+      const pdf = await generateTranskrip(req.tenant!.schemaName, mhsId, dicetakOleh);
       const { rows } = await query(`SELECT nim FROM ${s}.mahasiswa WHERE id = $1`, [mhsId]);
       const nim = rows.length > 0 ? rows[0].nim : mhsId;
       res.setHeader('Content-Type', 'application/pdf');
@@ -96,7 +99,8 @@ router.get(
   requireRole(Role.ADMIN, Role.AKADEMIK, Role.MAHASISWA),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const pdf = await generateSuratKeluar(req.tenant!.schemaName, req.params.surat_id);
+      const dicetakOleh = req.user?.email?.split('@')[0] || 'User';
+      const pdf = await generateSuratKeluar(req.tenant!.schemaName, req.params.surat_id, dicetakOleh);
       res.setHeader('Content-Type', 'application/pdf');
       res.setHeader('Content-Disposition', `attachment; filename="Surat_${req.params.surat_id.slice(0, 8)}.pdf"`);
       res.end(pdf);
