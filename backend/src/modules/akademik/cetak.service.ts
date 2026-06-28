@@ -101,46 +101,57 @@ function drawTable(
   opts: { headerSize?: number; rowSize?: number; rowHeight?: number } = {}
 ): number {
   const headerSize = opts.headerSize ?? 9;
-  const rowSize = opts.rowSize ?? 9;
-  const rowHeight = opts.rowHeight ?? 18;
+  const rowSize = opts.rowSize ?? 8;
+  const rowHeight = opts.rowHeight ?? 20;
   const leftX = doc.page.margins.left;
   const colX: number[] = [];
   let x = leftX;
   for (const w of widths) { colX.push(x); x += w; }
   const rightX = x;
   let y = startY;
-  const pad = 3;
+  const pad = 4;
+  const headerColor = '#1e293b';
+  const borderColor = '#cbd5e1';
+  const stripeColor = '#f8fafc';
 
+  // Header
   doc.font('Helvetica-Bold').fontSize(headerSize);
-  doc.roundedRect(leftX, y, rightX - leftX, rowHeight, 2).fill('#2563eb');
+  doc.rect(leftX, y, rightX - leftX, rowHeight).fill(headerColor);
   doc.fill('#ffffff');
   for (let i = 0; i < headers.length; i++) {
     doc.text(headers[i], colX[i] + pad, y + pad, {
       width: widths[i] - pad * 2, align: aligns[i] || 'left',
     });
   }
+  // Bottom border header
+  doc.rect(leftX, y + rowHeight - 1, rightX - leftX, 1).fill('#0f172a');
+
   y += rowHeight;
 
-  doc.font('Helvetica').fontSize(rowSize).fill('#000000');
+  // Rows
+  doc.font('Helvetica').fontSize(rowSize).fill('#1e293b');
   for (let r = 0; r < rows.length; r++) {
     if (y + rowHeight > doc.page.height - doc.page.margins.bottom) {
       doc.addPage();
       y = doc.page.margins.top;
     }
-    if (r % 2 === 1) {
-      doc.rect(leftX, y, rightX - leftX, rowHeight).fill('#f8fafc');
-      doc.fill('#000000');
+    // Alternating row background
+    if (r % 2 === 0) {
+      doc.rect(leftX, y, rightX - leftX, rowHeight).fill(stripeColor);
+      doc.fill('#1e293b');
     }
-    doc.moveTo(leftX, y).lineTo(rightX, y).stroke('#e2e8f0');
+    // Top border per row
+    doc.moveTo(leftX, y).lineTo(rightX, y).lineWidth(0.5).stroke(borderColor);
     for (let i = 0; i < widths.length; i++) {
       const val = rows[r][i] !== null && rows[r][i] !== undefined ? String(rows[r][i]) : '-';
-      doc.text(val, colX[i] + pad, y + pad, {
+      doc.text(val, colX[i] + pad, y + pad + 1, {
         width: widths[i] - pad * 2, align: aligns[i] || 'left',
       });
     }
     y += rowHeight;
   }
-  doc.moveTo(leftX, y).lineTo(rightX, y).stroke('#e2e8f0');
+  // Bottom border last row
+  doc.moveTo(leftX, y).lineTo(rightX, y).lineWidth(0.5).stroke(borderColor);
   return y;
 }
 
@@ -232,7 +243,8 @@ export async function generateKHS(
       doc.text(`Total SKS: ${totalSks}`, 50, tableY + 10, { continued: true });
       doc.text(`     IPK: ${ipk}`, { align: 'right' });
 
-      await embedVerificationQR(doc, schemaName, mahasiswaId, 'khs');
+      const refId = semester && tahunAkademik ? `khs_${mahasiswaId}_${semester}_${tahunAkademik}` : `khs_${mahasiswaId}`;
+      await embedVerificationQR(doc, schemaName, refId, 'khs');
       doc.end();
     } catch (err) {
       reject(err);
@@ -304,7 +316,8 @@ export async function generateKRS(
 
       drawTable(doc, headers, widths, aligns, tableRows, doc.y);
 
-      await embedVerificationQR(doc, schemaName, mahasiswaId, 'krs');
+      const refIdKrs = `krs_${mahasiswaId}_${semester}_${tahunAkademik}`;
+      await embedVerificationQR(doc, schemaName, refIdKrs, 'krs');
       doc.end();
     } catch (err) {
       reject(err);
@@ -426,7 +439,8 @@ export async function generateTranskrip(schemaName: string, mahasiswaId: string)
       doc.fontSize(12).font('Helvetica-Bold');
       doc.text(`Total SKS: ${totalSksAll}     IPK: ${finalIpk}`, { align: 'center' });
 
-      await embedVerificationQR(doc, schemaName, mahasiswaId, 'transkrip');
+      const refIdTrans = `transkrip_${mahasiswaId}`;
+      await embedVerificationQR(doc, schemaName, refIdTrans, 'transkrip');
       doc.end();
     } catch (err) {
       reject(err);
