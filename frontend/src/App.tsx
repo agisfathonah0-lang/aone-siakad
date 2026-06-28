@@ -175,8 +175,7 @@ function TagihanRouter() {
 
 function AppRoutes() {
   return (
-    <Suspense fallback={<PageLoader />}>
-      <Routes>
+    <Routes>
         <Route path="/" element={<TenantLandingRouter />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/vendor/login" element={<VendorLoginPage />} />
@@ -260,7 +259,6 @@ function AppRoutes() {
           <Route path="vendor/tenants/:id" element={<TenantDetailPage />} />
         </Route>
       </Routes>
-    </Suspense>
   );
 }
 

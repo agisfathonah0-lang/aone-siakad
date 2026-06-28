@@ -1,8 +1,8 @@
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useCallback, Suspense } from 'react';
 import { Outlet, useLocation, Link } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import { useAuth } from '../../context/AuthContext';
-import { Bell, Search, Menu } from 'lucide-react';
+import { Bell, Search, Menu, Loader2 } from 'lucide-react';
 import ThemeToggle from '../ui/ThemeToggle';
 import NotifBell from '../ui/NotifBell';
 
@@ -32,6 +32,7 @@ export default function AppLayout() {
   const closeSidebar = useCallback(() => setSidebarOpen(false), []);
   const { user } = useAuth();
   const location = useLocation();
+  const slug = location.pathname.split('/')[2] || user?.tenantSlug || '';
   const pathSegment = location.pathname.split('/').pop() || 'dashboard';
   const pageTitle = pageTitles[pathSegment] || 'Dashboard';
 
@@ -42,7 +43,7 @@ export default function AppLayout() {
 
   return (
     <div className="min-h-screen flex" style={{ background: 'var(--background)', fontFamily: 'var(--font-sans)' }}>
-      <Sidebar open={sidebarOpen} onClose={closeSidebar} />
+      <Sidebar open={sidebarOpen} onClose={closeSidebar} pathname={location.pathname} slug={slug} />
 
       <main className="flex-1 flex flex-col min-h-screen lg:ml-[240px]">
         {/* Sticky Topbar */}
@@ -104,7 +105,9 @@ export default function AppLayout() {
 
         {/* Content */}
         <div className="flex-1 p-8" style={{ background: 'var(--background)' }}>
-          <Outlet />
+          <Suspense fallback={<div className="flex items-center justify-center py-20"><Loader2 className="w-6 h-6 animate-spin" style={{ color: 'var(--primary)' }} /></div>}>
+            <Outlet />
+          </Suspense>
         </div>
       </main>
     </div>

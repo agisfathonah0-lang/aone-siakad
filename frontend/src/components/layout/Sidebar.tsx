@@ -1,5 +1,5 @@
-import { useState, useMemo, memo, useCallback } from 'react';
-import { useLocation, useNavigate, Link } from 'react-router-dom';
+import { useState, useMemo, memo } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import {
   LayoutDashboard, GraduationCap, Presentation, Wallet, Ellipsis, Share2, Sparkles,
   BarChart3, Settings, LogOut, Users, ChevronRight,
@@ -25,7 +25,7 @@ const iconMap: Record<string, LucideIcon> = {
   DoorOpen, List, Globe, Layout, Bot, AlertTriangle, Database, Megaphone, UserCircle,
 };
 
-interface SidebarProps { open: boolean; onClose: () => void }
+interface SidebarProps { open: boolean; onClose: () => void; pathname: string; slug: string }
 
 function initialAvatar(nama?: string) {
   if (!nama) return '?';
@@ -58,9 +58,8 @@ const roleLabels: Record<string, string> = {
   calon_mahasiswa: 'Calon Mhs', alumni: 'Alumni',
 };
 
-const Sidebar = memo(function Sidebar({ open, onClose }: SidebarProps) {
+const Sidebar = memo(function Sidebar({ open, onClose, pathname, slug }: SidebarProps) {
   const { user, logout, setActiveRole } = useAuth();
-  const location = useLocation();
   const navigate = useNavigate();
   const role = user?.role || 'mahasiswa';
   const allRoles = useMemo<Role[]>(() => user?.roles?.length ? user.roles : [role], [user?.roles, role]);
@@ -71,9 +70,8 @@ const Sidebar = memo(function Sidebar({ open, onClose }: SidebarProps) {
     () => isVendor ? [] : filterMenusByRoles(SIDEBAR_MENUS, allRoles),
     [isVendor, allRoles]
   );
-  const slug = location.pathname.split('/')[2] || user?.tenantSlug || '';
   const basePath = `/kampus/${slug}`;
-  const pathSegment = location.pathname.split('/').pop() || 'dashboard';
+  const pathSegment = pathname.split('/').pop() || 'dashboard';
 
   // Compute active section directly from route — no state, no double render
   const activeSection = useMemo(() => {
@@ -88,9 +86,6 @@ const Sidebar = memo(function Sidebar({ open, onClose }: SidebarProps) {
   // Separate state for user's manual expand/collapse (overrides route-based section)
   const [overrideSection, setOverrideSection] = useState<string>('');
   const expandedSection = overrideSection || activeSection;
-  const handleToggle = useCallback((label: string) => {
-    setOverrideSection(prev => prev === label ? '' : label);
-  }, []);
 
   const navMenus = isVendor ? vendorItems : filteredMenus;
 
@@ -136,8 +131,8 @@ const Sidebar = memo(function Sidebar({ open, onClose }: SidebarProps) {
           const Icon = isVendor ? item.icon : (iconMap[item.icon] || LayoutDashboard);
           const hasChildren = !isVendor && item.children?.length > 0;
           const isOpen = expandedSection === item.label;
-          const childActive = !isVendor && isAnyChildActive(item.children, basePath, location.pathname);
-          const sectionActive = isVendor ? false : (childActive || (!hasChildren && item.path && isChildActive(item.path, basePath, location.pathname)));
+          const childActive = !isVendor && isAnyChildActive(item.children, basePath, pathname);
+          const sectionActive = isVendor ? false : (childActive || (!hasChildren && item.path && isChildActive(item.path, basePath, pathname)));
 
           return (
             <div key={item.label}>
@@ -188,7 +183,7 @@ const Sidebar = memo(function Sidebar({ open, onClose }: SidebarProps) {
                               {child.label}
                             </p>
                             {child.children.map((sub: any) => {
-                              const subActive = isChildActive(sub.path, basePath, location.pathname);
+                              const subActive = isChildActive(sub.path, basePath, pathname);
                               const SubIcon = iconMap[sub.icon] || LayoutDashboard;
                               return (
                                 <Link
@@ -210,7 +205,7 @@ const Sidebar = memo(function Sidebar({ open, onClose }: SidebarProps) {
                           </div>
                         );
                       }
-                      const childActive = isChildActive(child.path, basePath, location.pathname);
+                      const childActive = isChildActive(child.path, basePath, pathname);
                       const ChildIcon = iconMap[child.icon] || LayoutDashboard;
                       return (
                         <Link
