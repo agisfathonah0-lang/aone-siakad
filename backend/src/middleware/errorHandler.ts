@@ -1,4 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
+import crypto from 'crypto';
 import { config } from '../config/index.js';
 
 export class AppError extends Error {
@@ -10,6 +11,13 @@ export class AppError extends Error {
     super(message);
     this.name = 'AppError';
   }
+}
+
+let errorIdCounter = 0;
+function generateErrorId(): string {
+  const ts = Date.now().toString(36).slice(-4);
+  const n = (++errorIdCounter % 9999).toString().padStart(4, '0');
+  return `E${ts}${n}`;
 }
 
 export function errorHandler(
@@ -27,11 +35,11 @@ export function errorHandler(
     return;
   }
 
-  console.error('[ERROR]', err.stack || err.message);
+  const errorId = generateErrorId();
+  console.error(`[ERROR ${errorId}]`, err.stack || err.message);
   res.status(500).json({
     success: false,
-    message: config.env === 'production'
-      ? 'Terjadi kesalahan internal server'
-      : err.message,
+    message: err.message || 'Terjadi kesalahan internal server',
+    error_id: errorId,
   });
 }
