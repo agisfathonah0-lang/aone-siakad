@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { get } from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
 import EarlyWarningWidget from '../../components/dashboard/EarlyWarningWidget';
@@ -26,6 +26,8 @@ function StatCard({ icon: Icon, label, value, color, change, changeType }: { ico
 
 export default function DosenDashboard() {
   const navigate = useNavigate();
+  const { slug } = useParams<{ slug: string }>();
+  const base = `/kampus/${slug}`;
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [jadwal, setJadwal] = useState<any[]>([]);
@@ -65,7 +67,7 @@ export default function DosenDashboard() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       {/* Stat Cards */}
       <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
         <StatCard icon={BookOpen} label="Kelas Diampu" value={stats.kelas.toString()} color="bg-primary" change="+2" changeType="up" />
@@ -83,7 +85,7 @@ export default function DosenDashboard() {
               <h2 className="text-sm font-semibold" style={{ fontFamily: 'var(--font-display)', color: 'var(--foreground)' }}>Jadwal Mengajar</h2>
               <p className="text-xs mt-0.5" style={{ color: 'var(--muted-foreground)' }}>Hari ini</p>
             </div>
-            <button onClick={() => navigate('jadwal')} className="text-xs font-medium flex items-center gap-1 hover:underline" style={{ color: 'var(--primary)' }}>
+            <button onClick={() => navigate(base + '/jadwal')} className="text-xs font-medium flex items-center gap-1 hover:underline" style={{ color: 'var(--primary)' }}>
               Lihat semua <ArrowRight size={12} />
             </button>
           </div>
@@ -168,7 +170,7 @@ export default function DosenDashboard() {
             { icon: BookOpenCheck, label: 'Generate RPS', desc: 'Buat RPS otomatis', path: 'ai?tab=rps', color: 'text-blue-600 bg-blue-50' },
             { icon: AlertTriangle, label: 'Cek Plagiarisme', desc: 'Deteksi plagiarisme', path: 'ai?tab=plagiarism', color: 'text-amber-600 bg-amber-50' },
           ].map(({ icon: Icon, label, desc, path, color }) => (
-            <button key={label} onClick={() => navigate(path)}
+            <button key={label} onClick={() => navigate(base + '/' + path)}
               className="flex items-center gap-3 p-3 rounded-lg border transition-all text-left"
               style={{ borderColor: 'var(--border)' }}
               onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(16,185,129,0.3)'; e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.05)'; }}
@@ -196,7 +198,7 @@ export default function DosenDashboard() {
             { icon: CalendarDays, label: 'BAP', color: 'text-sky-600 bg-sky-50', path: 'bap' },
             { icon: Users, label: 'Perwalian', color: 'text-violet-600 bg-violet-50', path: 'perwalian' },
           ].map(({ icon: Icon, label, color, path }) => (
-            <button key={label} onClick={() => navigate(path)}
+            <button key={label} onClick={() => navigate(base + '/' + path)}
               className="flex flex-col items-center gap-1.5 p-3 rounded-lg border transition-all"
               style={{ borderColor: 'var(--border)' }}
               onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(37,99,235,0.3)'; e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.05)'; }}

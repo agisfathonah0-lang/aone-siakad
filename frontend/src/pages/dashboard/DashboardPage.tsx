@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { AreaChart, Area, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip, PieChart, Pie, Cell, CartesianGrid } from 'recharts';
 import { get } from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
@@ -124,6 +124,8 @@ function ProgressBar({ value, total, color }: { value: number; total: number; co
 
 function AdminDashboard() {
   const navigate = useNavigate();
+  const { slug } = useParams<{ slug: string }>();
+  const base = `/kampus/${slug}`;
   const [loading, setLoading] = useState(true);
   const [greeting, setGreeting] = useState('');
   const [stats, setStats] = useState<any>(null);
@@ -173,7 +175,7 @@ function AdminDashboard() {
   }
 
   return (
-    <>
+    <div className="space-y-5">
       <section className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4">
         <StatCard icon={Users} label="Total Mahasiswa Aktif" value={(stats?.mahasiswa ?? 0).toLocaleString()} change="+8.2%" changeType="up" color="bg-primary" />
         <StatCard icon={UserCheck} label="Total Dosen Aktif" value={(stats?.dosen ?? 0).toLocaleString()} change="+3.1%" changeType="up" color="bg-indigo-500" />
@@ -194,7 +196,7 @@ function AdminDashboard() {
             { icon: AlertTriangle, label: 'Cek Plagiarisme', desc: 'Deteksi plagiarisme', path: 'ai?tab=plagiarism', color: 'text-amber-600 bg-amber-50' },
             { icon: BarChart3, label: 'Analisis MHS', desc: 'Analisis data mahasiswa', path: 'ai?tab=analytics', color: 'text-violet-600 bg-violet-50' },
           ].map(({ icon: Icon, label, desc, path, color }) => (
-            <button key={label} onClick={() => navigate(path)}
+            <button key={label} onClick={() => navigate(base + '/' + path)}
               className="flex items-center gap-3 p-3 rounded-lg border transition-all text-left"
               style={{ borderColor: 'var(--border)' }}
               onMouseEnter={e => { e.currentTarget.style.borderColor = 'rgba(16,185,129,0.3)'; e.currentTarget.style.boxShadow = '0 1px 3px rgba(0,0,0,0.05)'; }}
@@ -392,12 +394,14 @@ function AdminDashboard() {
           </div>
         </div>
       </section>
-    </>
+    </div>
   );
 }
 
 function MahasiswaDashboard() {
   const navigate = useNavigate();
+  const { slug } = useParams<{ slug: string }>();
+  const base = `/kampus/${slug}`;
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [greeting, setGreeting] = useState('');
@@ -458,7 +462,7 @@ function MahasiswaDashboard() {
   }
 
   return (
-    <>
+    <div className="space-y-5">
       <section className="grid grid-cols-1 lg:grid-cols-4 gap-4">
         <div className="bg-card rounded-xl border border-border p-5" style={{ background: 'var(--card)', borderColor: 'var(--border)' }}>
           <div className="flex items-center gap-3.5 mb-4">
@@ -657,7 +661,7 @@ function MahasiswaDashboard() {
           )}
         </div>
       </section>
-    </>
+    </div>
   );
 }
 
