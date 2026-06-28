@@ -48,12 +48,18 @@ async function bootstrap(): Promise<void> {
     // Auto‑migrate all existing tenants (critical for Render — no shell access)
     try {
       const { rows: tenants } = await query(`SELECT schema_name FROM public.tenants WHERE status = 'active'`);
+      let ok = 0, fail = 0;
       for (const t of tenants) {
-        await runTenantMigrations(t.schema_name);
+        try {
+          await runTenantMigrations(t.schema_name);
+          ok++;
+        } catch {
+          fail++;
+        }
       }
-      console.log(`[AutoMigrate] ✅ ${tenants.length} tenant(s) migrated`);
+      console.log(`[AutoMigrate] ${ok} tenant(s) OK, ${fail} failed`);
     } catch (err) {
-      console.warn('[AutoMigrate] ⚠️  No tenants table yet or migration failed — will retry on first request');
+      console.warn('[AutoMigrate] ⚠️  No tenants table yet — skipping');
     }
 
     try {

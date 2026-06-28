@@ -27,9 +27,10 @@ async function prepareVerification(
     );
     const website = rows[0]?.website || 'https://aone-siakad.my.id';
     const baseUrl = website.startsWith('http') ? website : `https://${website}`;
+    console.log(`[Cetak] ✅ Verifikasi ${refType} ${refId}: kode=${verification_code}, baseUrl=${baseUrl}`);
     return { code: verification_code, baseUrl };
   } catch (err) {
-    console.error('[Cetak] Gagal buat verifikasi dokumen:', err);
+    console.error('[Cetak] ❌ Gagal buat verifikasi dokumen:', err);
     return { baseUrl: 'https://aone-siakad.my.id' };
   }
 }
@@ -129,6 +130,33 @@ router.get(
       res.end(pdf);
     } catch (err) {
       next(err);
+    }
+  }
+);
+
+// Diagnostic: check verification status for this tenant
+router.get(
+  '/check-verification',
+  authenticate,
+  async (req: Request, res: Response) => {
+    const s = schema(req);
+    try {
+      const { rows: tables } = await query(
+        `SELECT table_name FROM information_schema.tables WHERE table_schema = $1 AND table_name = 'document_verification'`,
+        [req.tenant!.schemaName]
+      );
+      const tableExists = tables.length > 0;
+      let recordCount = 0;
+      if (tableExists) {
+        const { rows: cnt } = await query(`SELECT COUNT(*)::int AS n FROM ${s}.document_verification`);
+        recordCount = cnt[0]?.n || 0;
+      }
+      const { rows: mig } = await query(
+        `SELECT filename FROM ${s}.migrations WHERE filename LIKE '%document_verification%' OR filename LIKE '%032%' OR filename LIKE '%033%' ORDER BY filename`
+      );
+      res.json({ tableExists, recordCount, migrations: mig.map((r: any) => r.filename) });
+    } catch (err: any) {
+      res.json({ error: err.message });
     }
   }
 );
