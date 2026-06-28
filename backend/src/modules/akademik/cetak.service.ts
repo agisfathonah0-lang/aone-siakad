@@ -15,6 +15,31 @@ function generateVerificationCode(): string {
   return code;
 }
 
+const CREATE_DV_TABLE = `
+  CREATE TABLE IF NOT EXISTS {s}.document_verification (
+    id UUID PRIMARY KEY,
+    surat_id VARCHAR(255) NOT NULL,
+    surat_type VARCHAR(20) NOT NULL,
+    hash VARCHAR(64) NOT NULL,
+    prev_hash VARCHAR(64),
+    verification_code VARCHAR(10) UNIQUE NOT NULL,
+    verified_count INTEGER DEFAULT 0,
+    created_at TIMESTAMPTZ DEFAULT NOW()
+  );
+  CREATE INDEX IF NOT EXISTS idx_dv_surat ON {s}.document_verification(surat_id, surat_type);
+  CREATE INDEX IF NOT EXISTS idx_dv_code ON {s}.document_verification(verification_code);
+`;
+
+async function ensureDVTable(schemaName: string): Promise<void> {
+  const s = `"${schemaName}"`;
+  const sql = CREATE_DV_TABLE.replace(/\{s\}/g, s);
+  await query(sql);
+}
+
+function isMissingTable(err: any): boolean {
+  return err?.code === '42P01';
+}
+
 export async function createDocumentVerification(
   schemaName: string,
   suratId: string,
@@ -22,18 +47,32 @@ export async function createDocumentVerification(
   content: string
 ): Promise<{ hash: string; verification_code: string }> {
   const s = `"${schemaName}"`;
-  const { rows: last } = await query(
-    `SELECT hash FROM ${s}.document_verification ORDER BY created_at DESC LIMIT 1`
-  );
-  const prevHash = last.length > 0 ? last[0].hash : '0000000000000000000000000000000000000000000000000000000000000000';
-  const hash = crypto.createHash('sha256').update(content + prevHash).digest('hex');
-  const verificationCode = generateVerificationCode();
-  const id = uuid();
-  await query(
-    `INSERT INTO ${s}.document_verification (id, surat_id, surat_type, hash, prev_hash, verification_code) VALUES ($1, $2, $3, $4, $5, $6)`,
-    [id, suratId, suratType, hash, prevHash, verificationCode]
-  );
-  return { hash, verification_code: verificationCode };
+
+  const tryInsert = async (): Promise<{ hash: string; verification_code: string }> => {
+    const { rows: last } = await query(
+      `SELECT hash FROM ${s}.document_verification ORDER BY created_at DESC LIMIT 1`
+    );
+    const prevHash = last.length > 0 ? last[0].hash : '0000000000000000000000000000000000000000000000000000000000000000';
+    const hash = crypto.createHash('sha256').update(content + prevHash).digest('hex');
+    const verificationCode = generateVerificationCode();
+    const id = uuid();
+    await query(
+      `INSERT INTO ${s}.document_verification (id, surat_id, surat_type, hash, prev_hash, verification_code) VALUES ($1, $2, $3, $4, $5, $6)`,
+      [id, suratId, suratType, hash, prevHash, verificationCode]
+    );
+    return { hash, verification_code: verificationCode };
+  };
+
+  try {
+    return await tryInsert();
+  } catch (err: any) {
+    if (isMissingTable(err)) {
+      console.log(`[DV] Auto-creating document_verification table in ${schemaName}`);
+      await ensureDVTable(schemaName);
+      return await tryInsert();
+    }
+    throw err;
+  }
 }
 
 async function embedQRFooter(
