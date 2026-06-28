@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef, memo } from 'react';
+import { useState, useMemo, memo, useCallback } from 'react';
 import { useLocation, useNavigate, Link } from 'react-router-dom';
 import {
   LayoutDashboard, GraduationCap, Presentation, Wallet, Ellipsis, Share2, Sparkles,
@@ -75,18 +75,22 @@ const Sidebar = memo(function Sidebar({ open, onClose }: SidebarProps) {
   const basePath = `/kampus/${slug}`;
   const pathSegment = location.pathname.split('/').pop() || 'dashboard';
 
-  const [expandedSection, setExpandedSection] = useState<string>('');
-  const prevPath = useRef(pathSegment);
-
-  // Sync expanded section only when path actually changes (not every render)
-  if (prevPath.current !== pathSegment) {
-    prevPath.current = pathSegment;
+  // Compute active section directly from route — no state, no double render
+  const activeSection = useMemo(() => {
+    if (isVendor) return '';
     const section = filteredMenus.find(m => {
       if (m.path === pathSegment) return true;
       return m.children?.some((c: any) => c.path === pathSegment || c.children?.some((s: any) => s.path === pathSegment));
     });
-    if (section) setExpandedSection(section.label);
-  }
+    return section?.label || '';
+  }, [pathSegment, filteredMenus, isVendor]);
+
+  // Separate state for user's manual expand/collapse (overrides route-based section)
+  const [overrideSection, setOverrideSection] = useState<string>('');
+  const expandedSection = overrideSection || activeSection;
+  const handleToggle = useCallback((label: string) => {
+    setOverrideSection(prev => prev === label ? '' : label);
+  }, []);
 
   const navMenus = isVendor ? vendorItems : filteredMenus;
 
@@ -142,8 +146,9 @@ const Sidebar = memo(function Sidebar({ open, onClose }: SidebarProps) {
                   if (isVendor) {
                     navigate(item.path);
                   } else if (hasChildren) {
-                    setExpandedSection(isOpen ? '' : item.label);
+                    setOverrideSection(isOpen ? '' : item.label);
                   } else if (item.path) {
+                    setOverrideSection('');
                     navigate(`${basePath}/${item.path}`);
                     onClose();
                   }
