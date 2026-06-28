@@ -3,6 +3,7 @@ import { query } from '../../config/database.js';
 import { authenticate } from '../../middleware/auth.js';
 import { sendSuccess } from '../../middleware/response.js';
 import { AppError } from '../../middleware/errorHandler.js';
+import { sendToUser } from '../../services/websocket.js';
 
 const router = Router();
 
@@ -110,7 +111,20 @@ router.post('/grup/:id/messages', authenticate, async (req: Request, res: Respon
       `INSERT INTO ${s}.chat_messages (grup_id, user_id, pesan) VALUES ($1,$2,$3) RETURNING *`,
       [req.params.id, req.user.id, pesan]
     );
-    sendSuccess(res, rows[0]);
+    const { rows: userRows } = await query(
+      `SELECT nama FROM ${s}.users WHERE id = $1`, [req.user.id]
+    );
+    const userNama = userRows[0]?.nama || req.user.email;
+    const msg = { ...rows[0], user_nama: userNama, user_email: req.user.email };
+    // Broadcast to all group members via WebSocket
+    const { rows: members } = await query(
+      `SELECT user_id FROM ${s}.chat_grup_members WHERE grup_id = $1`,
+      [req.params.id]
+    );
+    for (const m of members) {
+      sendToUser(m.user_id, 'chat_message', msg);
+    }
+    sendSuccess(res, msg);
   } catch (err) { next(err); }
 });
 

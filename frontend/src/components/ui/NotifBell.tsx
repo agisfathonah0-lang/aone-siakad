@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Bell, Info, CalendarCheck, DollarSign, UserCheck, AlertCircle, CheckCheck, Loader2 } from 'lucide-react';
 import { get, patch } from '../../api/client';
+import { useWebSocket } from '../../hooks/useWebSocket';
 
 interface Notif {
   id: string; judul: string; pesan: string | null;
@@ -17,6 +18,18 @@ export default function NotifBell() {
   const [loading, setLoading] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
+
+  // Real-time notification via WebSocket
+  useWebSocket((event, payload) => {
+    if (event === 'new_notification') {
+      setUnread(prev => prev + 1);
+      setData(prev => [payload, ...prev].slice(0, 5));
+    }
+    if (event === 'notification_read' || event === 'notifications_read_all') {
+      setUnread(0);
+      setData(prev => prev.map(n => ({ ...n, is_read: true })));
+    }
+  });
 
   useEffect(() => {
     if (open) load();

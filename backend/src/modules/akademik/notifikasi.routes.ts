@@ -5,6 +5,7 @@ import { requireRole } from '../../middleware/role.js';
 import { sendSuccess, sendPaginated } from '../../middleware/response.js';
 import { AppError } from '../../middleware/errorHandler.js';
 import { Role } from '../../types/enums.js';
+import { sendToUser } from '../../services/websocket.js';
 
 const router = Router();
 
@@ -38,6 +39,7 @@ router.patch('/:id/read', authenticate, async (req: Request, res: Response, next
       [req.params.id, req.user.id]
     );
     if (rows.length === 0) throw new AppError(404, 'Notifikasi tidak ditemukan');
+    if (req.user) sendToUser(req.user.id, 'notification_read', rows[0]);
     sendSuccess(res, rows[0]);
   } catch (err) { next(err); }
 });
@@ -47,6 +49,7 @@ router.patch('/read-all', authenticate, async (req: Request, res: Response, next
     const s = schema(req);
     if (!req.user) throw new AppError(401, 'Belum login');
     await query(`UPDATE ${s}.notifikasi SET is_read = true WHERE user_id = $1 AND is_read = false`, [req.user.id]);
+    if (req.user) sendToUser(req.user.id, 'notifications_read_all', null);
     sendSuccess(res, null, 'Semua notifikasi telah dibaca');
   } catch (err) { next(err); }
 });

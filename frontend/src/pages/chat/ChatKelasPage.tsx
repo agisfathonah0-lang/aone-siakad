@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { get, post } from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
+import { useWebSocket } from '../../hooks/useWebSocket';
 import { MessageCircle, Send, Loader2, Users, ArrowLeft, MoreVertical, UserPlus } from 'lucide-react';
 
 interface Grup {
@@ -38,6 +39,18 @@ export default function ChatKelasPage() {
   }, [activeGroup]);
 
   useEffect(() => { bottomRef.current?.scrollIntoView({ behavior: 'smooth' }); }, [messages]);
+
+  // Real-time chat via WebSocket
+  useWebSocket((event, payload) => {
+    if (event === 'chat_message') {
+      if (payload.grup_id === activeGroup) {
+        setMessages((prev) => [...prev, payload]);
+        markRead(payload.grup_id);
+      } else {
+        setGroups((prev) => prev.map(g => g.id === payload.grup_id ? { ...g, unread: g.unread + 1 } : g));
+      }
+    }
+  });
 
   async function loadGroups() {
     try {
