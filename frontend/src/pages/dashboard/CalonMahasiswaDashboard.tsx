@@ -164,7 +164,7 @@ export default function CalonMahasiswaDashboard() {
             <p className="text-xs mt-0.5 flex items-center gap-1.5" style={{ color: 'var(--muted-foreground)' }}>
               <Hash size={11} /> {pendaftar?.nomor_daftar || '-'}
               <span className="inline-block w-1 h-1 rounded-full" style={{ background: 'var(--muted-foreground)' }} />
-              <Badge variant={pendaftar?.status === 'diterima' ? 'success' : pendaftar?.status === 'ditolak' ? 'danger' : 'warning'} style={{ background: cfg.bg, color: cfg.color }}>
+              <Badge variant={pendaftar?.status === 'diterima' ? 'success' : pendaftar?.status === 'ditolak' ? 'danger' : pendaftar?.status === 'verifikasi' ? 'info' : 'warning'}>
                 {cfg.label}
               </Badge>
             </p>
