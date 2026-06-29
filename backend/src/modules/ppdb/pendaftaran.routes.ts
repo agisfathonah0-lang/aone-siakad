@@ -123,6 +123,29 @@ router.post(
 );
 
 router.get(
+  '/me',
+  authenticate,
+  async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const schema = s(req);
+      const { rows } = await query(
+        `SELECT p.*, u.email, u.no_hp, u.tempat_lahir, u.tanggal_lahir, u.jenis_kelamin, u.alamat,
+                ps.nama as prodi_nama, ps.jenjang
+         FROM ${schema}.ppdb_pendaftar p
+         LEFT JOIN ${schema}.users u ON u.id = p.user_id
+         LEFT JOIN ${schema}.program_studi ps ON ps.id = p.program_studi_id
+         WHERE p.user_id = $1`,
+        [req.user!.id]
+      );
+      if (rows.length === 0) throw new AppError(404, 'Data pendaftaran tidak ditemukan');
+      sendSuccess(res, rows[0]);
+    } catch (err) {
+      next(err);
+    }
+  }
+);
+
+router.get(
   '/:id',
   authenticate,
   async (req: Request, res: Response, next: NextFunction) => {

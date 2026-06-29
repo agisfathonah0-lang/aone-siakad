@@ -18,6 +18,7 @@ import DosenDashboard from './DosenDashboard';
 import AkademikDashboard from './AkademikDashboard';
 import KeuanganDashboard from './KeuanganDashboard';
 import HumasDashboard from './HumasDashboard';
+import CalonMahasiswaDashboard from './CalonMahasiswaDashboard';
 
 const colorClasses: Record<string, string> = {
   blue: 'bg-blue-500', indigo: 'bg-indigo-500', sky: 'bg-sky-500', violet: 'bg-violet-500',
@@ -674,6 +675,7 @@ export default function DashboardPage() {
   if (role === 'keuangan') return <KeuanganDashboard />;
   if (role === 'humas') return <HumasDashboard />;
   if (role === 'mahasiswa') return <MahasiswaDashboard />;
+  if (role === 'calon_mahasiswa') return <CalonMahasiswaDashboard />;
 
   return <AdminDashboard />;
 }

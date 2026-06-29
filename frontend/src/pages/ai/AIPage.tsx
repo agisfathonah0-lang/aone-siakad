@@ -41,9 +41,14 @@ export default function AIPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const [tab, setTab] = useState(searchParams.get('tab') || 'chat');
   const [usage, setUsage] = useState<any>(null);
+  const [aiConfig, setAiConfig] = useState<{ openaiConfigured: boolean; geminiConfigured: boolean; provider: string } | null>(null);
 
   useEffect(() => {
     get<any>('/ai/usage').then(setUsage).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    get<any>('/ai/config').then(setAiConfig).catch(() => {});
   }, []);
 
   function switchTab(id: string) {
@@ -52,9 +57,27 @@ export default function AIPage() {
   }
 
   const pctUsed = usage?.daily?.used != null && usage?.daily?.limit ? Math.round((usage.daily.used / usage.daily.limit) * 100) : 0;
+  const aiConfigured = aiConfig
+    ? (aiConfig.provider === 'gemini' ? aiConfig.geminiConfigured : aiConfig.openaiConfigured)
+    : null;
+  const isAdmin = ['super_admin', 'admin'].includes(user?.role || '');
 
   return (
     <div className="space-y-4">
+      {aiConfigured === false && (
+        <div className="p-4 rounded-xl flex items-start gap-3" style={{ background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.3)' }}>
+          <AlertCircle size={18} className="text-amber-500 shrink-0 mt-0.5" />
+          <div>
+            <p className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>AI Belum Dikonfigurasi</p>
+            <p className="text-xs mt-1" style={{ color: 'var(--muted-foreground)' }}>
+              {isAdmin
+                ? 'Atur API key OpenAI atau Google Gemini di menu Pengaturan Platform agar fitur AI dapat digunakan.'
+                : 'Hubungi administrator untuk mengatur konfigurasi AI.'}
+            </p>
+          </div>
+        </div>
+      )}
+
       <div className="flex items-center gap-2.5 mb-1">
         <Sparkles size={20} className="text-emerald-500" />
         <h1 className="text-xl font-bold font-display tracking-tight dark:text-white">Fitur AI</h1>
@@ -157,8 +180,9 @@ function ChatTab({ user }: { user: any }) {
       const historyPayload = messages.map(m => ({ role: m.role, content: m.content }));
       const result = await post<any>('/ai/chat', { message: msg, history: historyPayload });
       setMessages((prev) => [...prev, { role: 'assistant', content: result.reply }]);
-    } catch {
-      setMessages((prev) => [...prev, { role: 'assistant', content: 'Maaf, terjadi kesalahan. Coba lagi.' }]);
+    } catch (err: any) {
+      const msg = err?.response?.data?.message || err?.message || 'Maaf, terjadi kesalahan. Coba lagi.';
+      setMessages((prev) => [...prev, { role: 'assistant', content: msg }]);
     } finally { setLoading(false); }
   }
 

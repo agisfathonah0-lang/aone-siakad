@@ -230,7 +230,7 @@ function AppRoutes() {
             <Route path="akreditasi" element={<RoleGuard roles={['super_admin','rektor','admin','dekan','akademik','kaprodi']}><AkreditasiPage /></RoleGuard>} />
             <Route path="perpustakaan" element={<RoleGuard roles={['super_admin','rektor','admin','dekan','akademik','kaprodi','pustakawan','dosen','mahasiswa']}><PerpustakaanPage /></RoleGuard>} />
             <Route path="integrasi-lms" element={<RoleGuard roles={['super_admin','rektor','admin','dekan','akademik','kaprodi']}><LMSPage /></RoleGuard>} />
-            <Route path="ai" element={<RoleGuard roles={['super_admin','rektor','admin','dekan','akademik','kaprodi','dosen','mahasiswa','alumni']}><AIPage /></RoleGuard>} />
+            <Route path="ai" element={<RoleGuard roles={['super_admin','rektor','admin','dekan','akademik','kaprodi','dosen','mahasiswa','calon_mahasiswa','alumni']}><AIPage /></RoleGuard>} />
             <Route path="tagihan" element={<RoleGuard roles={['super_admin','rektor','admin','dekan','akademik','kaprodi','keuangan','mahasiswa']}><TagihanRouter /></RoleGuard>} />
             <Route path="pembayaran" element={<RoleGuard roles={['super_admin','rektor','admin','dekan','akademik','kaprodi','keuangan']}><PembayaranPage /></RoleGuard>} />
             <Route path="riwayat-pembayaran" element={<RoleGuard roles={['mahasiswa']}><RiwayatPembayaranPage /></RoleGuard>} />

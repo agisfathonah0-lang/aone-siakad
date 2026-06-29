@@ -8,7 +8,7 @@ import * as aiService from './ai.service.js';
 
 const router = Router();
 
-const aiRoles: Role[] = [Role.SUPER_ADMIN, Role.ADMIN, Role.AKADEMIK, Role.DOSEN, Role.MAHASISWA, Role.ALUMNI];
+const aiRoles: Role[] = [Role.SUPER_ADMIN, Role.ADMIN, Role.AKADEMIK, Role.DOSEN, Role.MAHASISWA, Role.CALON_MAHASISWA, Role.ALUMNI];
 
 router.post('/chat', authenticate, requireRole(...aiRoles), async (req, res, next) => {
   try {
@@ -108,7 +108,7 @@ router.get('/usage', authenticate, requireRole(Role.SUPER_ADMIN, Role.ADMIN, Rol
   } catch (err) { next(err); }
 });
 
-router.get('/config', authenticate, requireRole(Role.SUPER_ADMIN, Role.ADMIN), async (req, res, next) => {
+router.get('/config', authenticate, requireRole(...aiRoles), async (req, res, next) => {
   try {
     const { query } = await import('../../config/database.js');
     const { rows } = await query(
