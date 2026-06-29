@@ -33,7 +33,10 @@ export default function AppLayout() {
   const { user } = useAuth();
   const location = useLocation();
   const slug = location.pathname.split('/')[2] || user?.tenantSlug || '';
-  const pathSegment = location.pathname.split('/').pop() || 'dashboard';
+  const parts = location.pathname.split('/').filter(Boolean);
+  const lastTwo = parts.slice(-2);
+  const detailParents = ['mahasiswa', 'kelas-room'];
+  const pathSegment = (lastTwo.length === 2 && detailParents.includes(lastTwo[0])) ? lastTwo[0] : (parts.pop() || 'dashboard');
   const pageTitle = pageTitles[pathSegment] || 'Dashboard';
 
   const today = new Date();

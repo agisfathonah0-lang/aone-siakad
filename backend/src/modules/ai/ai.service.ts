@@ -306,8 +306,12 @@ Perhatikan: teks pendek (< 100 kata) mungkin memiliki false positive yang lebih 
 
 export async function earlyWarning(req: any) {
   const s = schema(req);
+
+  // Add ipk column if missing
+  try { await query(`ALTER TABLE "${s}".mahasiswa ADD COLUMN ipk NUMERIC(4,2) DEFAULT 0`); } catch {}
+
   const { rows: mhs } = await query(
-    `SELECT id, nim, nama, program_studi_id, angkatan, semester, status, ipk,
+    `SELECT id, nim, nama, program_studi_id, angkatan, semester, status, COALESCE(ipk,0) as ipk,
             (SELECT COUNT(*) FROM "${s}".absensi a WHERE a.mahasiswa_id = m.id AND a.status = 'alpha') as alpha,
             (SELECT ROUND(AVG(n.nilai_akhir), 2) FROM "${s}".nilai n WHERE n.mahasiswa_id = m.id) as avg_nilai,
             (SELECT COUNT(*)::int - COUNT(*) FILTER (WHERE n.nilai_akhir IS NOT NULL) FROM "${s}".nilai n WHERE n.mahasiswa_id = m.id) as nilai_kosong

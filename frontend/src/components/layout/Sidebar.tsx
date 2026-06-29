@@ -71,7 +71,11 @@ const Sidebar = memo(function Sidebar({ open, onClose, pathname, slug }: Sidebar
     [isVendor, allRoles]
   );
   const basePath = `/kampus/${slug}`;
-  const pathSegment = pathname.split('/').pop() || 'dashboard';
+  const parts = pathname.split('/').filter(Boolean);
+  const lastTwo = parts.slice(-2);
+  // Detail routes like mahasiswa/:nim, kelas-room/:id → use parent segment
+  const detailParents = ['mahasiswa', 'kelas-room'];
+  const pathSegment = (lastTwo.length === 2 && detailParents.includes(lastTwo[0])) ? lastTwo[0] : (parts.pop() || 'dashboard');
 
   // Compute active section directly from route — no state, no double render
   const activeSection = useMemo(() => {
