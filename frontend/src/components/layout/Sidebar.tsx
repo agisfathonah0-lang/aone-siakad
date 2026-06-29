@@ -7,7 +7,7 @@ import {
   ScrollText, ClipboardList, BookTemplate, FileText, ClipboardSignature, Printer,
   Briefcase, BookMarked, MessageSquare, Star, Trophy, Receipt, CreditCard,
   ReceiptText, Library, Newspaper, Calendar, Bell, Cctv, Palette,
-  DoorOpen, List, Globe, Layout, Bot, AlertTriangle, Database, BookMarked as BookMarkedIcon, Megaphone, UserCircle,
+  DoorOpen, List, Globe, Layout, Bot, AlertTriangle, Database, BookMarked as BookMarkedIcon, Megaphone, UserCircle, Camera,
 } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { filterMenusByRoles, SIDEBAR_MENUS } from '../../utils/roles';
@@ -22,7 +22,7 @@ const iconMap: Record<string, LucideIcon> = {
   ScrollText, ClipboardList, BookTemplate, FileText, ClipboardSignature,
   Printer, Briefcase, BookMarked, MessageSquare, Star, Trophy, Receipt, CreditCard,
   ReceiptText, Library, Newspaper, Calendar, Bell, Cctv, Palette,
-  DoorOpen, List, Globe, Layout, Bot, AlertTriangle, Database, Megaphone, UserCircle,
+  DoorOpen, List, Globe, Layout, Bot, AlertTriangle, Database, Megaphone, UserCircle, Camera,
 };
 
 interface SidebarProps { open: boolean; onClose: () => void; pathname: string; slug: string }

@@ -50,6 +50,8 @@ const KurikulumPage = lazy(() => import('./pages/akademik/KurikulumPage'));
 const RPSPage = lazy(() => import('./pages/akademik/RPSPage'));
 const BAPPage = lazy(() => import('./pages/akademik/BAPPage'));
 const AbsensiDosenPage = lazy(() => import('./pages/akademik/AbsensiDosenPage'));
+const FaceRegistrationPage = lazy(() => import('./pages/akademik/FaceRegistrationPage'));
+const FaceAttendancePage = lazy(() => import('./pages/akademik/FaceAttendancePage'));
 const BeasiswaPage = lazy(() => import('./pages/akademik/BeasiswaPage'));
 const SuratPage = lazy(() => import('./pages/akademik/SuratPage'));
 const SeminarPage = lazy(() => import('./pages/akademik/SeminarPage'));
@@ -215,6 +217,8 @@ function AppRoutes() {
             <Route path="krs" element={<RoleGuard roles={['super_admin','rektor','admin','dekan','akademik','kaprodi','dosen','mahasiswa']}><KRSPage /></RoleGuard>} />
             <Route path="cetak-pdf" element={<RoleGuard roles={['super_admin','rektor','admin','dekan','akademik','kaprodi','dosen','mahasiswa']}><CetakPDFPage /></RoleGuard>} />
             <Route path="absensi" element={<RoleGuard roles={['super_admin','admin','akademik','dosen']}><AbsensiPage /></RoleGuard>} />
+            <Route path="face-register" element={<RoleGuard roles={['super_admin','admin','akademik','dosen','mahasiswa','calon_mahasiswa']}><FaceRegistrationPage /></RoleGuard>} />
+            <Route path="face-attendance" element={<RoleGuard roles={['super_admin','admin','akademik','dosen','mahasiswa']}><FaceAttendancePage /></RoleGuard>} />
             <Route path="nilai" element={<RoleGuard roles={['super_admin','admin','akademik','dosen']}><NilaiPage /></RoleGuard>} />
             <Route path="khs" element={<RoleGuard roles={['super_admin','rektor','admin','dekan','akademik','kaprodi','dosen','mahasiswa']}><KHSPage /></RoleGuard>} />
             <Route path="kurikulum" element={<RoleGuard roles={['super_admin','rektor','admin','dekan','akademik','kaprodi']}><KurikulumPage /></RoleGuard>} />

@@ -35,6 +35,7 @@ import mataKuliahRoutes from './modules/akademik/mata-kuliah.routes.js';
 import jadwalRoutes from './modules/akademik/jadwal.routes.js';
 import krsRoutes from './modules/akademik/krs.routes.js';
 import absensiRoutes from './modules/akademik/absensi.routes.js';
+import absensiFaceRoutes from './modules/akademik/absensi-face.routes.js';
 import nilaiRoutes from './modules/akademik/nilai.routes.js';
 import kurikulumRoutes from './modules/akademik/kurikulum.routes.js';
 import rpsRoutes from './modules/akademik/rps.routes.js';
@@ -141,6 +142,7 @@ const featureRoutes: [string, any][] = [
   ['/akademik/jadwal', jadwalRoutes],
   ['/akademik/krs', krsRoutes],
   ['/akademik/absensi', absensiRoutes],
+  ['/akademik/absensi-face', absensiFaceRoutes],
   ['/akademik/nilai', nilaiRoutes],
   ['/akademik/kurikulum', kurikulumRoutes],
   ['/akademik/rps', rpsRoutes],

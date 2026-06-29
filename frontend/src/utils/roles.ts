@@ -66,6 +66,8 @@ export const SIDEBAR_MENUS: MenuItem[] = [
       { label: 'Nilai', path: 'nilai', icon: 'Award', roles: ['super_admin', 'admin', 'akademik', 'dosen'] },
       { label: 'KHS', path: 'khs', icon: 'ScrollText', roles: ['super_admin', 'rektor', 'admin', 'dekan', 'akademik', 'kaprodi', 'dosen', 'mahasiswa'] },
       { label: 'Absensi', path: 'absensi', icon: 'ClipboardList', roles: ['super_admin', 'admin', 'akademik', 'dosen'] },
+      { label: 'Absensi Wajah', path: 'face-attendance', icon: 'Camera', roles: ['super_admin', 'admin', 'akademik', 'dosen', 'mahasiswa'] },
+      { label: 'Registrasi Wajah', path: 'face-register', icon: 'UserCircle', roles: ['super_admin', 'admin', 'akademik', 'dosen', 'mahasiswa', 'calon_mahasiswa'] },
       { label: 'Kurikulum', path: 'kurikulum', icon: 'BookTemplate', roles: ['super_admin', 'rektor', 'admin', 'dekan', 'akademik', 'kaprodi'] },
       { label: 'RPS', path: 'rps', icon: 'FileText', roles: ['super_admin', 'admin', 'akademik', 'dosen'] },
       { label: 'BAP', path: 'bap', icon: 'ClipboardSignature', roles: ['super_admin', 'admin', 'akademik', 'dosen'] },
