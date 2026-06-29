@@ -18,13 +18,13 @@ const faq = [
 export default function HargaPage() {
   useSEO('Harga Paket AONE SIAKAD - Sistem Informasi Akademik Mulai Rp149rb',
     'Lihat paket harga AONE SIAKAD: Basic Rp149rb, Pro Rp599rb, Enterprise Rp1.499rb per bulan. Gratis trial 1 hari. Konsultasi gratis.',
-    '/logo.png');
+    '/logo.jpg');
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-zinc-950">
       <nav className="sticky top-0 z-50 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl border-b border-slate-200 dark:border-zinc-800">
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2"><img src="/logo.png" alt="AONE SIAKAD" className="h-8 w-auto" /></Link>
+          <Link to="/" className="flex items-center gap-2"><img src="/logo.jpg" alt="AONE SIAKAD" className="h-8 w-auto" /></Link>
           <Link to="/" className="text-sm text-slate-500 hover:text-emerald-500">Beranda</Link>
         </div>
       </nav>

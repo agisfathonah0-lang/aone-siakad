@@ -14,13 +14,13 @@ const testimonials = [
 export default function TestimoniPage() {
   useSEO('Testimoni Pengguna AONE SIAKAD - Sistem Informasi Akademik Terpercaya',
     'Lihat apa kata kampus-kampus di Indonesia yang sudah menggunakan AONE SIAKAD. Testimoni dan review pengguna sistem informasi akademik terintegrasi.',
-    '/logo.png');
+    '/logo.jpg');
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-zinc-950">
       <nav className="sticky top-0 z-50 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl border-b border-slate-200 dark:border-zinc-800">
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2"><img src="/logo.png" alt="AONE SIAKAD" className="h-8 w-auto" /></Link>
+          <Link to="/" className="flex items-center gap-2"><img src="/logo.jpg" alt="AONE SIAKAD" className="h-8 w-auto" /></Link>
           <Link to="/" className="text-sm text-slate-500 hover:text-emerald-500">Beranda</Link>
         </div>
       </nav>

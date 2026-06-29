@@ -42,10 +42,10 @@ export default function StrukPembayaran({ struk, onClose }: Props) {
             <div className="text-center border-b border-dashed border-slate-200 dark:border-zinc-700 pb-4">
               <div className="flex justify-center mb-3">
                 <img
-                  src={struk.logo_url || '/logo.png'}
+                  src={struk.logo_url || '/logo.jpg'}
                   alt={struk.tenant_name || 'AONE SIAKAD'}
                   className="h-12 w-auto object-contain"
-                  onError={(e) => { (e.target as HTMLImageElement).src = '/logo.png'; }}
+                  onError={(e) => { (e.target as HTMLImageElement).src = '/logo.jpg'; }}
                 />
               </div>
               <h2 className="text-sm font-bold text-slate-700 dark:text-zinc-300">{struk.tenant_name || 'AONE SIAKAD'}</h2>

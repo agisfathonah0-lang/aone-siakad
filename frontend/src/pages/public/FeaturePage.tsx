@@ -43,7 +43,7 @@ export default function FeaturePage({ slug }: { slug: string }) {
   useSEO(
     `${feat?.title || 'Fitur'} - AONE SIAKAD`,
     `${feat?.desc || ''} ${feat?.keywords || ''}. Solusi SIAKAD terintegrasi untuk institusi pendidikan di Indonesia.`,
-    '/logo.png'
+    '/logo.jpg'
   );
 
   if (!feat) return (
@@ -60,7 +60,7 @@ export default function FeaturePage({ slug }: { slug: string }) {
       <nav className="sticky top-0 z-50 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl border-b border-slate-200 dark:border-zinc-800">
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2">
-            <img src="/logo.png" alt="AONE SIAKAD" className="h-8 w-auto" />
+            <img src="/logo.jpg" alt="AONE SIAKAD" className="h-8 w-auto" />
           </Link>
           <div className="flex items-center gap-4">
             <Link to="/testimoni" className="text-sm text-slate-500 hover:text-emerald-500">Testimoni</Link>
