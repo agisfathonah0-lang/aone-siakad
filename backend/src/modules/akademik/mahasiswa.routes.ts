@@ -27,8 +27,26 @@ router.get(
       const limit = parseInt(req.query.limit as string) || 20;
       const offset = (page - 1) * limit;
       const s = schema(req);
+      const q = (req.query.q as string) || '';
+      const programStudiId = (req.query.program_studi_id as string) || '';
 
-      const { rows: totalRows } = await query(`SELECT COUNT(*) as count FROM ${s}.mahasiswa`);
+      const conditions: string[] = [];
+      const params: any[] = [];
+
+      if (q) {
+        conditions.push(`(m.nim ILIKE $${params.length + 1} OR m.nama ILIKE $${params.length + 1})`);
+        params.push(`%${q}%`);
+      }
+      if (programStudiId) {
+        conditions.push(`m.program_studi_id = $${params.length + 1}`);
+        params.push(programStudiId);
+      }
+
+      const where = conditions.length > 0 ? `WHERE ${conditions.join(' AND ')}` : '';
+
+      const { rows: totalRows } = await query(
+        `SELECT COUNT(*) as count FROM ${s}.mahasiswa m ${where}`, params
+      );
       const total = parseInt(totalRows[0].count, 10);
 
       const { rows } = await query(
@@ -37,9 +55,10 @@ router.get(
          FROM ${s}.mahasiswa m
          LEFT JOIN ${s}.users u ON u.id = m.user_id
          LEFT JOIN ${s}.program_studi p ON p.id = m.program_studi_id
+         ${where}
          ORDER BY m.nim
-         LIMIT $1 OFFSET $2`,
-        [limit, offset]
+         LIMIT $${params.length + 1} OFFSET $${params.length + 2}`,
+        [...params, limit, offset]
       );
 
       sendPaginated(res, rows, total, page, limit);

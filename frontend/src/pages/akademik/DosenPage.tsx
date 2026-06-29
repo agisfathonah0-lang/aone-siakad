@@ -15,6 +15,7 @@ export default function DosenPage() {
   const [form, setForm] = useState({ nidn: '', nama: '', email: '', no_hp: '', password: '', program_studi_id: '', is_dosen_wali: false });
   const [prodi, setProdi] = useState<{ id: string; nama: string; jenjang: string }[]>([]);
   const [prodiFilter, setProdiFilter] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
 
   const fetchProdi = useCallback(async () => {
     try { const res = await getPaginated<any>('/akademik/prodi?page=1&limit=100'); setProdi(res.rows); }
@@ -24,15 +25,21 @@ export default function DosenPage() {
   const fetchData = useCallback(async () => {
     setLoading(true); setError('');
     try {
-      let url = `/akademik/dosen?page=${page}`;
-      if (prodiFilter) url += `&program_studi_id=${prodiFilter}`;
-      const res = await getPaginated<Dosen>(url); setData(res.rows); setTotalPages(res.pagination.totalPages);
+      const params = new URLSearchParams({ page: String(page) });
+      if (prodiFilter) params.set('program_studi_id', prodiFilter);
+      if (searchTerm) params.set('q', searchTerm);
+      const res = await getPaginated<Dosen>(`/akademik/dosen?${params}`); setData(res.rows); setTotalPages(res.pagination.totalPages);
     }
     catch (err: any) { setError(err.message); } finally { setLoading(false); }
-  }, [page, prodiFilter]);
+  }, [page, prodiFilter, searchTerm]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
   useEffect(() => { fetchProdi(); }, [fetchProdi]);
+
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value);
+    setPage(1);
+  };
 
   const openCreate = () => { setEdit(null); setForm({ nidn: '', nama: '', email: '', no_hp: '', password: '', program_studi_id: '', is_dosen_wali: false }); setModal(true); };
   const openEdit = (r: Dosen) => { setEdit(r); setForm({ nidn: r.nidn || '', nama: r.nama, email: r.email || '', no_hp: r.no_hp || '', password: '', program_studi_id: r.program_studi_id || '', is_dosen_wali: r.is_dosen_wali || false }); setModal(true); };
@@ -88,6 +95,9 @@ export default function DosenPage() {
         </div>
       </div>
       <div className="flex items-center gap-3">
+        <div className="relative flex-1 max-w-xs">
+          <input value={searchTerm} onChange={handleSearch} placeholder="Cari NIDN atau nama..." className="input-field" />
+        </div>
         <select value={prodiFilter} onChange={(e) => { setPage(1); setProdiFilter(e.target.value); }} className="input-field max-w-xs">
           <option value="">Semua Prodi</option>
           {prodi.map((p) => <option key={p.id} value={p.id}>{p.jenjang} - {p.nama}</option>)}
