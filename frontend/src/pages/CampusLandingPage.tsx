@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { motion, AnimatePresence } from 'motion/react';
+import { motion, AnimatePresence, useMotionValue, useSpring, useTransform } from 'motion/react';
 import { useParams, Link } from 'react-router-dom';
 import { get } from '../api/client';
 import useSEO from '../hooks/useSEO';
@@ -42,6 +42,19 @@ function CampusLandingPage({ slug }: { slug: string }) {
   const [showTop, setShowTop] = useState(false);
   const [isDark, setIsDark] = useState(false);
   const [promoMode] = useState<'SAAS' | 'CAMPUS'>('CAMPUS');
+
+  // Mouse parallax for hero
+  const heroRef = useRef<HTMLElement>(null);
+  const mouseX = useMotionValue(0.5);
+  const mouseY = useMotionValue(0.5);
+  const mouseXSpring = useSpring(mouseX, { stiffness: 50, damping: 20 });
+  const mouseYSpring = useSpring(mouseY, { stiffness: 50, damping: 20 });
+  const handleHeroMouse = useCallback((e: React.MouseEvent) => {
+    if (!heroRef.current) return;
+    const rect = heroRef.current.getBoundingClientRect();
+    mouseX.set(((e.clientX - rect.left) / rect.width - 0.5) * 20);
+    mouseY.set(((e.clientY - rect.top) / rect.height - 0.5) * -20);
+  }, [mouseX, mouseY]);
   const [showPromo, setShowPromo] = useState(true);
   const [selectedProdi, setSelectedProdi] = useState('Teknik Informatika');
   const [parentIncome, setParentIncome] = useState(4500000);
@@ -205,16 +218,40 @@ function CampusLandingPage({ slug }: { slug: string }) {
 
       <main className="pt-20">
         {/* ═══ HERO ═══ */}
-        <section className="relative min-h-[70vh] flex items-center justify-center overflow-hidden bg-slate-950">
+        <section ref={heroRef} onMouseMove={handleHeroMouse} className="relative min-h-[70vh] flex items-center justify-center overflow-hidden bg-slate-950">
           <div className="absolute inset-0 z-10 bg-gradient-to-b from-slate-950/40 via-slate-950/60 to-slate-950" />
-          <div className="absolute top-1/4 -left-20 w-96 h-96 bg-emerald-500/10 rounded-full blur-[120px] animate-pulse" />
-          <div className="absolute bottom-1/4 -right-20 w-96 h-96 bg-indigo-500/10 rounded-full blur-[120px] animate-pulse" />
+          <motion.div className="absolute top-1/4 -left-20 w-96 h-96 rounded-full blur-[120px]"
+            style={{ background: `rgba(16,185,129,0.1)` }}
+            animate={{ x: [0, 40, -20, 0], y: [0, -30, 20, 0] }}
+            transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut' }} />
+          <motion.div className="absolute bottom-1/4 -right-20 w-96 h-96 rounded-full blur-[120px]"
+            style={{ background: `rgba(99,102,241,0.1)` }}
+            animate={{ x: [0, -30, 20, 0], y: [0, 30, -20, 0] }}
+            transition={{ duration: 15, repeat: Infinity, ease: 'easeInOut' }} />
 
           {heroImgs.length > 0 ? (
             heroImgs.map((img, i) => (
-              <div key={i} className={`absolute inset-0 transition-all duration-1000 ${i === heroIdx ? 'opacity-100 scale-100' : 'opacity-0 scale-110'}`}>
-                <img src={img} className="w-full h-full object-cover grayscale-[25%] brightness-[45%]" alt="" />
-              </div>
+              <motion.div
+                key={i}
+                className="absolute inset-0"
+                animate={{
+                  opacity: i === heroIdx ? 1 : 0,
+                  scale: i === heroIdx ? 1.05 : 1.15,
+                }}
+                transition={{ duration: 1.5, ease: 'easeInOut' }}
+                style={{
+                  x: mouseXSpring,
+                  y: mouseYSpring,
+                }}
+              >
+                <motion.img
+                  src={img}
+                  className="w-full h-full object-cover grayscale-[25%] brightness-[45%]"
+                  alt=""
+                  animate={i === heroIdx ? { scale: [1, 1.12] } : { scale: 1.15 }}
+                  transition={i === heroIdx ? { duration: 12, repeat: Infinity, ease: 'easeInOut' } : { duration: 0.5 }}
+                />
+              </motion.div>
             ))
           ) : (
             <div className="absolute inset-0 opacity-20" style={{ backgroundColor: c }} />
