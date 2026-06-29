@@ -68,6 +68,7 @@ import chatRoutes from './modules/akademik/chat.routes.js';
 import kelasRoomRoutes from './modules/akademik/kelas-room.routes.js';
 import verifyRoutes from './modules/akademik/verify.routes.js';
 import tteRoutes from './modules/akademik/tte.routes.js';
+import helpdeskTiketRoutes from './modules/helpdesk/tiket.routes.js';
 import publicRoutes from './modules/public/public.routes.js';
 import vendorLandingRoutes from './modules/vendor/landing.routes.js';
 import vendorPlansRoutes from './modules/vendor/plans.routes.js';
@@ -173,6 +174,7 @@ const featureRoutes: [string, any][] = [
   ['/campus/cctv', campusCctvRoutes],
   ['/chat', chatRoutes],
   ['/akademik/kelas-room', kelasRoomRoutes],
+  ['/akademik/helpdesk', helpdeskTiketRoutes],
   ['/tte', tteRoutes],
 ];
 

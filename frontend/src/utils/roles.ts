@@ -131,6 +131,7 @@ export const SIDEBAR_MENUS: MenuItem[] = [
       { label: 'OJS', path: 'ojs', icon: 'BookOpen', roles: ['super_admin', 'rektor', 'admin', 'dekan', 'akademik', 'kaprodi'] },
       { label: 'PDDIKTI', path: 'pddikti', icon: 'Database', roles: ['super_admin', 'rektor', 'admin', 'dekan', 'akademik', 'kaprodi'] },
       { label: 'Alumni', path: 'alumni', icon: 'Users', roles: ['super_admin', 'rektor', 'admin', 'dekan', 'akademik', 'kaprodi', 'alumni'] },
+      { label: 'Helpdesk', path: 'helpdesk', icon: 'MessageSquare', roles: ['super_admin', 'rektor', 'admin', 'dekan', 'akademik', 'kaprodi', 'dosen', 'mahasiswa'] },
       { label: 'Integrasi LMS', path: 'integrasi-lms', icon: 'Globe', roles: ['super_admin', 'rektor', 'admin', 'dekan', 'akademik', 'kaprodi'] },
       { label: 'Landing Page', path: 'landing-page', icon: 'Layout', roles: ['super_admin', 'rektor', 'admin', 'dekan', 'akademik', 'kaprodi'] },
     ],
