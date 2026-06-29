@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useSearchParams, useNavigate, Link } from 'react-router-dom';
 import { post, get, del } from '../../api/client';
 import { useAuth } from '../../context/AuthContext';
 import EarlyWarningWidget from '../../components/dashboard/EarlyWarningWidget';
@@ -61,6 +61,7 @@ export default function AIPage() {
     ? (aiConfig.provider === 'gemini' ? aiConfig.geminiConfigured : aiConfig.openaiConfigured)
     : null;
   const isAdmin = ['super_admin', 'admin'].includes(user?.role || '');
+  const isSuperAdmin = user?.role === 'super_admin';
 
   return (
     <div className="space-y-4">
@@ -70,7 +71,9 @@ export default function AIPage() {
           <div>
             <p className="text-sm font-semibold" style={{ color: 'var(--foreground)' }}>AI Belum Dikonfigurasi</p>
             <p className="text-xs mt-1" style={{ color: 'var(--muted-foreground)' }}>
-              {isAdmin
+              {isSuperAdmin
+                ? <Link to="/vendor/settings" className="underline hover:no-underline">Atur API key OpenAI atau Google Gemini di Pengaturan Platform</Link>
+                : isAdmin
                 ? 'Atur API key OpenAI atau Google Gemini di menu Pengaturan Platform agar fitur AI dapat digunakan.'
                 : 'Hubungi administrator untuk mengatur konfigurasi AI.'}
             </p>
