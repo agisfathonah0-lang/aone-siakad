@@ -6,7 +6,7 @@ import type { Jadwal } from '../../types';
 import DataTable from '../../components/ui/DataTable';
 import Modal from '../../components/ui/Modal';
 import Badge from '../../components/ui/Badge';
-import { Plus, RefreshCw, Trash2 } from 'lucide-react';
+import { Plus, RefreshCw, Trash2, Search } from 'lucide-react';
 
 const hariList = ['senin', 'selasa', 'rabu', 'kamis', 'jumat', 'sabtu'];
 const hariColors: Record<string, string> = { senin: 'info', selasa: 'success', rabu: 'warning', kamis: 'info', jumat: 'success', sabtu: 'warning' };
@@ -21,6 +21,7 @@ export default function JadwalPage() {
   const [dosenList, setDosenList] = useState<{ id: string; nama: string; nidn: string }[]>([]);
   const [prodi, setProdi] = useState<{ id: string; nama: string; jenjang: string }[]>([]);
   const [prodiFilter, setProdiFilter] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
 
   const fetchMk = useCallback(async () => {
     try { const res = await getPaginated<any>('/akademik/mata-kuliah?page=1&limit=1000'); setMkList(res.rows); }
@@ -40,17 +41,23 @@ export default function JadwalPage() {
   const fetchData = useCallback(async () => {
     setLoading(true); setError('');
     try {
-      let url = `/akademik/jadwal?page=${page}`;
-      if (prodiFilter) url += `&program_studi_id=${prodiFilter}`;
-      const res = await getPaginated<Jadwal>(url); setData(res.rows); setTotalPages(res.pagination.totalPages);
+      const params = new URLSearchParams({ page: String(page) });
+      if (prodiFilter) params.set('program_studi_id', prodiFilter);
+      if (searchTerm) params.set('q', searchTerm);
+      const res = await getPaginated<Jadwal>(`/akademik/jadwal?${params}`); setData(res.rows); setTotalPages(res.pagination.totalPages);
     }
     catch (err: any) { setError(err.message); } finally { setLoading(false); }
-  }, [page, prodiFilter]);
+  }, [page, prodiFilter, searchTerm]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
   useEffect(() => { fetchMk(); }, [fetchMk]);
   useEffect(() => { fetchDosen(); }, [fetchDosen]);
   useEffect(() => { fetchProdi(); }, [fetchProdi]);
+
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value);
+    setPage(1);
+  };
 
   const openCreate = () => {
     setEdit(null);
@@ -111,6 +118,9 @@ export default function JadwalPage() {
         </div>
       </div>
       <div className="flex items-center gap-3">
+        <div className="relative flex-1 max-w-xs">
+          <input value={searchTerm} onChange={handleSearch} placeholder="Cari MK, dosen, ruangan..." className="input-field" />
+        </div>
         <select value={prodiFilter} onChange={(e) => { setPage(1); setProdiFilter(e.target.value); }} className="input-field max-w-xs">
           <option value="">Semua Prodi</option>
           {prodi.map((p) => <option key={p.id} value={p.id}>{p.jenjang} - {p.nama}</option>)}

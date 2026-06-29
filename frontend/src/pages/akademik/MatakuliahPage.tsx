@@ -6,7 +6,7 @@ import type { MataKuliah } from '../../types';
 import DataTable from '../../components/ui/DataTable';
 import Modal from '../../components/ui/Modal';
 import Badge from '../../components/ui/Badge';
-import { Plus, RefreshCw, Trash2 } from 'lucide-react';
+import { Plus, RefreshCw, Trash2, Search } from 'lucide-react';
 
 export default function MatakuliahPage() {
   const [data, setData] = useState<MataKuliah[]>([]);
@@ -16,6 +16,7 @@ export default function MatakuliahPage() {
   const [form, setForm] = useState({ kode: '', nama: '', sks: 3, semester: 1, program_studi_id: '', is_active: true });
   const [prodi, setProdi] = useState<{ id: string; nama: string; jenjang: string }[]>([]);
   const [prodiFilter, setProdiFilter] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
 
   const fetchProdi = useCallback(async () => {
     try { const res = await getPaginated<any>('/akademik/prodi?page=1&limit=100'); setProdi(res.rows); }
@@ -25,15 +26,21 @@ export default function MatakuliahPage() {
   const fetchData = useCallback(async () => {
     setLoading(true); setError('');
     try {
-      let url = `/akademik/mata-kuliah?page=${page}`;
-      if (prodiFilter) url += `&program_studi_id=${prodiFilter}`;
-      const res = await getPaginated<MataKuliah>(url); setData(res.rows); setTotalPages(res.pagination.totalPages);
+      const params = new URLSearchParams({ page: String(page) });
+      if (prodiFilter) params.set('program_studi_id', prodiFilter);
+      if (searchTerm) params.set('q', searchTerm);
+      const res = await getPaginated<MataKuliah>(`/akademik/mata-kuliah?${params}`); setData(res.rows); setTotalPages(res.pagination.totalPages);
     }
     catch (err: any) { setError(err.message); } finally { setLoading(false); }
-  }, [page, prodiFilter]);
+  }, [page, prodiFilter, searchTerm]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
   useEffect(() => { fetchProdi(); }, [fetchProdi]);
+
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value);
+    setPage(1);
+  };
 
   const openCreate = () => { setEdit(null); setForm({ kode: '', nama: '', sks: 3, semester: 1, program_studi_id: '', is_active: true }); setModal(true); };
   const openEdit = (r: MataKuliah) => { setEdit(r); setForm({ kode: r.kode, nama: r.nama, sks: r.sks, semester: r.semester, program_studi_id: r.program_studi_id || '', is_active: r.is_active ?? true }); setModal(true); };
@@ -87,6 +94,9 @@ export default function MatakuliahPage() {
         </div>
       </div>
       <div className="flex items-center gap-3">
+        <div className="relative flex-1 max-w-xs">
+          <input value={searchTerm} onChange={handleSearch} placeholder="Cari kode atau nama MK..." className="input-field" />
+        </div>
         <select value={prodiFilter} onChange={(e) => { setPage(1); setProdiFilter(e.target.value); }} className="input-field max-w-xs">
           <option value="">Semua Prodi</option>
           {prodi.map((p) => <option key={p.id} value={p.id}>{p.jenjang} - {p.nama}</option>)}

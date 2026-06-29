@@ -679,6 +679,7 @@ router.get(
       const offset = (page - 1) * limit;
       const status = req.query.status as string;
       const mahasiswa_id = req.query.mahasiswa_id as string;
+      const search = req.query.search as string;
 
       let sql = `SELECT sp.*, sk.nama as kategori_nama, sk.kode as kategori_kode, m.nim, m.nama as mahasiswa_nama
                  FROM ${s}.surat_pengajuan sp
@@ -695,6 +696,11 @@ router.get(
       if (mahasiswa_id) {
         conditions.push(`sp.mahasiswa_id = $${idx++}`);
         params.push(mahasiswa_id);
+      }
+      if (search) {
+        conditions.push(`(sp.keperluan ILIKE $${idx} OR sp.nomor_surat ILIKE $${idx} OR sk.nama ILIKE $${idx} OR m.nama ILIKE $${idx} OR m.nim ILIKE $${idx})`);
+        params.push(`%${search}%`);
+        idx++;
       }
 
       if (conditions.length > 0) {

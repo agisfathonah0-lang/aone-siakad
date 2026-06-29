@@ -231,14 +231,19 @@ export default function SuratPage() {
   const [pengajuanTotal, setPengajuanTotal] = useState(0);
   const [pengajuanForm, setPengajuanForm] = useState({ kategori_id: '', keperluan: '', tujuan: '', file_url: '' });
   const [pengajuanModal, setPengajuanModal] = useState(false);
+  const [pengajuanSearch, setPengajuanSearch] = useState('');
+  const [pengajuanStatusFilter, setPengajuanStatusFilter] = useState('');
   const [statusModal, setStatusModal] = useState<{ id: string; status: string; catatan_penolakan: string } | null>(null);
 
-  useEffect(() => { loadPengajuan(); }, [pengajuanPage]);
+  useEffect(() => { loadPengajuan(); }, [pengajuanPage, pengajuanSearch, pengajuanStatusFilter]);
 
   async function loadPengajuan() {
     setPengajuanLoading(true);
     try {
-      const res = await get<any>(`/akademik/surat/pengajuan?page=${pengajuanPage}&limit=20`);
+      const params = new URLSearchParams({ page: String(pengajuanPage), limit: '20' });
+      if (pengajuanSearch) params.set('search', pengajuanSearch);
+      if (pengajuanStatusFilter) params.set('status', pengajuanStatusFilter);
+      const res = await get<any>(`/akademik/surat/pengajuan?${params}`);
       setPengajuanData(res.rows || []);
       setPengajuanTotal(res.pagination?.total || 0);
     } catch {} finally { setPengajuanLoading(false); }
@@ -409,7 +414,19 @@ export default function SuratPage() {
       {activeTab === 2 && (
         <>
           <div className="flex items-center justify-between">
-            <div />
+            <div className="flex items-center gap-3">
+              <div className="relative">
+                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+                <input value={pengajuanSearch} onChange={e => { setPengajuanSearch(e.target.value); setPengajuanPage(1); }} placeholder="Cari pengajuan..." className="input-field text-xs pl-9 w-56" />
+              </div>
+              <select value={pengajuanStatusFilter} onChange={e => { setPengajuanStatusFilter(e.target.value); setPengajuanPage(1); }} className="input-field text-xs max-w-[150px]">
+                <option value="">Semua Status</option>
+                <option value="diajukan">Diajukan</option>
+                <option value="diproses">Diproses</option>
+                <option value="selesai">Selesai</option>
+                <option value="ditolak">Ditolak</option>
+              </select>
+            </div>
             <button onClick={() => { setPengajuanForm({ kategori_id: '', keperluan: '', tujuan: '', file_url: '' }); setPengajuanModal(true); }} className="btn-primary text-xs flex items-center gap-1.5"><Plus size={14} /> Ajukan Surat</button>
           </div>
           <DataTable columns={pengajuanCols} data={pengajuanData} loading={pengajuanLoading} page={pengajuanPage} totalPages={Math.ceil(pengajuanTotal / 20)} onPageChange={setPengajuanPage} emptyMessage="Belum ada pengajuan surat" />

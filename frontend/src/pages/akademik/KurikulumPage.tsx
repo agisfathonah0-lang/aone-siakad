@@ -47,6 +47,7 @@ export default function KurikulumPage() {
   const [edit, setEdit] = useState<Kurikulum | null>(null);
   const [filterProdi, setFilterProdi] = useState('');
   const [prodiList, setProdiList] = useState<ProdiOption[]>([]);
+  const [searchTerm, setSearchTerm] = useState('');
   const [form, setForm] = useState({ kode: '', nama: '', program_studi_id: '', tahun_mulai: new Date().getFullYear(), tahun_selesai: 0, total_sks: 0, is_active: true });
   const [detailModal, setDetailModal] = useState(false);
   const [selected, setSelected] = useState<Kurikulum | null>(null);
@@ -66,9 +67,10 @@ export default function KurikulumPage() {
     setLoading(true);
     setError('');
     try {
-      let url = `/akademik/kurikulum?page=${page}`;
-      if (filterProdi) url += `&program_studi_id=${filterProdi}`;
-      const res = await getPaginated<Kurikulum>(url);
+      const params = new URLSearchParams({ page: String(page) });
+      if (filterProdi) params.set('program_studi_id', filterProdi);
+      if (searchTerm) params.set('q', searchTerm);
+      const res = await getPaginated<Kurikulum>(`/akademik/kurikulum?${params}`);
       setData(res.rows);
       setTotalPages(res.pagination.totalPages);
     } catch (err: any) {
@@ -76,9 +78,14 @@ export default function KurikulumPage() {
     } finally {
       setLoading(false);
     }
-  }, [page, filterProdi]);
+  }, [page, filterProdi, searchTerm]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
+
+  const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchTerm(e.target.value);
+    setPage(1);
+  };
 
   const openCreate = () => {
     setEdit(null);
@@ -203,6 +210,9 @@ export default function KurikulumPage() {
         </div>
       </div>
       <div className="flex items-center gap-3">
+        <div className="relative flex-1 max-w-xs">
+          <input value={searchTerm} onChange={handleSearch} placeholder="Cari kode atau nama kurikulum..." className="input-field" />
+        </div>
         <select value={filterProdi} onChange={(e) => { setPage(1); setFilterProdi(e.target.value); }} className="input-field max-w-xs">
           <option value="">Semua Prodi</option>
           {prodiList.map(p => <option key={p.id} value={p.id}>{p.jenjang} {p.nama}</option>)}

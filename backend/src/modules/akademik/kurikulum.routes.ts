@@ -27,10 +27,7 @@ router.get(
       const limit = parseInt(req.query.limit as string) || 20;
       const offset = (page - 1) * limit;
       const programStudiId = req.query.program_studi_id as string;
-
-      let sql = `SELECT k.*, ps.nama as prodi_nama
-                 FROM ${s}.kurikulum k
-                 LEFT JOIN ${s}.program_studi ps ON ps.id = k.program_studi_id`;
+      const q = (req.query.q as string) || '';
 
       const conditions: string[] = [];
       const params: unknown[] = [];
@@ -40,6 +37,15 @@ router.get(
         conditions.push(`k.program_studi_id = $${idx++}`);
         params.push(programStudiId);
       }
+      if (q) {
+        conditions.push(`(k.kode ILIKE $${idx} OR k.nama ILIKE $${idx})`);
+        params.push(`%${q}%`);
+        idx++;
+      }
+
+      let sql = `SELECT k.*, ps.nama as prodi_nama
+                 FROM ${s}.kurikulum k
+                 LEFT JOIN ${s}.program_studi ps ON ps.id = k.program_studi_id`;
 
       if (conditions.length > 0) {
         sql += ` WHERE ${conditions.join(' AND ')}`;
