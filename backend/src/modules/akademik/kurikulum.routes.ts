@@ -3,6 +3,8 @@ import { body } from 'express-validator';
 import { v4 as uuid } from 'uuid';
 import { query } from '../../config/database.js';
 import { validate } from '../../middleware/validator.js';
+import { validateZod } from '../../middleware/validateZod.js';
+import { kurikulumCreateSchema } from '../../validation/schemas.js';
 import { authenticate } from '../../middleware/auth.js';
 import { requireRole } from '../../middleware/role.js';
 import { sendSuccess, sendPaginated } from '../../middleware/response.js';
@@ -102,12 +104,7 @@ router.post(
   '/',
   authenticate,
   requireRole(Role.ADMIN, Role.AKADEMIK),
-  [
-    body('kode').notEmpty().withMessage('Kode kurikulum wajib diisi'),
-    body('nama').notEmpty().withMessage('Nama kurikulum wajib diisi'),
-    body('tahun_mulai').isInt({ min: 1900 }).withMessage('Tahun mulai tidak valid'),
-    validate,
-  ],
+  validateZod(kurikulumCreateSchema),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const s = schema(req);

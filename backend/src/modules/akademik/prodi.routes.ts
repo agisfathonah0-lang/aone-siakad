@@ -2,6 +2,8 @@ import { Router, Request, Response, NextFunction } from 'express';
 import { body } from 'express-validator';
 import { query } from '../../config/database.js';
 import { validate } from '../../middleware/validator.js';
+import { validateZod } from '../../middleware/validateZod.js';
+import { prodiCreateSchema, prodiUpdateSchema } from '../../validation/schemas.js';
 import { authenticate } from '../../middleware/auth.js';
 import { requireRole } from '../../middleware/role.js';
 import { sendSuccess, sendPaginated } from '../../middleware/response.js';
@@ -50,10 +52,7 @@ router.post(
   '/',
   authenticate,
   requireRole(Role.ADMIN, Role.AKADEMIK),
-  body('kode').notEmpty().withMessage('Kode prodi harus diisi'),
-  body('nama').notEmpty().withMessage('Nama prodi harus diisi'),
-  body('jenjang').notEmpty().withMessage('Jenjang harus diisi'),
-  validate,
+  validateZod(prodiCreateSchema),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const s = schema(req);
@@ -71,6 +70,7 @@ router.put(
   '/:id',
   authenticate,
   requireRole(Role.ADMIN, Role.AKADEMIK),
+  validateZod(prodiUpdateSchema),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const s = schema(req);

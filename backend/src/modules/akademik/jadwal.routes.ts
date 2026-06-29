@@ -2,6 +2,8 @@ import { Router, Request, Response, NextFunction } from 'express';
 import { body } from 'express-validator';
 import { query } from '../../config/database.js';
 import { validate } from '../../middleware/validator.js';
+import { validateZod } from '../../middleware/validateZod.js';
+import { jadwalCreateSchema } from '../../validation/schemas.js';
 import { authenticate } from '../../middleware/auth.js';
 import { requireRole } from '../../middleware/role.js';
 import { sendSuccess, sendPaginated } from '../../middleware/response.js';
@@ -102,16 +104,7 @@ router.post(
   '/',
   authenticate,
   requireRole(Role.ADMIN, Role.AKADEMIK),
-  [
-    body('mata_kuliah_id').isUUID().withMessage('Mata kuliah tidak valid'),
-    body('dosen_id').isUUID().withMessage('Dosen tidak valid'),
-    body('hari').isIn(['senin', 'selasa', 'rabu', 'kamis', 'jumat', 'sabtu']).withMessage('Hari tidak valid'),
-    body('jam_mulai').notEmpty().withMessage('Jam mulai wajib diisi'),
-    body('jam_selesai').notEmpty().withMessage('Jam selesai wajib diisi'),
-    body('tahun_akademik').notEmpty().withMessage('Tahun akademik wajib diisi'),
-    body('semester').notEmpty().withMessage('Semester wajib diisi'),
-    validate,
-  ],
+  validateZod(jadwalCreateSchema),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const s = schema(req);

@@ -4,6 +4,8 @@ import bcrypt from 'bcryptjs';
 import { v4 as uuid } from 'uuid';
 import { query } from '../../config/database.js';
 import { validate } from '../../middleware/validator.js';
+import { validateZod } from '../../middleware/validateZod.js';
+import { mahasiswaCreateSchema, mahasiswaUpdateSchema } from '../../validation/schemas.js';
 import { authenticate } from '../../middleware/auth.js';
 import { requireRole } from '../../middleware/role.js';
 import { sendSuccess, sendPaginated } from '../../middleware/response.js';
@@ -133,15 +135,7 @@ router.post(
   '/',
   authenticate,
   requireRole(Role.ADMIN, Role.AKADEMIK),
-  [
-    body('nim').notEmpty().withMessage('NIM wajib diisi'),
-    body('nama').notEmpty().withMessage('Nama wajib diisi'),
-    body('email').isEmail().withMessage('Email tidak valid'),
-    body('password').isLength({ min: 6 }).withMessage('Password minimal 6 karakter'),
-    body('program_studi_id').isUUID().withMessage('Program studi tidak valid'),
-    body('angkatan').isInt().withMessage('Angkatan harus angka'),
-    validate,
-  ],
+  validateZod(mahasiswaCreateSchema),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const s = schema(req);
@@ -180,6 +174,7 @@ router.put(
   '/:nim',
   authenticate,
   requireRole(Role.ADMIN, Role.AKADEMIK),
+  validateZod(mahasiswaUpdateSchema),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const s = schema(req);

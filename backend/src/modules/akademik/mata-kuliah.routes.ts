@@ -2,6 +2,8 @@ import { Router, Request, Response, NextFunction } from 'express';
 import { body } from 'express-validator';
 import { query } from '../../config/database.js';
 import { validate } from '../../middleware/validator.js';
+import { validateZod } from '../../middleware/validateZod.js';
+import { mataKuliahCreateSchema, mataKuliahUpdateSchema } from '../../validation/schemas.js';
 import { authenticate } from '../../middleware/auth.js';
 import { requireRole } from '../../middleware/role.js';
 import { sendSuccess, sendPaginated } from '../../middleware/response.js';
@@ -90,17 +92,11 @@ router.post(
   '/',
   authenticate,
   requireRole(Role.ADMIN, Role.AKADEMIK),
-  [
-    body('kode').notEmpty().withMessage('Kode MK wajib diisi'),
-    body('nama').notEmpty().withMessage('Nama MK wajib diisi'),
-    body('sks').isInt({ min: 1, max: 24 }).withMessage('SKS harus 1-24'),
-    body('semester').isInt({ min: 1, max: 14 }).withMessage('Semester harus 1-14'),
-    validate,
-  ],
+  validateZod(mataKuliahCreateSchema),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const s = schema(req);
-      const { kode, nama, sks, semester, program_studi_id } = req.body;
+      const { kode, nama, sks, semester, program_studi_id, is_active } = req.body;
 
       const { rows: exist } = await query(
         `SELECT id FROM ${s}.mata_kuliah WHERE kode = $1`,
