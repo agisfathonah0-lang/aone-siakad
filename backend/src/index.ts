@@ -47,7 +47,7 @@ async function bootstrap(): Promise<void> {
 
     // Auto‑migrate all existing tenants (critical for Render — no shell access)
     try {
-      const { rows: tenants } = await query(`SELECT schema_name FROM public.tenants WHERE status = 'active'`);
+      const { rows: tenants } = await query(`SELECT schema_name FROM public.tenants WHERE is_active = true`);
       let ok = 0, fail = 0;
       for (const t of tenants) {
         try {
