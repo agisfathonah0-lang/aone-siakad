@@ -51,7 +51,7 @@ export default function KelasRoomDetailPage() {
       setMateri(m.rows || m);
       setTugas(t.rows || t);
       setPengumuman(p.rows || p);
-    }).catch(() => navigate('/kelas-room')).finally(() => setLoading(false));
+    }).catch(() => navigate('..')).finally(() => setLoading(false));
   }, [id]);
 
   const handleAddMateri = async (e: React.FormEvent) => {
@@ -153,7 +153,7 @@ export default function KelasRoomDetailPage() {
   return (
     <div className="space-y-5">
       <div className="flex items-center gap-3">
-        <button onClick={() => navigate('/kelas-room')} className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors" style={{ color: 'var(--muted-foreground)' }}><ArrowLeft size={18} /></button>
+        <button onClick={() => navigate('..')} className="p-2 rounded-xl hover:bg-slate-100 dark:hover:bg-zinc-800 transition-colors" style={{ color: 'var(--muted-foreground)' }}><ArrowLeft size={18} /></button>
         <div className="flex-1">
           <h1 className="text-xl font-bold font-display tracking-tight dark:text-white">{room.nama}</h1>
           <p className="text-xs" style={{ color: 'var(--muted-foreground)' }}>

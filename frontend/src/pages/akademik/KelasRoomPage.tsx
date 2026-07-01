@@ -104,7 +104,7 @@ export default function KelasRoomPage() {
           {rooms.map((room: any) => (
             <button
               key={room.id}
-              onClick={() => navigate(`/kelas-room/${room.id}`)}
+              onClick={() => navigate(room.id)}
               className="bg-card rounded-xl border border-border p-5 text-left transition-all hover:shadow-md hover:-translate-y-0.5"
               style={{ background: 'var(--card)', borderColor: 'var(--border)' }}
             >
