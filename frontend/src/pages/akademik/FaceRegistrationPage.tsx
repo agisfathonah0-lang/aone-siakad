@@ -66,7 +66,7 @@ export default function FaceRegistrationPage() {
   }, [modelsLoaded]);
 
   const detectFace = useCallback(async () => {
-    if (!videoRef.current || !canvasRef.current || status === 'captured') return;
+    if (!videoRef.current || !canvasRef.current || status === 'captured' || status === 'registering' || status === 'success') return;
     const video = videoRef.current;
     const canvas = canvasRef.current;
     if (video.readyState < 2) { animRef.current = requestAnimationFrame(detectFace); return; }
@@ -100,13 +100,13 @@ export default function FaceRegistrationPage() {
       setDescriptor(null);
     }
 
-    if (status !== 'captured') animRef.current = requestAnimationFrame(detectFace);
+    animRef.current = requestAnimationFrame(detectFace);
   }, [status]);
 
   useEffect(() => {
-    if (cameraReady) animRef.current = requestAnimationFrame(detectFace);
+    if (cameraReady && status !== 'success') animRef.current = requestAnimationFrame(detectFace);
     return () => cancelAnimationFrame(animRef.current);
-  }, [cameraReady]);
+  }, [cameraReady, status]);
 
   const handleCapture = async () => {
     if (!descriptor) return;
@@ -176,10 +176,16 @@ export default function FaceRegistrationPage() {
 
       <div className="flex gap-3">
         {(status === 'idle' || status === 'captured') && (
-          <button onClick={handleCapture} disabled={!faceDetected || status === 'registering'}
+          <button onClick={handleCapture} disabled={!faceDetected}
             className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white transition-all flex items-center justify-center gap-2 disabled:opacity-50"
             style={{ background: 'var(--primary)' }}>
-            {status === 'registering' ? <><Loader2 size={15} className="animate-spin" /> Mendaftarkan...</> : <><Camera size={15} /> {faceDetected ? 'Registrasi Wajah' : 'Arahkan wajah ke kamera'}</>}
+            <Camera size={15} /> {faceDetected ? 'Registrasi Wajah' : 'Arahkan wajah ke kamera'}
+          </button>
+        )}
+        {status === 'registering' && (
+          <button disabled className="flex-1 py-2.5 rounded-xl text-sm font-semibold text-white transition-all flex items-center justify-center gap-2 opacity-50"
+            style={{ background: 'var(--primary)' }}>
+            <Loader2 size={15} className="animate-spin" /> Mendaftarkan...
           </button>
         )}
         {(status === 'success' || status === 'error') && (
