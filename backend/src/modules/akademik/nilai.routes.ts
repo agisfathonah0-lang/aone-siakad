@@ -159,10 +159,12 @@ router.post(
 router.get(
   '/khs',
   authenticate,
-  requireRole(Role.MAHASISWA),
   async (req: Request, res: Response, next: NextFunction) => {
     try {
       const s = schema(req);
+      if (!req.user?.role?.includes(Role.MAHASISWA) && !req.user?.roles?.includes(Role.MAHASISWA)) {
+        throw new AppError(403, 'KHS hanya untuk mahasiswa');
+      }
       const { rows: mhs } = await query(
         `SELECT id FROM ${s}.mahasiswa WHERE user_id = $1`,
         [req.user!.id]

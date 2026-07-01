@@ -221,7 +221,7 @@ function AppRoutes() {
             <Route path="face-register" element={<RoleGuard roles={['super_admin','admin','akademik','dosen','mahasiswa','calon_mahasiswa']}><FaceRegistrationPage /></RoleGuard>} />
             <Route path="face-attendance" element={<RoleGuard roles={['super_admin','admin','akademik','dosen','mahasiswa']}><FaceAttendancePage /></RoleGuard>} />
             <Route path="nilai" element={<RoleGuard roles={['super_admin','admin','akademik','dosen']}><NilaiPage /></RoleGuard>} />
-            <Route path="khs" element={<RoleGuard roles={['super_admin','rektor','admin','dekan','akademik','kaprodi','dosen','mahasiswa']}><KHSPage /></RoleGuard>} />
+            <Route path="khs" element={<RoleGuard roles={['mahasiswa']}><KHSPage /></RoleGuard>} />
             <Route path="kurikulum" element={<RoleGuard roles={['super_admin','rektor','admin','dekan','akademik','kaprodi']}><KurikulumPage /></RoleGuard>} />
             <Route path="rps" element={<RoleGuard roles={['super_admin','admin','akademik','dosen']}><RPSPage /></RoleGuard>} />
             <Route path="bap" element={<RoleGuard roles={['super_admin','admin','akademik','dosen']}><BAPPage /></RoleGuard>} />

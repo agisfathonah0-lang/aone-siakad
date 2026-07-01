@@ -64,7 +64,7 @@ export const SIDEBAR_MENUS: MenuItem[] = [
       { label: 'Jadwal', path: 'jadwal', icon: 'CalendarDays', roles: ['super_admin', 'admin', 'akademik', 'dosen'] },
       { label: 'KRS', path: 'krs', icon: 'ClipboardCheck', roles: ['super_admin', 'rektor', 'admin', 'dekan', 'akademik', 'kaprodi', 'dosen', 'mahasiswa'] },
       { label: 'Nilai', path: 'nilai', icon: 'Award', roles: ['super_admin', 'admin', 'akademik', 'dosen'] },
-      { label: 'KHS', path: 'khs', icon: 'ScrollText', roles: ['super_admin', 'rektor', 'admin', 'dekan', 'akademik', 'kaprodi', 'dosen', 'mahasiswa'] },
+      { label: 'KHS', path: 'khs', icon: 'ScrollText', roles: ['mahasiswa'] },
       { label: 'Absensi', path: 'absensi', icon: 'ClipboardList', roles: ['super_admin', 'admin', 'akademik', 'dosen'] },
       { label: 'Absensi Wajah', path: 'face-attendance', icon: 'Camera', roles: ['super_admin', 'admin', 'akademik', 'dosen', 'mahasiswa'] },
       { label: 'Registrasi Wajah', path: 'face-register', icon: 'UserCircle', roles: ['super_admin', 'admin', 'akademik', 'dosen', 'mahasiswa', 'calon_mahasiswa'] },
