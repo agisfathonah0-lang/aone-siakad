@@ -36,6 +36,7 @@ router.get(
 
       const { rows } = await query(
         `SELECT kr.*, u.nama as dosen_nama,
+                p.nama as prodi_nama,
                 COALESCE(kr_aggr.materi_count, 0) as materi_count,
                 COALESCE(kr_aggr.tugas_count, 0) as tugas_count,
                 COALESCE(kr_aggr.pengumuman_count, 0) as pengumuman_count,
@@ -43,6 +44,7 @@ router.get(
          FROM ${s}.kelas_room kr
          JOIN ${s}.kelas_room_anggota kra ON kra.kelas_room_id = kr.id AND kra.user_id = $1
          LEFT JOIN ${s}.users u ON u.id = kr.created_by
+         LEFT JOIN ${s}.program_studi p ON p.id = kr.program_studi_id
          LEFT JOIN LATERAL (
            SELECT
              COUNT(DISTINCT km.id) as materi_count,
@@ -78,14 +80,14 @@ router.post(
     try {
       const s = schema(req);
       const userId = req.user!.id;
-      const { nama, deskripsi, jadwal_id, semester, tahun_akademik } = req.body;
+      const { nama, deskripsi, jadwal_id, program_studi_id, semester, tahun_akademik } = req.body;
       const roomId = uuid();
       const kodeEnroll = Math.random().toString(36).substring(2, 8).toUpperCase();
 
       await query(
-        `INSERT INTO ${s}.kelas_room (id, jadwal_id, nama, deskripsi, kode_enroll, semester, tahun_akademik, created_by)
-         VALUES ($1, $2, $3, $4, $5, $6, $7, $8)`,
-        [roomId, jadwal_id || null, nama, deskripsi || null, kodeEnroll, semester || null, tahun_akademik || null, userId]
+        `INSERT INTO ${s}.kelas_room (id, jadwal_id, nama, deskripsi, kode_enroll, program_studi_id, semester, tahun_akademik, created_by)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)`,
+        [roomId, jadwal_id || null, nama, deskripsi || null, kodeEnroll, program_studi_id || null, semester || null, tahun_akademik || null, userId]
       );
 
       await query(

@@ -4,15 +4,32 @@ import { get, post } from '../../api/client';
 import { toast } from '../../context/ToastContext';
 import { Plus, LogIn, BookOpen, Users, FileText, ClipboardList, Megaphone, ExternalLink, RefreshCw, Loader2 } from 'lucide-react';
 
+const semesterOptions = ['Ganjil', 'Genap', 'Pendek'];
+
+function generateTahunAkademik() {
+  const year = new Date().getFullYear();
+  const month = new Date().getMonth() + 1;
+  const current = month >= 7 ? `${year}/${year + 1}` : `${year - 1}/${year}`;
+  const years = [];
+  for (let i = -2; i <= 2; i++) {
+    const y = parseInt(current.split('/')[0]) + i;
+    years.push(`${y}/${y + 1}`);
+  }
+  return years;
+}
+
 export default function KelasRoomPage() {
   const navigate = useNavigate();
   const [rooms, setRooms] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
   const [showEnroll, setShowEnroll] = useState(false);
-  const [form, setForm] = useState({ nama: '', deskripsi: '', semester: '', tahun_akademik: '' });
+  const [form, setForm] = useState({ nama: '', deskripsi: '', program_studi_id: '', semester: '', tahun_akademik: '' });
   const [kode, setKode] = useState('');
   const [saving, setSaving] = useState(false);
+  const [prodiList, setProdiList] = useState<{ id: string; nama: string; jenjang: string }[]>([]);
+
+  const tahunAkademikOptions = generateTahunAkademik();
 
   const fetchRooms = async () => {
     setLoading(true);
@@ -22,7 +39,11 @@ export default function KelasRoomPage() {
     } catch { /* ignore */ } finally { setLoading(false); }
   };
 
-  useEffect(() => { fetchRooms(); }, []);
+  useEffect(() => {
+    fetchRooms();
+    get<{ rows: { id: string; nama: string; jenjang: string }[] }>('/akademik/prodi?limit=200')
+      .then(r => setProdiList(r.rows || [])).catch(() => {});
+  }, []);
 
   const handleCreate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,7 +52,7 @@ export default function KelasRoomPage() {
       const res = await post<any>('/akademik/kelas-room', form);
       toast(res.message || 'Kelas berhasil dibuat', 'success');
       setShowCreate(false);
-      setForm({ nama: '', deskripsi: '', semester: '', tahun_akademik: '' });
+      setForm({ nama: '', deskripsi: '', program_studi_id: '', semester: '', tahun_akademik: '' });
       fetchRooms();
     } catch (err: any) { toast(err.response?.data?.message || err.message, 'error'); } finally { setSaving(false); }
   };
@@ -96,6 +117,7 @@ export default function KelasRoomPage() {
               {room.deskripsi && <p className="text-[10px] mt-1 line-clamp-2" style={{ color: 'var(--muted-foreground)' }}>{room.deskripsi}</p>}
               {room.dosen_nama && <p className="text-[10px] mt-2 font-medium" style={{ color: 'var(--primary)' }}>{room.dosen_nama}</p>}
               <div className="flex items-center gap-3 mt-3 text-[10px]" style={{ color: 'var(--muted-foreground)' }}>
+                {room.prodi_nama && <span className="text-[10px] px-1.5 py-0.5 rounded bg-indigo-50 dark:bg-indigo-900/20 text-indigo-500 dark:text-indigo-400">{room.prodi_nama}</span>}
                 <span className="flex items-center gap-1"><FileText size={11} />{room.materi_count}</span>
                 <span className="flex items-center gap-1"><ClipboardList size={11} />{room.tugas_count}</span>
                 <span className="flex items-center gap-1"><Megaphone size={11} />{room.pengumuman_count}</span>
@@ -114,9 +136,28 @@ export default function KelasRoomPage() {
             <form onSubmit={handleCreate} className="space-y-3">
               <div><input required placeholder="Nama Kelas (contoh: Pemrograman Web A)" value={form.nama} onChange={e => setForm({ ...form, nama: e.target.value })} className="input-field" /></div>
               <div><textarea placeholder="Deskripsi (opsional)" value={form.deskripsi} onChange={e => setForm({ ...form, deskripsi: e.target.value })} className="input-field" rows={3} /></div>
+              <div>
+                <label className="text-xs font-semibold text-slate-500 dark:text-zinc-400 block mb-1.5">Program Studi</label>
+                <select value={form.program_studi_id} onChange={e => setForm({ ...form, program_studi_id: e.target.value })} className="input-field">
+                  <option value="">Pilih Prodi</option>
+                  {prodiList.map(p => <option key={p.id} value={p.id}>{p.jenjang} - {p.nama}</option>)}
+                </select>
+              </div>
               <div className="grid grid-cols-2 gap-2">
-                <div><input placeholder="Semester (Ganjil/Genap)" value={form.semester} onChange={e => setForm({ ...form, semester: e.target.value })} className="input-field" /></div>
-                <div><input placeholder="T.A. (2025/2026)" value={form.tahun_akademik} onChange={e => setForm({ ...form, tahun_akademik: e.target.value })} className="input-field" /></div>
+                <div>
+                  <label className="text-xs font-semibold text-slate-500 dark:text-zinc-400 block mb-1.5">Semester</label>
+                  <select value={form.semester} onChange={e => setForm({ ...form, semester: e.target.value })} className="input-field">
+                    <option value="">Pilih Semester</option>
+                    {semesterOptions.map(s => <option key={s} value={s}>{s}</option>)}
+                  </select>
+                </div>
+                <div>
+                  <label className="text-xs font-semibold text-slate-500 dark:text-zinc-400 block mb-1.5">Tahun Akademik</label>
+                  <select value={form.tahun_akademik} onChange={e => setForm({ ...form, tahun_akademik: e.target.value })} className="input-field">
+                    <option value="">Pilih T.A.</option>
+                    {tahunAkademikOptions.map(t => <option key={t} value={t}>{t}</option>)}
+                  </select>
+                </div>
               </div>
               <button type="submit" disabled={saving} className="w-full py-2.5 bg-indigo-600 hover:bg-indigo-700 disabled:bg-indigo-300 text-white font-bold rounded-xl text-sm transition-all shadow-lg shadow-indigo-500/20">
                 {saving ? <Loader2 size={16} className="animate-spin mx-auto" /> : 'Buat Kelas'}
