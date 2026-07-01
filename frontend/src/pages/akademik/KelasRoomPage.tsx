@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useParams } from 'react-router-dom';
 import { get, post } from '../../api/client';
 import { toast } from '../../context/ToastContext';
 import { Plus, LogIn, BookOpen, Users, FileText, ClipboardList, Megaphone, ExternalLink, RefreshCw, Loader2 } from 'lucide-react';
@@ -20,6 +20,7 @@ function generateTahunAkademik() {
 
 export default function KelasRoomPage() {
   const navigate = useNavigate();
+  const { slug } = useParams<{ slug: string }>();
   const [rooms, setRooms] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [showCreate, setShowCreate] = useState(false);
@@ -105,7 +106,7 @@ export default function KelasRoomPage() {
           {rooms.map((room: any) => (
             <button
               key={room.id}
-              onClick={() => navigate(room.id)}
+              onClick={() => navigate(`/kampus/${slug}/kelas-room/${room.id}`)}
               className="bg-card rounded-xl border border-border p-5 text-left transition-all hover:shadow-md hover:-translate-y-0.5"
               style={{ background: 'var(--card)', borderColor: 'var(--border)' }}
             >
