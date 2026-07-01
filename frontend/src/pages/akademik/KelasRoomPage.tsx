@@ -50,7 +50,8 @@ export default function KelasRoomPage() {
     setSaving(true);
     try {
       const res = await post<any>('/akademik/kelas-room', form);
-      toast(res.message || 'Kelas berhasil dibuat', 'success');
+      if (res.kode_enroll) toast(`Kelas berhasil dibuat! Kode enroll: ${res.kode_enroll}`, 'success');
+      else toast(res.message || 'Kelas berhasil dibuat', 'success');
       setShowCreate(false);
       setForm({ nama: '', deskripsi: '', program_studi_id: '', semester: '', tahun_akademik: '' });
       fetchRooms();

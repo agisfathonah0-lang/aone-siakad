@@ -160,6 +160,12 @@ export default function KelasRoomDetailPage() {
             {room.dosen_nama} {room.semester && `· ${room.semester} ${room.tahun_akademik || ''}`}
           </p>
         </div>
+        {isDosen && room.kode_enroll && (
+          <div className="flex items-center gap-1.5 text-xs px-3 py-1.5 rounded-lg" style={{ background: 'var(--secondary)', color: 'var(--foreground)' }}>
+            <span className="font-mono font-bold tracking-wider">{room.kode_enroll}</span>
+            <button onClick={() => { navigator.clipboard.writeText(room.kode_enroll); toast('Kode enroll disalin', 'success'); }} className="ml-1 text-indigo-500 hover:text-indigo-600">Salin</button>
+          </div>
+        )}
         <div className="flex items-center gap-2 text-xs" style={{ color: 'var(--muted-foreground)' }}>
           <Users size={14} /><span>{room.anggota?.length || 0} anggota</span>
         </div>
