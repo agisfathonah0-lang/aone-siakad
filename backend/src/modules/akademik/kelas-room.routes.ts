@@ -37,30 +37,19 @@ router.get(
       const { rows } = await query(
         `SELECT kr.*, u.nama as dosen_nama,
                 p.nama as prodi_nama,
-                COALESCE(kr_aggr.materi_count, 0) as materi_count,
-                COALESCE(kr_aggr.tugas_count, 0) as tugas_count,
-                COALESCE(kr_aggr.pengumuman_count, 0) as pengumuman_count,
-                kr_aggr.last_activity
+                (SELECT COUNT(*) FROM ${s}.kelas_materi WHERE kelas_room_id = kr.id) as materi_count,
+                (SELECT COUNT(*) FROM ${s}.kelas_tugas WHERE kelas_room_id = kr.id) as tugas_count,
+                (SELECT COUNT(*) FROM ${s}.kelas_pengumuman WHERE kelas_room_id = kr.id) as pengumuman_count,
+                GREATEST(
+                  COALESCE((SELECT MAX(created_at) FROM ${s}.kelas_materi WHERE kelas_room_id = kr.id), '1970-01-01'),
+                  COALESCE((SELECT MAX(created_at) FROM ${s}.kelas_tugas WHERE kelas_room_id = kr.id), '1970-01-01'),
+                  COALESCE((SELECT MAX(created_at) FROM ${s}.kelas_pengumuman WHERE kelas_room_id = kr.id), '1970-01-01')
+                ) as last_activity
          FROM ${s}.kelas_room kr
          JOIN ${s}.kelas_room_anggota kra ON kra.kelas_room_id = kr.id AND kra.user_id = $1
          LEFT JOIN ${s}.users u ON u.id = kr.created_by
          LEFT JOIN ${s}.program_studi p ON p.id = kr.program_studi_id
-         LEFT JOIN LATERAL (
-           SELECT
-             COUNT(DISTINCT km.id) as materi_count,
-             COUNT(DISTINCT kt.id) as tugas_count,
-             COUNT(DISTINCT kp.id) as pengumuman_count,
-             GREATEST(
-               COALESCE(MAX(km.created_at), '1970-01-01'),
-               COALESCE(MAX(kt.created_at), '1970-01-01'),
-               COALESCE(MAX(kp.created_at), '1970-01-01')
-             ) as last_activity
-           FROM ${s}.kelas_materi km
-           FULL JOIN ${s}.kelas_tugas kt ON kt.kelas_room_id = kr.id
-           FULL JOIN ${s}.kelas_pengumuman kp ON kp.kelas_room_id = kr.id
-           WHERE km.kelas_room_id = kr.id OR kt.kelas_room_id = kr.id OR kp.kelas_room_id = kr.id
-         ) kr_aggr ON true
-         ORDER BY kr_aggr.last_activity DESC NULLS LAST, kr.created_at DESC
+         ORDER BY last_activity DESC NULLS LAST, kr.created_at DESC
          LIMIT $2 OFFSET $3`,
         [userId, limit, offset]
       );
