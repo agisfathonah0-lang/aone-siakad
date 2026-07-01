@@ -1,7 +1,7 @@
 -- 030_tenant_kelas_room.sql — Google Classroom-like feature
 CREATE TABLE IF NOT EXISTS {schema}.kelas_room (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  jadwal_id UUID REFERENCES {schema}.jadwal(id) ON DELETE SET NULL,
+  jadwal_id UUID REFERENCES {schema}.jadwal_kuliah(id) ON DELETE SET NULL,
   nama VARCHAR(255) NOT NULL,
   deskripsi TEXT,
   kode_enroll VARCHAR(20) UNIQUE,
