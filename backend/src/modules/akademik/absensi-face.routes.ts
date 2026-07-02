@@ -42,8 +42,7 @@ router.post(
   authenticate,
   requireRole(Role.SUPER_ADMIN, Role.ADMIN, Role.AKADEMIK, Role.MAHASISWA),
   [
-    body('descriptor').isArray().withMessage('Descriptor harus berupa array'),
-    body('descriptor').isLength({ min: 128, max: 128 }).withMessage('Descriptor harus 128 angka'),
+    body('descriptor').isArray({ min: 128, max: 128 }).withMessage('Descriptor harus array 128 angka'),
     validate,
   ],
   async (req: Request, res: Response, next: NextFunction) => {
